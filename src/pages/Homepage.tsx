@@ -17,10 +17,21 @@ import ScheduleRoundedIcon from '@mui/icons-material/ScheduleRounded';
 import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
 import MapRoundedIcon from '@mui/icons-material/MapRounded';
 import RocketLaunchRoundedIcon from '@mui/icons-material/RocketLaunchRounded';
+import Fleet from '@mui/icons-material/LocalShipping';
+import HandshakeRoundedIcon from '@mui/icons-material/HandshakeRounded';
+import BuildRoundedIcon from '@mui/icons-material/BuildRounded';
+import SupportAgentRoundedIcon from '@mui/icons-material/SupportAgentRounded';
+import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import EmailRoundedIcon from '@mui/icons-material/EmailRounded';
+import PhoneRoundedIcon from '@mui/icons-material/PhoneRounded';
+import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined';
+import TextField from '@mui/material/TextField';
 import Logo from '../components/Logo';
 import LebanonMap from '../components/LebanonMap';
 import Reveal from '../components/Reveal';
 import CountUp from '../components/CountUp';
+import { useToast } from '../components/ToastProvider';
 import { tokens } from '../theme';
 import heroTaxi from '../assets/hero/hero-taxi.jpg';
 
@@ -66,6 +77,47 @@ const BENEFITS = [
 ];
 
 const PARTNER_PLACEHOLDERS = ['Advertising Clients', 'Taxi Companies', 'Driver Partners', 'Lebanese Business Partners'];
+
+const TAXI_COMPANY_BENEFITS = [
+  { title: 'Fleet-wide revenue', body: 'Every vehicle in your fleet earns — paid out monthly per taxi, on top of fare income.', icon: Fleet },
+  { title: 'Zero hardware cost', body: 'Screens are installed and fully insured at no cost to your company.', icon: BuildRoundedIcon },
+  { title: 'Dedicated account manager', body: 'One point of contact for onboarding, support, and reporting.', icon: SupportAgentRoundedIcon },
+  { title: 'Consolidated reporting', body: "Track every vehicle's uptime and earnings from a single dashboard.", icon: DashboardRoundedIcon },
+];
+
+const PRICING_TIERS = [
+  {
+    name: '5 Taxis',
+    price: '$1,500',
+    period: '',
+    description: '1 unit, repeating all day',
+    features: ['5 taxis', '1 of 6 ad units (15 sec)', 'Repeats every ~90 sec, 8 hrs/day', 'Standard reporting'],
+    highlighted: false,
+  },
+  {
+    name: '10 Taxis',
+    price: '$3,000',
+    period: '',
+    description: '1 unit, repeating all day',
+    features: ['10 taxis', '1 of 6 ad units (15 sec)', 'Repeats every ~90 sec, 8 hrs/day', 'Standard reporting'],
+    highlighted: false,
+  },
+  {
+    name: 'Custom',
+    price: 'Custom',
+    period: '',
+    description: 'Tailored to your campaign.',
+    features: ['Custom taxi count', 'Custom number of units', 'Custom display hours', 'Dedicated account manager'],
+    highlighted: false,
+  },
+];
+
+const ABOUT_STATS = [
+  { value: '2026', label: 'Founded' },
+  { value: '6', label: 'Regions' },
+  { value: '142', label: 'Advertisers' },
+  { value: '2,610', label: 'Drivers' },
+];
 
 function StepCard({ title, steps, badgeBg, badgeColor }: { title: string; steps: typeof ADVERTISER_STEPS; badgeBg: string; badgeColor: string }) {
   return (
@@ -117,9 +169,21 @@ function SectionEyebrow({ children }: { children: string }) {
 
 export default function Homepage() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [hours, setHours] = useState(8);
   const [days, setDays] = useState(24);
   const [drivesPremiumAreas, setDrivesPremiumAreas] = useState(true);
+  const [contactName, setContactName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactMessage, setContactMessage] = useState('');
+
+  const handleContactSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    showToast("Message sent — we'll get back to you soon (preview only)");
+    setContactName('');
+    setContactEmail('');
+    setContactMessage('');
+  };
 
   const BASE_PAY = 30;
   const HOURLY_RATE = 0.6;
@@ -264,10 +328,68 @@ export default function Homepage() {
           <Box component="section" sx={{ py: '64px' }}>
             <SectionEyebrow>How it works</SectionEyebrow>
             <Typography sx={{ fontWeight: 700, fontSize: 30, mb: '32px', letterSpacing: '-0.01em' }}>Two journeys, one platform</Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: '24px' }}>
-              <StepCard title="For advertisers" steps={ADVERTISER_STEPS} badgeBg="#EAF0FF" badgeColor={tokens.blue} />
-              <StepCard title="For drivers" steps={DRIVER_STEPS} badgeBg="#FEF3E2" badgeColor={tokens.amber600} />
+            <Box sx={{ display: 'grid', gap: '24px' }}>
+              <Box id="advertisers" sx={{ scrollMarginTop: '20px' }}>
+                <StepCard title="For advertisers" steps={ADVERTISER_STEPS} badgeBg="#EAF0FF" badgeColor={tokens.blue} />
+              </Box>
+              <Box id="drivers" sx={{ scrollMarginTop: '20px' }}>
+                <StepCard title="For drivers" steps={DRIVER_STEPS} badgeBg="#FEF3E2" badgeColor={tokens.amber600} />
+              </Box>
             </Box>
+          </Box>
+        </Reveal>
+
+        {/* TAXI COMPANIES */}
+        <Reveal>
+          <Box component="section" id="taxi-companies" sx={{ py: '64px', scrollMarginTop: '20px' }}>
+            <SectionEyebrow>For taxi companies</SectionEyebrow>
+            <Typography sx={{ fontWeight: 700, fontSize: 30, mb: '10px', letterSpacing: '-0.01em' }}>Partner your fleet with AdzOnRoad</Typography>
+            <Typography sx={{ fontSize: 15.5, color: 'text.secondary', maxWidth: '60ch', mb: '28px' }}>
+              Turn your entire fleet into a revenue stream — we handle installation, maintenance, and driver payouts.
+            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4,1fr)' }, gap: '16px' }}>
+              {TAXI_COMPANY_BENEFITS.map((b) => {
+                const Icon = b.icon;
+                return (
+                  <Card
+                    key={b.title}
+                    sx={{
+                      p: '22px',
+                      transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+                      '&:hover': { transform: 'translateY(-6px)', boxShadow: tokens.shadowMd },
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: '10px',
+                        backgroundColor: '#FEF3E2',
+                        color: tokens.amber600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        mb: '14px',
+                      }}
+                    >
+                      <Icon sx={{ fontSize: 20 }} />
+                    </Box>
+                    <Typography sx={{ fontWeight: 700, fontSize: 16, mb: '6px', color: tokens.navy }}>{b.title}</Typography>
+                    <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.55 }}>{b.body}</Typography>
+                  </Card>
+                );
+              })}
+            </Box>
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              sx={{ mt: '28px' }}
+              onClick={() => navigate('/signup?role=driver')}
+              startIcon={<HandshakeRoundedIcon />}
+            >
+              Partner Your Fleet
+            </Button>
           </Box>
         </Reveal>
 
@@ -322,6 +444,78 @@ export default function Homepage() {
                   <Typography sx={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'text.secondary', mt: '2px' }}>
                     Screens
                   </Typography>
+                </Card>
+              ))}
+            </Box>
+          </Box>
+        </Reveal>
+
+        {/* PRICING */}
+        <Reveal>
+          <Box component="section" id="pricing" sx={{ py: '64px', scrollMarginTop: '20px' }}>
+            <SectionEyebrow>Pricing</SectionEyebrow>
+            <Typography sx={{ fontWeight: 700, fontSize: 30, mb: '10px', letterSpacing: '-0.01em' }}>Simple, transparent rates</Typography>
+            <Typography sx={{ fontSize: 15.5, color: 'text.secondary', maxWidth: '60ch', mb: '10px' }}>
+              Choose a plan based on region coverage and taxi count. No hidden fees.
+            </Typography>
+            <Typography sx={{ fontSize: 13.5, color: 'text.secondary', maxWidth: '60ch', mb: '28px' }}>
+              Each screen rotates up to <strong>6 ad units</strong> of 15 seconds each (a 90-second full cycle), repeating
+              continuously across an 8-hour display day — not one continuous 8-hour slot. Buy as many units as you need.
+            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3,1fr)' }, gap: '20px' }}>
+              {PRICING_TIERS.map((tier) => (
+                <Card
+                  key={`${tier.name}-${tier.price}`}
+                  sx={{
+                    p: '28px',
+                    position: 'relative',
+                    border: tier.highlighted ? `2px solid ${tokens.amber}` : `1px solid ${tokens.border}`,
+                    transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+                    '&:hover': { transform: 'translateY(-6px)', boxShadow: tokens.shadowMd },
+                  }}
+                >
+                  {tier.highlighted && (
+                    <Chip
+                      label="Most popular"
+                      size="small"
+                      sx={{
+                        position: 'absolute',
+                        top: -12,
+                        right: 24,
+                        backgroundColor: tokens.amber,
+                        color: tokens.navy,
+                        fontWeight: 700,
+                        fontSize: 11,
+                      }}
+                    />
+                  )}
+                  <Typography sx={{ fontWeight: 700, fontSize: 18, color: tokens.navy }}>{tier.name}</Typography>
+                  <Typography sx={{ fontSize: 13.5, color: 'text.secondary', mt: '4px', mb: '18px' }}>{tier.description}</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'baseline', gap: '4px', mb: '20px' }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: 36, letterSpacing: '-0.01em' }}>{tier.price}</Typography>
+                    <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>{tier.period}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'grid', gap: '10px', mb: '24px' }}>
+                    {tier.features.map((feature) => (
+                      <Box key={feature} sx={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 14 }}>
+                        <CheckRoundedIcon sx={{ fontSize: 18, color: tokens.green }} />
+                        {feature}
+                      </Box>
+                    ))}
+                  </Box>
+                  <Button
+                    fullWidth
+                    variant={tier.highlighted ? 'contained' : 'outlined'}
+                    color={tier.highlighted ? 'primary' : 'inherit'}
+                    sx={!tier.highlighted ? { borderColor: tokens.border, color: tokens.text } : undefined}
+                    onClick={() =>
+                      tier.name === 'Custom'
+                        ? document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
+                        : navigate('/signup?role=advertiser')
+                    }
+                  >
+                    {tier.name === 'Custom' ? 'Contact Sales' : 'Get Started'}
+                  </Button>
                 </Card>
               ))}
             </Box>
@@ -428,6 +622,53 @@ export default function Homepage() {
         </Box>
         </Reveal>
 
+        {/* ABOUT */}
+        <Reveal>
+          <Box component="section" id="about" sx={{ py: '64px', scrollMarginTop: '20px' }}>
+            <SectionEyebrow>About us</SectionEyebrow>
+            <Typography sx={{ fontWeight: 700, fontSize: 30, mb: '20px', letterSpacing: '-0.01em' }}>Built in Beirut, for Lebanon's roads</Typography>
+            <Typography sx={{ fontSize: 15.5, color: 'text.secondary', lineHeight: 1.7, maxWidth: '70ch', mb: '28px' }}>
+              AdzOnRoad started with a simple idea: Lebanon's roads are full of taxis, and every one of them is a
+              billboard waiting to happen. We built GPS-verified rooftop screens so advertisers get proof their ads
+              were actually shown, and so drivers earn extra income for miles they're already driving. No guesswork,
+              no wasted impressions — just measurable advertising on the roads people already use.
+            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', backgroundColor: tokens.border, borderRadius: '12px', overflow: 'hidden', border: `1px solid ${tokens.border}`, mb: '28px' }}>
+              {ABOUT_STATS.map((stat) => (
+                <Box key={stat.label} sx={{ backgroundColor: 'background.paper', padding: '18px 16px' }}>
+                  <Typography sx={{ fontSize: 24, fontWeight: 800, color: tokens.navy }}>{stat.value}</Typography>
+                  <Typography sx={{ mt: '4px', fontSize: 11, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'text.secondary' }}>
+                    {stat.label}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+            <Card sx={{ p: '20px', display: 'flex', alignItems: 'center', gap: '16px', maxWidth: 420 }}>
+              <Box
+                sx={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: '50%',
+                  backgroundColor: tokens.amber,
+                  color: tokens.navy,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  fontSize: 18,
+                  flexShrink: 0,
+                }}
+              >
+                MA
+              </Box>
+              <Box>
+                <Typography sx={{ fontWeight: 700, fontSize: 16 }}>Mahmoud Al-Masri</Typography>
+                <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>Founder</Typography>
+              </Box>
+            </Card>
+          </Box>
+        </Reveal>
+
         {/* TESTIMONIAL */}
         <Reveal>
           <Box component="section" sx={{ pt: '40px', pb: '64px' }}>
@@ -454,6 +695,79 @@ export default function Homepage() {
                   {p}
                 </Box>
               ))}
+            </Box>
+          </Box>
+        </Reveal>
+
+        {/* CONTACT */}
+        <Reveal>
+          <Box component="section" id="contact" sx={{ py: '64px', scrollMarginTop: '20px' }}>
+            <SectionEyebrow>Contact</SectionEyebrow>
+            <Typography sx={{ fontWeight: 700, fontSize: 30, mb: '10px', letterSpacing: '-0.01em' }}>Let's talk</Typography>
+            <Typography sx={{ fontSize: 15.5, color: 'text.secondary', maxWidth: '60ch', mb: '28px' }}>
+              Questions about campaigns, driver partnerships, or fleet deals — reach out and we'll get back to you.
+            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '0.8fr 1.2fr' }, gap: '24px' }}>
+              <Card sx={{ p: '28px', display: 'grid', gap: '20px', alignContent: 'start' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Box sx={{ width: 36, height: 36, borderRadius: '10px', backgroundColor: '#EAF0FF', color: tokens.blue, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <EmailRoundedIcon sx={{ fontSize: 18 }} />
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Email</Typography>
+                    <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Info@adzonroad.com</Typography>
+                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Box sx={{ width: 36, height: 36, borderRadius: '10px', backgroundColor: '#FEF3E2', color: tokens.amber600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <PhoneRoundedIcon sx={{ fontSize: 18 }} />
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Phone</Typography>
+                    <Typography sx={{ fontSize: 14, fontWeight: 600 }}>+961 71 600 011</Typography>
+                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Box sx={{ width: 36, height: 36, borderRadius: '10px', backgroundColor: '#EAF7EF', color: tokens.green, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <PlaceOutlinedIcon sx={{ fontSize: 18 }} />
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Office</Typography>
+                    <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Beirut, Lebanon</Typography>
+                  </Box>
+                </Box>
+              </Card>
+              <Card sx={{ p: '28px' }}>
+                <Box component="form" onSubmit={handleContactSubmit} sx={{ display: 'grid', gap: '16px' }}>
+                  <TextField
+                    label="Name"
+                    required
+                    fullWidth
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
+                  />
+                  <TextField
+                    label="Email"
+                    type="email"
+                    required
+                    fullWidth
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                  />
+                  <TextField
+                    label="Message"
+                    required
+                    fullWidth
+                    multiline
+                    minRows={4}
+                    value={contactMessage}
+                    onChange={(e) => setContactMessage(e.target.value)}
+                  />
+                  <Button type="submit" variant="contained" color="primary" size="large">
+                    Send Message
+                  </Button>
+                </Box>
+              </Card>
             </Box>
           </Box>
         </Reveal>
