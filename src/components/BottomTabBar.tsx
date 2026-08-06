@@ -5,7 +5,7 @@ import PaidRoundedIcon from '@mui/icons-material/PaidRounded';
 import TimelineRoundedIcon from '@mui/icons-material/TimelineRounded';
 import DirectionsCarRoundedIcon from '@mui/icons-material/DirectionsCarRounded';
 import SupportAgentRoundedIcon from '@mui/icons-material/SupportAgentRounded';
-import { useToast } from './ToastProvider';
+import { useToast } from '../contexts/ToastProvider';
 import { tokens } from '../theme';
 
 const TABS = [

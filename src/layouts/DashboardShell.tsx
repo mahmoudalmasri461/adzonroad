@@ -2,8 +2,8 @@ import type { ReactNode } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import { Link as RouterLink } from 'react-router-dom';
-import Logo from './Logo';
-import { useToast } from './ToastProvider';
+import Logo from '../components/Logo';
+import { useToast } from '../contexts/ToastProvider';
 import { tokens } from '../theme';
 
 export type SidebarNavItem = {

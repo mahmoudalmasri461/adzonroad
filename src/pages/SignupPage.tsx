@@ -4,8 +4,8 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import AuthLayout from '../components/AuthLayout';
-import { useToast } from '../components/ToastProvider';
+import AuthLayout from '../layouts/AuthLayout';
+import { useToast } from '../contexts/ToastProvider';
 
 const ROLE_DASHBOARD: Record<'advertiser' | 'driver', string> = {
   advertiser: '/advertiser',

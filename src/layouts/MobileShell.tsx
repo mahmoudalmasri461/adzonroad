@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import Box from '@mui/material/Box';
-import Logo from './Logo';
+import Logo from '../components/Logo';
 import { tokens } from '../theme';
 
 type MobileShellProps = {

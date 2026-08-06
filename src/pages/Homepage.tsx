@@ -31,7 +31,10 @@ import Logo from '../components/Logo';
 import LebanonMap from '../components/LebanonMap';
 import Reveal from '../components/Reveal';
 import CountUp from '../components/CountUp';
-import { useToast } from '../components/ToastProvider';
+import { useToast } from '../contexts/ToastProvider';
+import { calculateDriverEarnings } from '../services/earningsService';
+import { PRICING_TIERS as CAMPAIGN_PRICING_TIERS } from '../services/pricingService';
+import { formatCurrency } from '../utils/format';
 import { tokens } from '../theme';
 import heroTaxi from '../assets/hero/hero-taxi.jpg';
 
@@ -88,7 +91,7 @@ const TAXI_COMPANY_BENEFITS = [
 const PRICING_TIERS = [
   {
     name: '5 Taxis',
-    price: '$1,500',
+    price: formatCurrency(CAMPAIGN_PRICING_TIERS[0].price),
     period: '',
     description: '1 unit, repeating all day',
     features: ['5 taxis', '1 of 6 ad units (15 sec)', 'Repeats every ~90 sec, 8 hrs/day', 'Standard reporting'],
@@ -96,7 +99,7 @@ const PRICING_TIERS = [
   },
   {
     name: '10 Taxis',
-    price: '$3,000',
+    price: formatCurrency(CAMPAIGN_PRICING_TIERS[1].price),
     period: '',
     description: '1 unit, repeating all day',
     features: ['10 taxis', '1 of 6 ad units (15 sec)', 'Repeats every ~90 sec, 8 hrs/day', 'Standard reporting'],
@@ -185,19 +188,13 @@ export default function Homepage() {
     setContactMessage('');
   };
 
-  const BASE_PAY = 30;
-  const HOURLY_RATE = 0.6;
-  const PREMIUM_AREA_BONUS = 20;
-
   const { total, base, hourlyEarnings, premiumBonus } = useMemo(() => {
-    const totalHours = hours * days;
-    const hourlyEarningsVal = totalHours * HOURLY_RATE;
-    const premiumBonusVal = drivesPremiumAreas ? PREMIUM_AREA_BONUS : 0;
+    const breakdown = calculateDriverEarnings({ hoursPerDay: hours, days, drivesPremiumAreas });
     return {
-      base: BASE_PAY,
-      hourlyEarnings: Math.round(hourlyEarningsVal),
-      premiumBonus: premiumBonusVal,
-      total: Math.round(BASE_PAY + hourlyEarningsVal + premiumBonusVal),
+      base: breakdown.base,
+      hourlyEarnings: Math.round(breakdown.hourlyEarnings),
+      premiumBonus: breakdown.premiumBonus,
+      total: Math.round(breakdown.total),
     };
   }, [hours, days, drivesPremiumAreas]);
 

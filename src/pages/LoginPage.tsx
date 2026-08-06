@@ -5,8 +5,8 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
-import AuthLayout, { type AuthRole } from '../components/AuthLayout';
-import { useToast } from '../components/ToastProvider';
+import AuthLayout, { type AuthRole } from '../layouts/AuthLayout';
+import { useToast } from '../contexts/ToastProvider';
 
 const ROLE_DASHBOARD: Record<AuthRole, string> = {
   advertiser: '/advertiser',

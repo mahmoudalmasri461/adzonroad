@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Link from '@mui/material/Link';
-import Logo from './Logo';
+import Logo from '../components/Logo';
 import { tokens } from '../theme';
 
 export type AuthRole = 'advertiser' | 'admin' | 'driver';

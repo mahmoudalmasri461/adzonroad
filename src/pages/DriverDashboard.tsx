@@ -8,10 +8,24 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import TextField from '@mui/material/TextField';
-import MobileShell from '../components/MobileShell';
+import MobileShell from '../layouts/MobileShell';
 import BottomTabBar from '../components/BottomTabBar';
-import { useToast } from '../components/ToastProvider';
+import { useToast } from '../contexts/ToastProvider';
+import { calculateDriverEarnings } from '../services/earningsService';
+import { formatCurrency } from '../utils/format';
+import { STATUS_CHIPS, VEHICLE_INFO, SHIFT_MOCK } from '../data/driverMockData';
 import { tokens } from '../theme';
+
+const TODAY_EARNINGS = calculateDriverEarnings({
+  hoursPerDay: SHIFT_MOCK.activeHoursToday,
+  days: 1,
+  drivesPremiumAreas: SHIFT_MOCK.drivesPremiumAreasToday,
+});
+const MONTH_EARNINGS = calculateDriverEarnings({
+  hoursPerDay: SHIFT_MOCK.activeHoursToday,
+  days: SHIFT_MOCK.daysWorkedThisMonth,
+  drivesPremiumAreas: SHIFT_MOCK.drivesPremiumAreasThisMonth,
+});
 
 type ActionDialogProps = {
   open: boolean;
@@ -60,24 +74,11 @@ function ActionDialog({ open, onClose, title, placeholder, onSubmitted }: Action
   );
 }
 
-const STATUS_CHIPS = [
-  { label: 'Online', pulse: true },
-  { label: 'GPS active' },
-  { label: 'Screen active' },
-];
-
 const QUICK_STATS = [
-  { value: '6.2 hrs', label: 'Active driving' },
-  { value: '5.4 hrs', label: 'Verified ad hours' },
-  { value: '96%', label: 'Screen uptime', color: tokens.green },
-  { value: '142 km', label: 'Distance today' },
-];
-
-const VEHICLE_INFO = [
-  ['Plate', 'B 84 219'],
-  ['Screen serial', 'AZR-2291'],
-  ['Battery / power', 'Good'],
-  ['Last maintenance', 'Jun 12, 2026'],
+  { value: `${SHIFT_MOCK.activeHoursToday} hrs`, label: 'Active driving' },
+  { value: `${SHIFT_MOCK.verifiedAdHoursToday} hrs`, label: 'Verified ad hours' },
+  { value: `${SHIFT_MOCK.screenUptimePercent}%`, label: 'Screen uptime', color: tokens.green },
+  { value: `${SHIFT_MOCK.distanceTodayKm} km`, label: 'Distance today' },
 ];
 
 export default function DriverDashboard() {
@@ -128,12 +129,14 @@ export default function DriverDashboard() {
         <Typography sx={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'rgba(255,255,255,0.6)' }}>
           Today's earnings
         </Typography>
-        <Typography sx={{ mt: '6px', mb: '2px', fontWeight: 800, fontSize: 38 }}>$24.60</Typography>
-        <Typography sx={{ fontSize: 12.5, color: 'rgba(255,255,255,0.65)' }}>6.2 active hrs · 5.4 verified ad hrs</Typography>
+        <Typography sx={{ mt: '6px', mb: '2px', fontWeight: 800, fontSize: 38 }}>{formatCurrency(TODAY_EARNINGS.total)}</Typography>
+        <Typography sx={{ fontSize: 12.5, color: 'rgba(255,255,255,0.65)' }}>
+          {SHIFT_MOCK.activeHoursToday} active hrs · {SHIFT_MOCK.verifiedAdHoursToday} verified ad hrs
+        </Typography>
         <Box sx={{ display: 'flex', gap: '18px', mt: '16px', pt: '16px', borderTop: '1px solid rgba(255,255,255,0.15)' }}>
           <Box>
             <Typography sx={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'rgba(255,255,255,0.5)' }}>This month</Typography>
-            <Typography sx={{ mt: '4px', fontSize: 18, fontWeight: 700 }}>$518</Typography>
+            <Typography sx={{ mt: '4px', fontSize: 18, fontWeight: 700 }}>{formatCurrency(MONTH_EARNINGS.total)}</Typography>
           </Box>
           <Box>
             <Typography sx={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'rgba(255,255,255,0.5)' }}>Next payout</Typography>
@@ -193,7 +196,7 @@ export default function DriverDashboard() {
           Vehicle &amp; screen
         </Typography>
         <Box sx={{ display: 'grid', gap: '8px', fontSize: 14, mt: '10px' }}>
-          {VEHICLE_INFO.map(([label, value]) => (
+          {VEHICLE_INFO.map(({ label, value }) => (
             <Box key={label} sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: tokens.textMuted }}>{label}</span>
               <span style={{ fontWeight: 600, color: value === 'Good' ? tokens.green : undefined }}>{value}</span>

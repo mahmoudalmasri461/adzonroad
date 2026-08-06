@@ -13,9 +13,12 @@ import Typography from '@mui/material/Typography';
 import MenuItem from '@mui/material/MenuItem';
 import Chip from '@mui/material/Chip';
 import Slider from '@mui/material/Slider';
+import { estimateCampaignPrice, type CreativeDurationSeconds } from '../services/pricingService';
+import { formatCurrency } from '../utils/format';
 
 const STEPS = ['Info', 'Upload creative', 'Regions', 'Taxi count', 'Dates & hours', 'Price review', 'Payment'];
 const REGIONS = ['Beirut', 'Mount Lebanon', 'Tripoli', 'Sidon', 'Tyre', 'Zahle', 'Byblos', 'Jounieh'];
+const DURATIONS: CreativeDurationSeconds[] = [10, 15, 30];
 
 type CreateCampaignDialogProps = {
   open: boolean;
@@ -28,6 +31,7 @@ export default function CreateCampaignDialog({ open, onClose }: CreateCampaignDi
   const [budget, setBudget] = useState('');
   const [regions, setRegions] = useState<string[]>(['Beirut']);
   const [taxiCount, setTaxiCount] = useState(50);
+  const [duration, setDuration] = useState<CreativeDurationSeconds>(15);
 
   const isLast = activeStep === STEPS.length - 1;
 
@@ -40,7 +44,7 @@ export default function CreateCampaignDialog({ open, onClose }: CreateCampaignDi
     setRegions((prev) => (prev.includes(region) ? prev.filter((r) => r !== region) : [...prev, region]));
   };
 
-  const estimatedPrice = taxiCount * 12 + regions.length * 150;
+  const pricing = estimateCampaignPrice({ taxiCount, durationSeconds: duration, regionCount: regions.length });
 
   const renderStepContent = () => {
     switch (activeStep) {
@@ -92,9 +96,18 @@ export default function CreateCampaignDialog({ open, onClose }: CreateCampaignDi
         );
       case 3:
         return (
-          <Box sx={{ pt: 2, px: 1 }}>
-            <Typography sx={{ fontSize: 13.5, fontWeight: 600, mb: 1 }}>Taxi count — {taxiCount}</Typography>
-            <Slider value={taxiCount} min={10} max={400} onChange={(_, v) => setTaxiCount(v as number)} />
+          <Box sx={{ pt: 2, px: 1, display: 'grid', gap: 3 }}>
+            <Box>
+              <Typography sx={{ fontSize: 13.5, fontWeight: 600, mb: 1 }}>Taxi count — {taxiCount}</Typography>
+              <Slider value={taxiCount} min={10} max={400} onChange={(_, v) => setTaxiCount(v as number)} />
+            </Box>
+            <TextField label="Ad duration per play" select value={duration} onChange={(e) => setDuration(Number(e.target.value) as CreativeDurationSeconds)}>
+              {DURATIONS.map((d) => (
+                <MenuItem key={d} value={d}>
+                  {d} seconds
+                </MenuItem>
+              ))}
+            </TextField>
           </Box>
         );
       case 4:
@@ -117,9 +130,19 @@ export default function CreateCampaignDialog({ open, onClose }: CreateCampaignDi
               <span>Taxis</span>
               <b>{taxiCount}</b>
             </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
+              <span>Ad duration</span>
+              <b>{duration} sec</b>
+            </Box>
+            {pricing.regionSurcharge > 0 && (
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'text.secondary' }}>
+                <span>Additional-region surcharge</span>
+                <span>{formatCurrency(pricing.regionSurcharge)}</span>
+              </Box>
+            )}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
               <span>Estimated total price</span>
-              <Typography sx={{ fontWeight: 800, fontSize: 20, color: 'navy.main' }}>${estimatedPrice.toLocaleString()}</Typography>
+              <Typography sx={{ fontWeight: 800, fontSize: 20, color: 'navy.main' }}>{formatCurrency(pricing.total)}</Typography>
             </Box>
           </Box>
         );
