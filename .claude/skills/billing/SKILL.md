@@ -7,11 +7,15 @@ description: Use this skill whenever working on invoices, billing summaries, pay
 
 ## What exists: display-only mock UI, no payment processing anywhere
 
-No payment gateway, invoicing service, or billing backend exists in this workspace. `CreateCampaignDialog`'s final step has a raw card-number/expiry/CVC `TextField` form (see [campaign-engine skill](../campaign-engine/SKILL.md)) that **does not submit anywhere** — it's a visual step in the mock flow only. Treat any request to "process a payment" as building from scratch, and flag it clearly since real payment handling has PCI-compliance implications that go well beyond this codebase's current scope.
+No payment gateway, invoicing service, or billing backend exists in this workspace, and **there is no card-entry form anywhere in the app anymore** — `CreateCampaignDialog`'s old raw card-number/expiry/CVC step was removed at the user's request and replaced with a "Submit inquiry" confirmation (see [campaign-engine skill](../campaign-engine/SKILL.md)): a campaign is submitted for the team to review, not paid for online. Treat any request to "process a payment" or "collect a card" as building from scratch, and flag it clearly since real payment handling has PCI-compliance implications that go well beyond this codebase's current scope.
 
 ## Current mock billing surface
 
-`BillingCard.tsx` ([src/components/advertiser/BillingCard.tsx](../../../src/components/advertiser/BillingCard.tsx)) — current balance, monthly spend, saved payment method (masked, display-only, e.g. "Visa •••• 4821"), a list of `Invoice` records (`src/types/advertiser.ts`: `number`, `amount`, `dueDate`, `status: 'Paid' | 'Open' | 'Overdue'`) from `INVOICES`/`BILLING_SUMMARY` in `src/data/advertiserMockData.ts`. Every action ("Update" payment method, "View all invoices") is a `useToast` stub.
+`BillingCard.tsx` ([src/components/advertiser/BillingCard.tsx](../../../src/components/advertiser/BillingCard.tsx)) — current balance, monthly spend, a "next invoice due" row, and a list of `Invoice` records (`src/types/advertiser.ts`: `number`, `amount`, `dueDate`, `status: 'Paid' | 'Open' | 'Overdue'`) from `INVOICES`/`BILLING_SUMMARY` in `src/data/advertiserMockData.ts`. "View all invoices" is a `useToast` stub. It's used both inline on the Dashboard and as the main content of the dedicated [src/pages/advertiser/BillingPage.tsx](../../../src/pages/advertiser/BillingPage.tsx) (`/advertiser/billing`, reached from the sidebar's "Billing" nav item), which adds four summary tiles above it.
+
+**There is deliberately no saved-payment-method UI** — no card, no "Visa •••• 4821", no "Update payment method" button. The user explicitly asked for this to be removed since there's no real online payment; `BILLING_SUMMARY` no longer has a `savedPaymentMethod` field. `BillingCard` instead states invoices are "settled offline by bank transfer." **Don't reintroduce a saved-card UI** unless the user asks for one again.
+
+The previously-flagged inconsistency here (`CreateCampaignDialog` still having a card form while Billing said there was no card on file) is **resolved** — the dialog's payment step is gone too (see [campaign-engine skill](../campaign-engine/SKILL.md)). Both surfaces now agree: no card is ever collected anywhere in this app.
 
 ## Pricing figures — mostly unified now, one gap remains
 

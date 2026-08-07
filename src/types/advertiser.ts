@@ -6,7 +6,7 @@ export type AlertSeverity = 'info' | 'warning' | 'success' | 'critical';
 
 export type CreativeType = 'Image' | 'Video';
 
-export type CreativeDuration = 10 | 15 | 30;
+export type CreativeDuration = 15 | 30 | 45 | 60 | 75 | 90;
 
 export type CreativeStatus = 'Active' | 'Expiring Soon' | 'Expired' | 'In Review';
 

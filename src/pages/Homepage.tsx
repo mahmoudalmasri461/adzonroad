@@ -382,7 +382,7 @@ export default function Homepage() {
               color="primary"
               size="large"
               sx={{ mt: '28px' }}
-              onClick={() => navigate('/signup?role=driver')}
+              onClick={() => navigate('/signup?role=taxiCompany')}
               startIcon={<HandshakeRoundedIcon />}
             >
               Partner Your Fleet

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -6,8 +5,6 @@ import CampaignIcon from '@mui/icons-material/Campaign';
 import TvIcon from '@mui/icons-material/Tv';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import DescriptionIcon from '@mui/icons-material/Description';
-import DownloadIcon from '@mui/icons-material/Download';
 import AddIcon from '@mui/icons-material/Add';
 import AdvertiserLayout from '../components/advertiser/AdvertiserLayout';
 import KpiCard from '../components/advertiser/KpiCard';
@@ -21,9 +18,10 @@ import VerificationStatusCard from '../components/advertiser/VerificationStatusC
 import AlertsCard from '../components/advertiser/AlertsCard';
 import BillingCard from '../components/advertiser/BillingCard';
 import SupportCard from '../components/advertiser/SupportCard';
+import ReportsListCard from '../components/advertiser/ReportsListCard';
+import { useCreateCampaign } from '../components/advertiser/CreateCampaignContext';
 import { advTokens, cardSx } from '../components/advertiser/theme';
 import { useToast } from '../contexts/ToastProvider';
-import CreateCampaignDialog from '../components/CreateCampaignDialog';
 import {
   MOCK_ADVERTISER,
   KPI_SUMMARY,
@@ -43,15 +41,9 @@ const SCREEN_STATUS_COLORS: Record<string, string> = {
   Maintenance: advTokens.blue,
 };
 
-const REPORTS = [
-  { name: 'Monthly Delivery Summary — July 2026', date: 'Aug 1, 2026' },
-  { name: 'Verified Impressions Report — Q2 2026', date: 'Jul 3, 2026' },
-  { name: 'Regional Coverage Breakdown — June 2026', date: 'Jul 1, 2026' },
-];
-
-export default function AdvertiserDashboard() {
+function DashboardContent() {
   const { showToast } = useToast();
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const { openCreateCampaign } = useCreateCampaign();
 
   const activeCampaigns = CAMPAIGNS.filter((c) => c.status === 'Active').slice(0, 4);
 
@@ -65,7 +57,7 @@ export default function AdvertiserDashboard() {
   const handleViewDetails = (campaign: Campaign) => showToast(`Opening ${campaign.name}…`);
 
   return (
-    <AdvertiserLayout title="Advertiser Dashboard" onCreateCampaign={() => setDialogOpen(true)}>
+    <>
       {/* Welcome */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', mb: '24px' }}>
         <Box>
@@ -78,7 +70,7 @@ export default function AdvertiserDashboard() {
         </Box>
         <Button
           startIcon={<AddIcon />}
-          onClick={() => setDialogOpen(true)}
+          onClick={openCreateCampaign}
           sx={{ backgroundColor: advTokens.orange, color: '#fff', fontWeight: 700, textTransform: 'none', '&:hover': { backgroundColor: advTokens.orangeHover } }}
         >
           Create Campaign
@@ -138,7 +130,7 @@ export default function AdvertiserDashboard() {
           </Typography>
         </Box>
         <Button
-          onClick={() => setDialogOpen(true)}
+          onClick={openCreateCampaign}
           sx={{ backgroundColor: advTokens.orange, color: '#fff', fontWeight: 700, textTransform: 'none', px: '20px', '&:hover': { backgroundColor: advTokens.orangeHover } }}
         >
           Create Campaign
@@ -193,30 +185,8 @@ export default function AdvertiserDashboard() {
       </Box>
 
       {/* Reports */}
-      <Box sx={{ ...cardSx, padding: '20px', mb: '24px' }}>
-        <Typography sx={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: advTokens.textMuted }}>
-          Downloadable
-        </Typography>
-        <Typography sx={{ fontWeight: 800, fontSize: 16, color: advTokens.text, mb: '14px' }}>Reports</Typography>
-        <Box sx={{ display: 'grid', gap: '4px' }}>
-          {REPORTS.map((r) => (
-            <Box key={r.name} sx={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 4px', borderBottom: `1px solid ${advTokens.border}`, '&:last-of-type': { borderBottom: 'none' } }}>
-              <DescriptionIcon sx={{ fontSize: 20, color: advTokens.textMuted }} />
-              <Box sx={{ flex: 1 }}>
-                <Typography sx={{ fontSize: 13, fontWeight: 600, color: advTokens.text }}>{r.name}</Typography>
-                <Typography sx={{ fontSize: 11, color: advTokens.textMuted }}>Generated {r.date}</Typography>
-              </Box>
-              <Button
-                size="small"
-                startIcon={<DownloadIcon />}
-                onClick={() => showToast(`Downloading ${r.name}…`)}
-                sx={{ fontSize: 12, fontWeight: 700, color: advTokens.orange }}
-              >
-                Download
-              </Button>
-            </Box>
-          ))}
-        </Box>
+      <Box sx={{ mb: '24px' }}>
+        <ReportsListCard limit={3} />
       </Box>
 
       {/* Billing + support */}
@@ -224,8 +194,14 @@ export default function AdvertiserDashboard() {
         <BillingCard />
         <SupportCard />
       </Box>
+    </>
+  );
+}
 
-      <CreateCampaignDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
+export default function AdvertiserDashboard() {
+  return (
+    <AdvertiserLayout title="Advertiser Dashboard">
+      <DashboardContent />
     </AdvertiserLayout>
   );
 }

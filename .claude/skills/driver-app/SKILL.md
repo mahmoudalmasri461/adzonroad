@@ -14,7 +14,9 @@ If a request just says "the driver app" without more context, ask (or infer from
 
 ## Web driver dashboard (this repo)
 
-Current sections in `DriverDashboard.tsx`: greeting + live status chips, today's earnings card (navy gradient), current campaign card, quick stats grid, "recording status" sync card (synced vs. pending-sync rows — mock, static), vehicle & screen info, report-damage/request-maintenance dialogs (`ActionDialog`, a shared local component defined in the same file), bottom tab bar. Status chips, vehicle info rows, and today's shift numbers (`SHIFT_MOCK`) live in [src/data/driverMockData.ts](../../../src/data/driverMockData.ts) / [src/types/driver.ts](../../../src/types/driver.ts), mirroring the Advertiser/Admin types+data split.
+Current sections in `DriverDashboard.tsx`: greeting + live status chips, today's earnings card (navy gradient), current campaign card, quick stats grid, "recording status" sync card (synced vs. pending-sync rows — mock, static), vehicle & screen info, report-damage/request-maintenance dialogs, bottom tab bar. Status chips, vehicle info rows, and today's shift numbers (`SHIFT_MOCK`) live in [src/data/driverMockData.ts](../../../src/data/driverMockData.ts) / [src/types/driver.ts](../../../src/types/driver.ts), mirroring the Advertiser/Admin types+data split.
+
+The report-damage/request-maintenance dialogs use [components/ActionDialog.tsx](../../../src/components/ActionDialog.tsx) — this used to be a small component defined locally inside `DriverDashboard.tsx`, but was extracted to `components/` when the [Taxi Company portal](../taxi-company-portal/SKILL.md) needed the same pattern (with a per-vehicle picker, which Driver doesn't use since it only ever manages one vehicle). If you touch this dialog's behavior, check both consumers.
 
 Uses the **global navy/amber theme** (`tokens` from `../theme`) — this page predates the advertiser-scoped theme split and should stay on the global palette; do not introduce `advTokens` here.
 

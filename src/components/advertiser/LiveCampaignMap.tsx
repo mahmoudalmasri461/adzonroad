@@ -9,30 +9,53 @@ import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import CloseIcon from '@mui/icons-material/Close';
 import RoomIcon from '@mui/icons-material/Room';
+import { MapContainer, TileLayer, CircleMarker, Tooltip, useMap } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 import { advTokens, cardSx } from './theme';
 import StatusChip from './StatusChip';
 import { VEHICLES, SCREENS, CAMPAIGNS } from '../../data/advertiserMockData';
 
-const W = 640;
-const H = 460;
+const BEIRUT_CENTER: [number, number] = [33.884, 35.508];
+const DEFAULT_ZOOM = 12;
 
 const ZONES = [
-  { name: 'Beirut Central District', x: 300, y: 240, r: 70 },
-  { name: 'Hamra', x: 150, y: 180, r: 56 },
-  { name: 'Verdun', x: 130, y: 320, r: 54 },
-  { name: 'Badaro', x: 400, y: 300, r: 56 },
-  { name: 'Hazmieh', x: 500, y: 380, r: 58 },
-  { name: 'Sin El Fil', x: 470, y: 150, r: 54 },
+  { name: 'Beirut Central District', lat: 33.8959, lng: 35.5017 },
+  { name: 'Hamra', lat: 33.8959, lng: 35.4818 },
+  { name: 'Verdun', lat: 33.8837, lng: 35.478 },
+  { name: 'Badaro', lat: 33.8788, lng: 35.5138 },
+  { name: 'Hazmieh', lat: 33.8534, lng: 35.545 },
+  { name: 'Sin El Fil', lat: 33.8756, lng: 35.5389 },
 ];
 
 const FILTERS = ['All', 'Active', 'Offline', 'Campaign', 'Region', 'Date'] as const;
 type FilterKey = (typeof FILTERS)[number];
 
-function zonePosition(regionName: string, index: number) {
-  const zone = ZONES.find((z) => z.name === regionName) ?? ZONES[0];
-  const angle = (index * 137.5 * Math.PI) / 180;
-  const radius = zone.r * 0.35;
-  return { x: zone.x + Math.cos(angle) * radius, y: zone.y + Math.sin(angle) * radius };
+function ZoomControls() {
+  const map = useMap();
+  return (
+    <Box
+      sx={{
+        position: 'absolute',
+        bottom: 14,
+        right: 14,
+        zIndex: 1000,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '4px',
+        backgroundColor: advTokens.white,
+        borderRadius: '10px',
+        boxShadow: advTokens.shadowMd,
+        p: '4px',
+      }}
+    >
+      <IconButton size="small" onClick={() => map.zoomIn()} sx={{ color: advTokens.text }}>
+        <AddIcon fontSize="small" />
+      </IconButton>
+      <IconButton size="small" onClick={() => map.zoomOut()} sx={{ color: advTokens.text }}>
+        <RemoveIcon fontSize="small" />
+      </IconButton>
+    </Box>
+  );
 }
 
 export default function LiveCampaignMap() {
@@ -40,15 +63,13 @@ export default function LiveCampaignMap() {
   const [regionFilter, setRegionFilter] = useState<string | null>(null);
   const [regionAnchor, setRegionAnchor] = useState<null | HTMLElement>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [zoom, setZoom] = useState(1);
 
   const enriched = useMemo(
     () =>
-      VEHICLES.map((v, i) => {
+      VEHICLES.map((v) => {
         const screen = SCREENS.find((s) => s.vehicleId === v.id);
         const campaign = screen?.currentCampaignId ? CAMPAIGNS.find((c) => c.id === screen.currentCampaignId) : null;
-        const pos = zonePosition(v.region, i);
-        return { vehicle: v, screen, campaign, pos };
+        return { vehicle: v, screen, campaign };
       }),
     [],
   );
@@ -127,104 +148,40 @@ export default function LiveCampaignMap() {
       </Menu>
 
       <Box sx={{ position: 'relative', height: { xs: 320, md: 420 }, mt: '12px', borderTop: `1px solid ${advTokens.border}` }}>
-        <Box
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            transform: `scale(${zoom})`,
-            transformOrigin: 'center',
-            transition: 'transform 0.2s ease',
-          }}
-        >
-          <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
-            <defs>
-              <pattern id="advStreets" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M40 0H0V40" fill="none" stroke="#E1E5EF" strokeWidth={1} />
-              </pattern>
-              <pattern id="advAvenues" width="160" height="160" patternUnits="userSpaceOnUse">
-                <path d="M160 0H0V160" fill="none" stroke="#CBD2E0" strokeWidth={2} />
-              </pattern>
-              <filter id="advMarkerShadow" x="-60%" y="-60%" width="220%" height="220%">
-                <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" floodColor="#0F1B3D" floodOpacity="0.25" />
-              </filter>
-            </defs>
+        <MapContainer center={BEIRUT_CENTER} zoom={DEFAULT_ZOOM} zoomControl={false} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <ZoomControls />
 
-            <rect width={W} height={H} fill={advTokens.mapBg} />
-            <rect width={W} height={H} fill="url(#advStreets)" />
-            <rect width={W} height={H} fill="url(#advAvenues)" />
+          {ZONES.map((z) => (
+            <CircleMarker key={z.name} center={[z.lat, z.lng]} radius={3} pathOptions={{ color: advTokens.orange, fillColor: advTokens.orange, fillOpacity: 0.5, weight: 1 }}>
+              <Tooltip permanent direction="top" offset={[0, -4]} className="adv-zone-label">
+                {z.name}
+              </Tooltip>
+            </CircleMarker>
+          ))}
 
-            {/* Stylized Mediterranean coastline along the west edge */}
-            <path d={`M0,0 L70,0 C110,80 60,180 90,260 C115,330 60,400 100,${H} L0,${H} Z`} fill="#CFE3F5" opacity={0.7} />
-            <path
-              d={`M70,0 C110,80 60,180 90,260 C115,330 60,400 100,${H}`}
-              fill="none"
-              stroke="#AFCDEA"
-              strokeWidth={1.5}
-            />
-
-            {ZONES.map((z) => (
-              <g key={z.name}>
-                <circle cx={z.x} cy={z.y} r={z.r} fill="rgba(41,82,204,0.05)" />
-                <text
-                  x={z.x}
-                  y={z.y - z.r - 8}
-                  textAnchor="middle"
-                  fontSize={12}
-                  fontWeight={700}
-                  fill={advTokens.text}
-                  style={{ paintOrder: 'stroke', stroke: '#fff', strokeWidth: 3 }}
-                >
-                  {z.name}
-                </text>
-              </g>
-            ))}
-
-            {filtered.map(({ vehicle, screen, pos }) => {
-              const online = screen?.status === 'Online';
-              const isSelected = selectedId === vehicle.id;
-              return (
-                <g
-                  key={vehicle.id}
-                  transform={`translate(${pos.x},${pos.y})`}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => setSelectedId(vehicle.id)}
-                >
-                  {isSelected && <circle r={11} fill="none" stroke={advTokens.orange} strokeWidth={2} />}
-                  <circle
-                    r={online ? 6 : 5}
-                    fill={online ? advTokens.orange : '#fff'}
-                    stroke={online ? '#fff' : advTokens.textMuted}
-                    strokeWidth={online ? 2 : 1.5}
-                    filter="url(#advMarkerShadow)"
-                  />
-                  <circle r={14} fill="transparent" />
-                </g>
-              );
-            })}
-          </svg>
-        </Box>
-
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: 14,
-            right: 14,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px',
-            backgroundColor: advTokens.white,
-            borderRadius: '10px',
-            boxShadow: advTokens.shadowMd,
-            p: '4px',
-          }}
-        >
-          <IconButton size="small" onClick={() => setZoom((z) => Math.min(2, z + 0.2))} sx={{ color: advTokens.text }}>
-            <AddIcon fontSize="small" />
-          </IconButton>
-          <IconButton size="small" onClick={() => setZoom((z) => Math.max(0.6, z - 0.2))} sx={{ color: advTokens.text }}>
-            <RemoveIcon fontSize="small" />
-          </IconButton>
-        </Box>
+          {filtered.map(({ vehicle, screen }) => {
+            const online = screen?.status === 'Online';
+            const isSelected = selectedId === vehicle.id;
+            return (
+              <CircleMarker
+                key={vehicle.id}
+                center={[vehicle.lat, vehicle.lng]}
+                radius={isSelected ? 9 : online ? 7 : 5.5}
+                pathOptions={{
+                  color: online ? '#fff' : advTokens.textMuted,
+                  fillColor: online ? advTokens.orange : '#fff',
+                  fillOpacity: 1,
+                  weight: isSelected ? 3 : online ? 2 : 1.5,
+                }}
+                eventHandlers={{ click: () => setSelectedId(vehicle.id) }}
+              />
+            );
+          })}
+        </MapContainer>
 
         {selected && (
           <Box
@@ -232,6 +189,7 @@ export default function LiveCampaignMap() {
               position: 'absolute',
               left: 14,
               bottom: 14,
+              zIndex: 1000,
               width: 240,
               backgroundColor: advTokens.white,
               border: `1px solid ${advTokens.border}`,
@@ -272,6 +230,9 @@ export default function LiveCampaignMap() {
       </Box>
       <style>{`
         @keyframes advLivePulse { 0%{opacity:0.4;} 50%{opacity:1;} 100%{opacity:0.4;} }
+        .adv-zone-label { background: rgba(255,255,255,0.92); border: none; box-shadow: 0 1px 4px rgba(16,24,40,0.15); font-weight: 700; font-size: 11px; color: ${advTokens.text}; padding: 2px 6px; }
+        .adv-zone-label::before { display: none; }
+        .leaflet-container { font-family: inherit; }
       `}</style>
     </Box>
   );

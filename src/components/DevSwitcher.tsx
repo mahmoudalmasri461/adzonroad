@@ -7,6 +7,7 @@ const SCREENS = [
   { to: '/login?role=advertiser', label: 'Advertiser', activeOn: ['/advertiser'] },
   { to: '/login?role=admin', label: 'Admin', activeOn: ['/admin'] },
   { to: '/login?role=driver', label: 'Driver', activeOn: ['/driver'] },
+  { to: '/login?role=taxiCompany', label: 'Taxi Company', activeOn: ['/taxi-company'] },
 ];
 
 export default function DevSwitcher() {
@@ -27,7 +28,7 @@ export default function DevSwitcher() {
       }}
     >
       {SCREENS.map((screen) => {
-        const active = screen.activeOn.includes(location.pathname);
+        const active = screen.activeOn.some((path) => (path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)));
         return (
           <Box
             key={screen.to}

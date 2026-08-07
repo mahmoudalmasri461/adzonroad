@@ -3,13 +3,9 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import TextField from '@mui/material/TextField';
 import MobileShell from '../layouts/MobileShell';
 import BottomTabBar from '../components/BottomTabBar';
+import ActionDialog from '../components/ActionDialog';
 import { useToast } from '../contexts/ToastProvider';
 import { calculateDriverEarnings } from '../services/earningsService';
 import { formatCurrency } from '../utils/format';
@@ -26,53 +22,6 @@ const MONTH_EARNINGS = calculateDriverEarnings({
   days: SHIFT_MOCK.daysWorkedThisMonth,
   drivesPremiumAreas: SHIFT_MOCK.drivesPremiumAreasThisMonth,
 });
-
-type ActionDialogProps = {
-  open: boolean;
-  onClose: () => void;
-  title: string;
-  placeholder: string;
-  onSubmitted: () => void;
-};
-
-function ActionDialog({ open, onClose, title, placeholder, onSubmitted }: ActionDialogProps) {
-  const [note, setNote] = useState('');
-
-  const handleClose = () => {
-    setNote('');
-    onClose();
-  };
-
-  const handleSubmit = () => {
-    onSubmitted();
-    handleClose();
-  };
-
-  return (
-    <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
-      <DialogTitle sx={{ fontWeight: 700 }}>{title}</DialogTitle>
-      <DialogContent>
-        <TextField
-          fullWidth
-          multiline
-          minRows={3}
-          placeholder={placeholder}
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          sx={{ mt: 1 }}
-        />
-      </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={handleClose} color="inherit">
-          Cancel
-        </Button>
-        <Button variant="contained" color="primary" onClick={handleSubmit}>
-          Submit
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-}
 
 const QUICK_STATS = [
   { value: `${SHIFT_MOCK.activeHoursToday} hrs`, label: 'Active driving' },

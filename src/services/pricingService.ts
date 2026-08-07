@@ -1,4 +1,4 @@
-export type CreativeDurationSeconds = 10 | 15 | 30;
+export type CreativeDurationSeconds = 15 | 30 | 45 | 60 | 75 | 90;
 
 /**
  * $ per taxi per second of creative duration, for the standard 8-hour/day display window.

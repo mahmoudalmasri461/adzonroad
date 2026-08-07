@@ -12,10 +12,11 @@ const ROLE_DASHBOARD: Record<AuthRole, string> = {
   advertiser: '/advertiser',
   admin: '/admin',
   driver: '/driver',
+  taxiCompany: '/taxi-company',
 };
 
 function isAuthRole(value: string | null): value is AuthRole {
-  return value === 'advertiser' || value === 'admin' || value === 'driver';
+  return value === 'advertiser' || value === 'admin' || value === 'driver' || value === 'taxiCompany';
 }
 
 export default function LoginPage() {
@@ -39,15 +40,15 @@ export default function LoginPage() {
       subtitle="Sign in to your AdzOnRoad account"
       role={role}
       onRoleChange={setRole}
-      roles={['advertiser', 'admin', 'driver']}
+      roles={['advertiser', 'admin', 'driver', 'taxiCompany']}
       footerText={role === 'admin' ? 'Admin accounts are managed by your organization.' : "Don't have an account?"}
       footerLinkText={role === 'admin' ? 'Contact support' : 'Sign up'}
       footerLinkTo={role === 'admin' ? '/' : `/signup?role=${role}`}
     >
       <Box component="form" onSubmit={handleSubmit} sx={{ display: 'grid', gap: '16px' }}>
         <TextField
-          label="Email"
-          type="email"
+          label={role === 'taxiCompany' ? 'Email or mobile number' : 'Email'}
+          type={role === 'taxiCompany' ? 'text' : 'email'}
           required
           fullWidth
           value={email}

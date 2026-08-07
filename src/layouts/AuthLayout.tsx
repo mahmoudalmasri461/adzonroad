@@ -9,12 +9,13 @@ import Link from '@mui/material/Link';
 import Logo from '../components/Logo';
 import { tokens } from '../theme';
 
-export type AuthRole = 'advertiser' | 'admin' | 'driver';
+export type AuthRole = 'advertiser' | 'admin' | 'driver' | 'taxiCompany';
 
 const ROLE_LABELS: Record<AuthRole, string> = {
   advertiser: 'Advertiser',
   admin: 'Admin',
   driver: 'Driver',
+  taxiCompany: 'Taxi Company',
 };
 
 type AuthLayoutProps = {

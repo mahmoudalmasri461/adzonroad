@@ -5,6 +5,17 @@ description: Use this skill whenever building or modifying the AdzOnRoad adverti
 
 # AdzOnRoad Advertiser Portal Skill
 
+## Reality check first — this file is largely an aspirational spec
+
+Most of this document describes the target architecture (React Query, Axios, SignalR, Mapbox, a .NET backend) — **none of that exists in the actual codebase**. What's actually built:
+
+- All ten sidebar nav items are real, routed pages, not stubs: Dashboard (`/advertiser`), Campaigns, Live Map, Analytics, Creatives, Reports, Billing, Support, Settings (`/advertiser/campaigns`, `/map`, `/analytics`, `/creatives`, `/reports`, `/billing`, `/support`, `/settings`) — see [src/pages/advertiser/*.tsx](../../../src/pages/advertiser/) and [src/routes/AppRoutes.tsx](../../../src/routes/AppRoutes.tsx). "Create Campaign" is the one nav item that isn't a page — it opens `CreateCampaignDialog` via [CreateCampaignContext](../../../src/components/advertiser/CreateCampaignContext.tsx) (`useCreateCampaign().openCreateCampaign()`), available from any advertiser page, not just the Dashboard.
+- **The "Theme" section below is wrong about the primary color** — the portal no longer uses orange (`#FF6A00`). It was explicitly changed to share the homepage's navy/blue/amber palette; see [design-system skill](../design-system/SKILL.md) for the actual current tokens. Don't reintroduce orange unless the user asks for it back.
+- No React Query/Axios/SignalR/Mapbox — everything reads static mock data from `src/data/advertiserMockData.ts` via plain imports. See the [gps-tracking](../gps-tracking/SKILL.md), [maps](../maps/SKILL.md), and [offline-sync](../offline-sync/SKILL.md) skills for what "real" would require.
+- No .NET backend exists in this workspace at all.
+
+Use the sections below as a target direction, not a description of current reality — cross-check specifics (colors, stack, folder names) against the design-system/admin-portal/campaign-engine/billing skills before relying on them.
+
 ## Project Overview
 
 AdzOnRoad is a GPS-powered Digital Out-of-Home (DOOH) advertising platform.

@@ -194,10 +194,10 @@ export const SCREENS: Screen[] = [
 
 export const CREATIVES: Creative[] = [
   { id: 'cr-1', name: 'Summer Launch — Hero 15s', thumbnailColor: '#1D2E63', type: 'Video', durationSeconds: 15, plays: 18400, estimatedImpressions: 142000, completionRate: 94, status: 'Active' },
-  { id: 'cr-2', name: 'Summer Launch — Static Banner', thumbnailColor: '#2952CC', type: 'Image', durationSeconds: 10, plays: 10020, estimatedImpressions: 72000, completionRate: 100, status: 'Active' },
+  { id: 'cr-2', name: 'Summer Launch — Static Banner', thumbnailColor: '#2952CC', type: 'Image', durationSeconds: 15, plays: 10020, estimatedImpressions: 72000, completionRate: 100, status: 'Active' },
   { id: 'cr-3', name: 'Weekend Menu Promo 30s', thumbnailColor: '#16A34A', type: 'Video', durationSeconds: 30, plays: 8900, estimatedImpressions: 64000, completionRate: 88, status: 'Active' },
   { id: 'cr-4', name: 'Ramadan Greeting 15s', thumbnailColor: '#D97706', type: 'Video', durationSeconds: 15, plays: 4200, estimatedImpressions: 31000, completionRate: 91, status: 'Expiring Soon' },
-  { id: 'cr-5', name: 'New Store Teaser', thumbnailColor: '#3D63DD', type: 'Image', durationSeconds: 10, plays: 0, estimatedImpressions: 0, completionRate: 0, status: 'In Review' },
+  { id: 'cr-5', name: 'New Store Teaser', thumbnailColor: '#3D63DD', type: 'Image', durationSeconds: 15, plays: 0, estimatedImpressions: 0, completionRate: 0, status: 'In Review' },
 ];
 
 export const INVOICES: Invoice[] = [
@@ -250,6 +250,14 @@ export const SUPPORT_CONTACT = {
   email: 'nadine@adzonroad.com',
   phone: '+961 71 600 011',
 };
+
+export const REPORTS = [
+  { name: 'Monthly Delivery Summary — July 2026', date: 'Aug 1, 2026' },
+  { name: 'Verified Impressions Report — Q2 2026', date: 'Jul 3, 2026' },
+  { name: 'Regional Coverage Breakdown — June 2026', date: 'Jul 1, 2026' },
+  { name: 'Monthly Delivery Summary — June 2026', date: 'Jul 1, 2026' },
+  { name: 'Campaign Wrap Report — Ramadan Campaign', date: 'Apr 4, 2026' },
+];
 
 export const BILLING_SUMMARY = {
   currentBalance: 11560,
