@@ -5,6 +5,7 @@ import AddIcon from '@mui/icons-material/Add';
 import AdvertiserLayout from '../../components/advertiser/AdvertiserLayout';
 import CampaignTable from '../../components/advertiser/CampaignTable';
 import CampaignProgressCard from '../../components/advertiser/CampaignProgressCard';
+import MyCampaignsCard from '../../components/advertiser/MyCampaignsCard';
 import { useCreateCampaign } from '../../components/advertiser/CreateCampaignContext';
 import { advTokens, cardSx } from '../../components/advertiser/theme';
 import { useToast } from '../../contexts/ToastProvider';
@@ -35,6 +36,8 @@ function CampaignsContent() {
           Create Campaign
         </Button>
       </Box>
+
+      <MyCampaignsCard />
 
       <Box sx={{ ...cardSx, padding: '20px', mb: '24px' }}>
         <Typography sx={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: advTokens.textMuted }}>

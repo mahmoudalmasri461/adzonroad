@@ -23,10 +23,17 @@ import {
 export class ApiError extends Error {
   readonly status: number;
 
-  constructor(status: number, message: string) {
+  /**
+   * Individual reasons, when the server sent a list rather than one sentence — campaign
+   * submission reports everything wrong at once so it can be fixed in a single pass.
+   */
+  readonly problems: string[];
+
+  constructor(status: number, message: string, problems: string[] = []) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    this.problems = problems;
   }
 
   get isUnauthorized() {
@@ -54,7 +61,11 @@ async function toError(response: Response): Promise<ApiError> {
   try {
     const body = await response.json();
     const message = body?.error ?? body?.message ?? body?.title ?? body?.detail;
-    if (typeof message === 'string' && message) return new ApiError(response.status, message);
+    const problems = Array.isArray(body?.problems) ? (body.problems as string[]) : [];
+
+    if (typeof message === 'string' && message) {
+      return new ApiError(response.status, message, problems);
+    }
   } catch {
     /* Not JSON. Fall through to the status text. */
   }
@@ -73,7 +84,9 @@ async function toError(response: Response): Promise<ApiError> {
 let refreshInFlight: Promise<boolean> | null = null;
 
 function refreshAccessToken(): Promise<boolean> {
-  refreshInFlight ??= (async () => {
+  if (refreshInFlight) return refreshInFlight;
+
+  const attempt = (async () => {
     const refreshToken = getRefreshToken();
     if (!refreshToken) return false;
 
@@ -97,12 +110,21 @@ function refreshAccessToken(): Promise<boolean> {
     } catch {
       // A network failure is not a rejected credential — keep the tokens and let the caller fail.
       return false;
-    } finally {
-      refreshInFlight = null;
     }
   })();
 
-  return refreshInFlight;
+  refreshInFlight = attempt;
+
+  // Cleared once this attempt settles, and only if the slot still holds it — so a refresh that
+  // started later is never cleared by an earlier one finishing. Written as an explicit assignment
+  // plus clean-up rather than clearing from inside the promise body, because the ordering between
+  // an in-body `finally` and the assignment that stores the promise is easy to get wrong and
+  // would strand a settled promise in the slot.
+  void attempt.finally(() => {
+    if (refreshInFlight === attempt) refreshInFlight = null;
+  });
+
+  return attempt;
 }
 
 /**
@@ -110,9 +132,16 @@ function refreshAccessToken(): Promise<boolean> {
  *
  * Retried only on 401. A 403 means the credential was understood and refused, and refreshing it
  * would produce exactly the same answer.
+ *
+ * `init` is rebuilt per attempt rather than reused: a body that is a stream can only be read once,
+ * so replaying the same object would send an empty request the second time.
  */
-async function authedFetch(target: string, signal?: AbortSignal): Promise<Response> {
-  const send = () => fetch(target, { headers: { Authorization: `Bearer ${getAccessToken()}` }, signal });
+async function authedFetch(
+  target: string,
+  init: (token: string) => RequestInit,
+  signal?: AbortSignal,
+): Promise<Response> {
+  const send = () => fetch(target, { ...init(getAccessToken()), signal });
 
   const response = await send();
   if (response.status !== 401) return response;
@@ -120,12 +149,57 @@ async function authedFetch(target: string, signal?: AbortSignal): Promise<Respon
   return (await refreshAccessToken()) ? send() : response;
 }
 
+const bearerOnly = (token: string): RequestInit => ({
+  headers: { Authorization: `Bearer ${token}` },
+});
+
 export async function apiGet<T>(
   path: string,
   query?: Record<string, string | number | undefined>,
   signal?: AbortSignal,
 ): Promise<T> {
-  const response = await authedFetch(url(path, query), signal);
+  const response = await authedFetch(url(path, query), bearerOnly, signal);
+
+  if (!response.ok) throw await toError(response);
+
+  return (await response.json()) as T;
+}
+
+/** POST/PUT/DELETE with a JSON body. A 204 yields undefined rather than failing to parse. */
+export async function apiJson<T>(
+  path: string,
+  method: 'POST' | 'PUT' | 'DELETE',
+  body?: unknown,
+  signal?: AbortSignal,
+): Promise<T> {
+  const response = await authedFetch(
+    url(path),
+    (token) => ({
+      method,
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    }),
+    signal,
+  );
+
+  if (!response.ok) throw await toError(response);
+  if (response.status === 204) return undefined as T;
+
+  return (await response.json()) as T;
+}
+
+/**
+ * Multipart upload.
+ *
+ * Content-Type is deliberately not set — the browser has to add it itself so it can append the
+ * multipart boundary, and setting it by hand produces a body the server cannot parse.
+ */
+export async function apiUpload<T>(path: string, form: FormData, signal?: AbortSignal): Promise<T> {
+  const response = await authedFetch(
+    url(path),
+    (token) => ({ method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form }),
+    signal,
+  );
 
   if (!response.ok) throw await toError(response);
 
@@ -143,7 +217,7 @@ export async function apiDownload(
   path: string,
   query?: Record<string, string | number | undefined>,
 ): Promise<void> {
-  const response = await authedFetch(url(path, query));
+  const response = await authedFetch(url(path, query), bearerOnly);
 
   if (!response.ok) throw await toError(response);
 

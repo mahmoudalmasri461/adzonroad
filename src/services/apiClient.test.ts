@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { apiGet, ApiError } from './apiClient';
+import { apiGet, apiJson, apiUpload, ApiError } from './apiClient';
 
 function installStorage(entries: Record<string, string> = {}) {
   const store = new Map(Object.entries(entries));
@@ -126,6 +126,86 @@ describe('token refresh', () => {
 
     // Being offline is not the same as being logged out.
     expect(localStorage.getItem('adz.refreshToken')).toBe('refresh-1');
+  });
+});
+
+describe('writes', () => {
+  beforeEach(() => {
+    vi.unstubAllGlobals();
+    installStorage({ 'adz.accessToken': 'valid', 'adz.refreshToken': 'refresh-1' });
+  });
+
+  it('sends a JSON body with the right content type', async () => {
+    let captured: RequestInit | undefined;
+    vi.stubGlobal('fetch', vi.fn(async (_u: string, init: RequestInit) => {
+      captured = init;
+      return response({ campaignId: 'c1' }, 201);
+    }));
+
+    await apiJson('/api/v1/campaigns', 'POST', { name: 'Summer' });
+
+    expect(captured?.method).toBe('POST');
+    expect(captured?.body).toBe(JSON.stringify({ name: 'Summer' }));
+    expect((captured?.headers as Record<string, string>)['Content-Type']).toBe('application/json');
+  });
+
+  it('treats a 204 as success rather than failing to parse it', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, status: 204 } as Response)));
+
+    await expect(apiJson('/api/v1/campaigns/c1/creatives/x', 'DELETE')).resolves.toBeUndefined();
+  });
+
+  it('leaves the content type to the browser on an upload', async () => {
+    let captured: RequestInit | undefined;
+    vi.stubGlobal('fetch', vi.fn(async (_u: string, init: RequestInit) => {
+      captured = init;
+      return response({ creativeId: 'x' }, 201);
+    }));
+
+    const form = new FormData();
+    form.append('durationSeconds', '15');
+
+    await apiUpload('/api/v1/campaigns/c1/creatives', form);
+
+    // Setting it by hand omits the multipart boundary, and the server cannot parse the body.
+    expect((captured?.headers as Record<string, string>)['Content-Type']).toBeUndefined();
+    expect(captured?.body).toBe(form);
+  });
+
+  it('rebuilds the request when retrying after a refresh', async () => {
+    const bodies: unknown[] = [];
+    const fetchMock = vi.fn(async (target: string, init: RequestInit) => {
+      if (target.includes('/auth/refresh')) {
+        return response({ token: 'fresh', refreshToken: 'refresh-2' });
+      }
+
+      bodies.push(init.body);
+      return localStorage.getItem('adz.accessToken') === 'valid'
+        ? response({ message: 'expired' }, 401)
+        : response({ ok: true }, 200);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await apiJson('/api/v1/campaigns', 'POST', { name: 'Summer' });
+
+    // Both attempts carried the body. A body read once — a stream, or a FormData already
+    // consumed — would make the retry send an empty request that fails for a different reason.
+    expect(bodies).toHaveLength(2);
+    expect(bodies[0]).toBe(bodies[1]);
+    expect(bodies[1]).toBe(JSON.stringify({ name: 'Summer' }));
+  });
+
+  it('carries the list of problems when the server sends one', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => response({
+      message: 'This campaign is not ready to submit.',
+      problems: ['Upload at least one creative.', 'Choose at least one region.'],
+    }, 400)));
+
+    const error = (await apiJson('/api/v1/campaigns/c1/submit', 'POST').catch((e) => e)) as ApiError;
+
+    // Shown as a list so it takes one pass to fix, rather than one round trip per problem.
+    expect(error.problems).toHaveLength(2);
+    expect(error.problems[0]).toContain('creative');
   });
 });
 
