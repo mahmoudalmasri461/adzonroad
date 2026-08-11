@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import AdvertiserLayout from '../../components/advertiser/AdvertiserLayout';
+import ProofOfDeliveryCard from '../../components/advertiser/ProofOfDeliveryCard';
 import ReportsListCard from '../../components/advertiser/ReportsListCard';
 import { advTokens } from '../../components/advertiser/theme';
 
@@ -10,10 +11,14 @@ export default function ReportsPage() {
       <Box sx={{ mb: '24px' }}>
         <Typography sx={{ fontWeight: 800, fontSize: 24, color: advTokens.text, letterSpacing: '-0.01em' }}>Reports</Typography>
         <Typography sx={{ mt: '4px', fontSize: 13.5, color: advTokens.textMuted }}>
-          Download delivery, impression, and coverage reports for your campaigns.
+          What your campaigns delivered, and the GPS evidence behind each play.
         </Typography>
       </Box>
-      <ReportsListCard />
+
+      <Box sx={{ display: 'grid', gap: '20px' }}>
+        <ProofOfDeliveryCard />
+        <ReportsListCard />
+      </Box>
     </AdvertiserLayout>
   );
 }

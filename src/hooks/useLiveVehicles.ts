@@ -56,8 +56,15 @@ export function useLiveVehicles(enabled = true): LiveVehiclesResult {
     const live = createLiveConnection(
       { baseUrl: API_BASE_URL, accessTokenFactory: getAccessToken },
       {
-        onVehicleMoved: (e) => applyFix(feed, e),
-        onConnectivityChanged: (e) => applyConnectivity(feed, e),
+        // Braces matter: these helpers return a boolean, and a hub handler that returns anything
+        // makes SignalR try to send a result back for a message the server sent with no
+        // invocation id — one logged error per fix, several a second across a fleet.
+        onVehicleMoved: (e) => {
+          applyFix(feed, e);
+        },
+        onConnectivityChanged: (e) => {
+          applyConnectivity(feed, e);
+        },
         onTelemetryReconciled: setLastReconciliation,
         onStateChanged: (state) => {
           setConnectionState(state);
