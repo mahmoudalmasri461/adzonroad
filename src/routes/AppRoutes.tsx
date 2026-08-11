@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
+import RequireAuth from '../components/RequireAuth';
 import Homepage from '../pages/Homepage';
 import AdvertiserDashboard from '../pages/AdvertiserDashboard';
 import AdminDashboard from '../pages/AdminDashboard';
@@ -29,20 +30,22 @@ export default function AppRoutes() {
       <Route path="/" element={<Homepage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
-      <Route path="/advertiser" element={<AdvertiserDashboard />} />
-      <Route path="/advertiser/campaigns" element={<CampaignsPage />} />
-      <Route path="/advertiser/map" element={<LiveMapPage />} />
-      <Route path="/advertiser/analytics" element={<AnalyticsPage />} />
-      <Route path="/advertiser/creatives" element={<CreativesPage />} />
-      <Route path="/advertiser/reports" element={<ReportsPage />} />
-      <Route path="/advertiser/billing" element={<BillingPage />} />
-      <Route path="/advertiser/support" element={<SupportPage />} />
-      <Route path="/advertiser/settings" element={<SettingsPage />} />
-      <Route path="/admin" element={<AdminDashboard />} />
-      <Route path="/driver" element={<DriverDashboard />} />
+      {/* Everything below the public pages requires a session. The guard hides surfaces rather
+          than securing them — every endpoint enforces its own permissions independently. */}
+      <Route path="/advertiser" element={<RequireAuth><AdvertiserDashboard /></RequireAuth>} />
+      <Route path="/advertiser/campaigns" element={<RequireAuth><CampaignsPage /></RequireAuth>} />
+      <Route path="/advertiser/map" element={<RequireAuth><LiveMapPage /></RequireAuth>} />
+      <Route path="/advertiser/analytics" element={<RequireAuth><AnalyticsPage /></RequireAuth>} />
+      <Route path="/advertiser/creatives" element={<RequireAuth><CreativesPage /></RequireAuth>} />
+      <Route path="/advertiser/reports" element={<RequireAuth><ReportsPage /></RequireAuth>} />
+      <Route path="/advertiser/billing" element={<RequireAuth><BillingPage /></RequireAuth>} />
+      <Route path="/advertiser/support" element={<RequireAuth><SupportPage /></RequireAuth>} />
+      <Route path="/advertiser/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
+      <Route path="/admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
+      <Route path="/driver" element={<RequireAuth><DriverDashboard /></RequireAuth>} />
       {/* Layout route: the shell + FleetProvider stay mounted across child navigation,
           so cars/drivers added on one page are still there on the others. */}
-      <Route path="/taxi-company" element={<TaxiCompanyLayout />}>
+      <Route path="/taxi-company" element={<RequireAuth><TaxiCompanyLayout /></RequireAuth>}>
         <Route index element={<TaxiOverviewPage />} />
         <Route path="cars" element={<TaxiCarsPage />} />
         <Route path="drivers" element={<TaxiDriversPage />} />

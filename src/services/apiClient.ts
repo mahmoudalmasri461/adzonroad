@@ -1,4 +1,11 @@
-import { API_BASE_URL, getAccessToken } from './apiConfig';
+import {
+  API_BASE_URL,
+  clearStoredAuth,
+  getAccessToken,
+  getRefreshToken,
+  setAccessToken,
+  setRefreshToken,
+} from './apiConfig';
 
 /**
  * The REST side of the API. The hub client next door handles the live feed; this handles
@@ -46,7 +53,7 @@ async function toError(response: Response): Promise<ApiError> {
   // person, so it is worth surfacing rather than replacing with a generic string.
   try {
     const body = await response.json();
-    const message = body?.error ?? body?.title ?? body?.detail;
+    const message = body?.error ?? body?.message ?? body?.title ?? body?.detail;
     if (typeof message === 'string' && message) return new ApiError(response.status, message);
   } catch {
     /* Not JSON. Fall through to the status text. */
@@ -55,15 +62,70 @@ async function toError(response: Response): Promise<ApiError> {
   return new ApiError(response.status, response.statusText || `Request failed (${response.status})`);
 }
 
+/**
+ * The in-flight refresh, shared by every caller that needs one.
+ *
+ * Refresh tokens rotate, and the server treats a replayed revoked token as a stolen one — it
+ * revokes the whole chain rather than just refusing the request. Two requests that both hit a
+ * 401 and both refresh would therefore sign the user out of everything. This page issues its
+ * summary and claims requests in parallel, so that is a live path, not a hypothetical one.
+ */
+let refreshInFlight: Promise<boolean> | null = null;
+
+function refreshAccessToken(): Promise<boolean> {
+  refreshInFlight ??= (async () => {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) return false;
+
+    try {
+      const response = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/api/v1/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      if (!response.ok) {
+        // The refresh token is spent or revoked; there is no way back without signing in again.
+        clearStoredAuth();
+        return false;
+      }
+
+      const body = (await response.json()) as { token: string; refreshToken: string };
+      setAccessToken(body.token);
+      setRefreshToken(body.refreshToken);
+      return true;
+    } catch {
+      // A network failure is not a rejected credential — keep the tokens and let the caller fail.
+      return false;
+    } finally {
+      refreshInFlight = null;
+    }
+  })();
+
+  return refreshInFlight;
+}
+
+/**
+ * A request with the current token, retried once if the token had simply expired.
+ *
+ * Retried only on 401. A 403 means the credential was understood and refused, and refreshing it
+ * would produce exactly the same answer.
+ */
+async function authedFetch(target: string, signal?: AbortSignal): Promise<Response> {
+  const send = () => fetch(target, { headers: { Authorization: `Bearer ${getAccessToken()}` }, signal });
+
+  const response = await send();
+  if (response.status !== 401) return response;
+
+  return (await refreshAccessToken()) ? send() : response;
+}
+
 export async function apiGet<T>(
   path: string,
   query?: Record<string, string | number | undefined>,
   signal?: AbortSignal,
 ): Promise<T> {
-  const response = await fetch(url(path, query), {
-    headers: { Authorization: `Bearer ${getAccessToken()}` },
-    signal,
-  });
+  const response = await authedFetch(url(path, query), signal);
 
   if (!response.ok) throw await toError(response);
 
@@ -81,9 +143,7 @@ export async function apiDownload(
   path: string,
   query?: Record<string, string | number | undefined>,
 ): Promise<void> {
-  const response = await fetch(url(path, query), {
-    headers: { Authorization: `Bearer ${getAccessToken()}` },
-  });
+  const response = await authedFetch(url(path, query));
 
   if (!response.ok) throw await toError(response);
 

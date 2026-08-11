@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
@@ -15,6 +16,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutlineOutlined';
 import MenuIcon from '@mui/icons-material/Menu';
 import { advTokens } from './theme';
 import { useToast } from '../../contexts/ToastProvider';
+import { useAuth } from '../../contexts/AuthProvider';
 import { MOCK_ADVERTISER, NOTIFICATIONS } from '../../data/advertiserMockData';
 
 type TopAppBarProps = {
@@ -24,15 +26,27 @@ type TopAppBarProps = {
 
 export default function TopAppBar({ title, onMenuClick }: TopAppBarProps) {
   const { showToast } = useToast();
+  const { session, signOut } = useAuth();
+  const navigate = useNavigate();
   const [accountAnchor, setAccountAnchor] = useState<null | HTMLElement>(null);
   const [notifAnchor, setNotifAnchor] = useState<null | HTMLElement>(null);
 
-  const initials = MOCK_ADVERTISER.contactName
+  // The signed-in name where there is one. The fixture is still the fallback because the rest of
+  // this bar reads from fixtures, and a half-real header is more confusing than a consistent one.
+  const displayName = session?.displayName || MOCK_ADVERTISER.companyName;
+
+  const initials = displayName
     .split(' ')
     .map((p) => p[0])
     .join('')
     .slice(0, 2)
     .toUpperCase();
+
+  const handleSignOut = async () => {
+    setAccountAnchor(null);
+    await signOut();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <Box
@@ -96,7 +110,7 @@ export default function TopAppBar({ title, onMenuClick }: TopAppBarProps) {
         sx={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', pr: '4px' }}
       >
         <Box sx={{ display: { xs: 'none', sm: 'flex' }, flexDirection: 'column', alignItems: 'flex-end' }}>
-          <Typography sx={{ fontSize: 13, fontWeight: 700, color: advTokens.text }}>{MOCK_ADVERTISER.companyName}</Typography>
+          <Typography sx={{ fontSize: 13, fontWeight: 700, color: advTokens.text }}>{displayName}</Typography>
           {MOCK_ADVERTISER.accountVerified && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', color: advTokens.green, fontSize: 11, fontWeight: 700 }}>
               <CheckCircleIcon sx={{ fontSize: 12 }} />
@@ -126,7 +140,7 @@ export default function TopAppBar({ title, onMenuClick }: TopAppBarProps) {
         <MenuItem onClick={() => { setAccountAnchor(null); showToast('Profile isn\'t built in this preview yet'); }}>Profile</MenuItem>
         <MenuItem onClick={() => { setAccountAnchor(null); showToast('Account settings isn\'t built in this preview yet'); }}>Account settings</MenuItem>
         <Divider />
-        <MenuItem onClick={() => { setAccountAnchor(null); showToast('Sign out isn\'t built in this preview yet'); }}>Sign out</MenuItem>
+        <MenuItem onClick={handleSignOut}>Sign out</MenuItem>
       </Menu>
     </Box>
   );
