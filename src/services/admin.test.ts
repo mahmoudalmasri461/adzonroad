@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { approve, hasAllDocuments, reject, waitingFor, type DriverRegistration } from './admin';
+import {
+  approve, deriveAlerts, describeLastSignal, hasAllDocuments, reject, waitingFor,
+  type AdminScreen, type DeviceStatus, type DriverRegistration, type PlaybackConflict,
+} from './admin';
 
 function installStorage() {
   const store = new Map([['adz.accessToken', 'valid']]);
@@ -53,6 +56,88 @@ describe('whether a driver application can be judged', () => {
 
   it('is not fooled by extra or unexpected document types', () => {
     expect(hasAllDocuments(registration(['NationalId', 'DriverLicense', 'Something']))).toBe(false);
+  });
+});
+
+describe('operational alerts', () => {
+  const device = (over: Partial<DeviceStatus> = {}): DeviceStatus => ({
+    driverId: 'd1', shiftId: null, connectivity: 'Healthy', gpsFreshness: 'Fresh',
+    syncHealth: 'Healthy', canPresentAsLive: true, lastHeartbeatAtUtc: null,
+    lastFixCapturedAtUtc: null, pendingTelemetryCount: 0, batteryLevel: 80,
+    networkType: 'cellular', clockSkewMs: 0, ...over,
+  });
+
+  const screen = (over: Partial<AdminScreen> = {}): AdminScreen => ({
+    screenId: 's1', serialNumber: 'AZR-1', status: 'Online', networkStatus: 'Connected',
+    plate: 'B 12 771', driverName: 'Elie', region: 'Beirut',
+    lastHeartbeatAtUtc: null, batteryLevel: 80, ...over,
+  });
+
+  const conflict = (): PlaybackConflict => ({
+    id: 1, screenId: 's1', vehicleId: 'v1', campaignId: 'c1',
+    startedAtUtc: '2026-08-12T10:00:00Z', endedAtUtc: '2026-08-12T10:00:15Z',
+    actualDurationSeconds: 15, receivedAtUtc: '2026-08-12T10:00:17Z',
+    source: 'ScreenConfirmed', status: 'Rejected', qualifications: 'OverlappingClaim',
+  });
+
+  it('stays silent when everything is healthy', () => {
+    // An alert panel that cannot go quiet is worse than none — nobody learns to trust it.
+    expect(deriveAlerts([device()], [screen()], [])).toEqual([]);
+  });
+
+  it('raises devices that have stopped reporting', () => {
+    const alerts = deriveAlerts([device({ connectivity: 'Offline' })], [screen()], []);
+
+    expect(alerts[0].label).toContain('1 device not reporting');
+    expect(alerts[0].tone).toBe('error');
+  });
+
+  it('raises a sync backlog, which is the failure that looks like nothing is wrong', () => {
+    // Evidence is being recorded but not delivered; the shift looks fine until a report is short.
+    const alerts = deriveAlerts([device({ pendingTelemetryCount: 140 })], [screen()], []);
+    const backlog = alerts.find((a) => a.key === 'sync-backlog');
+
+    expect(backlog?.tone).toBe('error');
+    expect(backlog?.detail).toContain('140');
+  });
+
+  it('ignores a small queue, which is just a batch in flight', () => {
+    expect(deriveAlerts([device({ pendingTelemetryCount: 4 })], [screen()], [])).toEqual([]);
+  });
+
+  it('puts the worst first, because the top of a list is what gets read', () => {
+    const alerts = deriveAlerts(
+      [device({ connectivity: 'Offline' }), device({ connectivity: 'Delayed' })],
+      [screen({ networkStatus: 'Disconnected' })],
+      [conflict()],
+    );
+
+    expect(alerts[0].tone).toBe('error');
+    expect(alerts.at(-1)?.tone).toBe('info');
+  });
+
+  it('pluralises so the text is not embarrassing', () => {
+    const one = deriveAlerts([device({ connectivity: 'Offline' })], [], []);
+    const two = deriveAlerts(
+      [device({ connectivity: 'Offline' }), device({ driverId: 'd2', connectivity: 'Offline' })], [], []);
+
+    expect(one[0].label).toContain('1 device not reporting');
+    expect(two[0].label).toContain('2 devices not reporting');
+  });
+});
+
+describe('last signal', () => {
+  const NOW_MS = Date.parse('2026-08-12T12:00:00Z');
+
+  it('reads at the right granularity as it ages', () => {
+    expect(describeLastSignal('2026-08-12T11:59:30Z', NOW_MS)).toBe('just now');
+    expect(describeLastSignal('2026-08-12T11:30:00Z', NOW_MS)).toBe('30 min ago');
+    expect(describeLastSignal('2026-08-12T09:00:00Z', NOW_MS)).toBe('3 hrs ago');
+    expect(describeLastSignal('2026-08-10T12:00:00Z', NOW_MS)).toBe('2 days ago');
+  });
+
+  it('says never rather than inventing a time for a screen that has never checked in', () => {
+    expect(describeLastSignal(null, NOW_MS)).toBe('never');
   });
 });
 
