@@ -13,39 +13,10 @@ import SearchBox from '../components/SearchBox';
 import EmptyState from '../components/EmptyState';
 import { useToast } from '../contexts/ToastProvider';
 import { useSearchFilter } from '../hooks/useSearchFilter';
-import { NAV_ITEMS, KPIS, ALERTS, PENDING_CAMPAIGNS, SCREENS } from '../data/adminMockData';
-import type { PendingCampaign, AdminScreen } from '../types/admin';
+import ReviewQueues from '../components/admin/ReviewQueues';
+import { NAV_ITEMS, KPIS, ALERTS, SCREENS } from '../data/adminMockData';
+import type { AdminScreen } from '../types/admin';
 import { tokens } from '../theme';
-
-function getPendingColumns(onReview: (campaign: PendingCampaign) => void): GridColDef<PendingCampaign>[] {
-  return [
-    { field: 'name', headerName: 'Campaign', flex: 1.2, minWidth: 160 },
-    { field: 'advertiser', headerName: 'Advertiser', flex: 1, minWidth: 160 },
-    { field: 'regions', headerName: 'Regions', flex: 1, minWidth: 140 },
-    { field: 'taxis', headerName: 'Taxis', flex: 0.5, minWidth: 80 },
-    { field: 'budget', headerName: 'Budget', flex: 0.6, minWidth: 100 },
-    {
-      field: 'creative',
-      headerName: 'Creative',
-      flex: 1,
-      minWidth: 160,
-      renderCell: (params) => <StatusTag label={params.row.creative} variant={params.row.creativeVariant} />,
-    },
-    {
-      field: 'review',
-      headerName: '',
-      flex: 0.5,
-      minWidth: 90,
-      sortable: false,
-      filterable: false,
-      renderCell: (params) => (
-        <Button size="small" sx={{ fontSize: 13, fontWeight: 600 }} onClick={() => onReview(params.row)}>
-          Review
-        </Button>
-      ),
-    },
-  ];
-}
 
 function getScreenColumns(onDetails: (screen: AdminScreen) => void): GridColDef<AdminScreen>[] {
   return [
@@ -80,7 +51,6 @@ function getScreenColumns(onDetails: (screen: AdminScreen) => void): GridColDef<
 export default function AdminDashboard() {
   const { showToast } = useToast();
   const { search, setSearch, filtered: filteredScreens } = useSearchFilter(SCREENS, ['screenId', 'plate', 'driver']);
-  const pendingColumns = getPendingColumns((campaign) => showToast(`Reviewing ${campaign.name}…`));
   const screenColumns = getScreenColumns((screen) => showToast(`Opening details for ${screen.screenId}…`));
 
   return (
@@ -146,26 +116,10 @@ export default function AdminDashboard() {
         </Card>
       </Box>
 
-      {/* CAMPAIGN APPROVALS */}
-      <Card sx={{ p: 0, mb: '20px' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px' }}>
-          <Typography sx={{ fontWeight: 700, fontSize: 16 }}>Campaigns pending review</Typography>
-          <Link
-            component="button"
-            onClick={() => showToast('Full campaigns list isn\'t built in this preview yet')}
-            sx={{ fontSize: 13, fontWeight: 600, background: 'none', border: 0, p: 0, cursor: 'pointer' }}
-          >
-            See all campaigns
-          </Link>
-        </Box>
-        {PENDING_CAMPAIGNS.length === 0 ? (
-          <EmptyState title="No campaigns pending review" description="New submissions will show up here for approval." />
-        ) : (
-          <Box sx={{ height: 260 }}>
-            <DataGrid rows={PENDING_CAMPAIGNS} columns={pendingColumns} hideFooter disableRowSelectionOnClick sx={{ border: 'none' }} />
-          </Box>
-        )}
-      </Card>
+      {/* REVIEW QUEUES — real, and the only place any of this can be approved */}
+      <Box sx={{ mb: '20px' }}>
+        <ReviewQueues />
+      </Box>
 
       {/* SCREEN INVENTORY */}
       <Card sx={{ p: 0 }}>
