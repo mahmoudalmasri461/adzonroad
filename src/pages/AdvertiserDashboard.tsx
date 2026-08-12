@@ -1,17 +1,14 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import CampaignIcon from '@mui/icons-material/Campaign';
-import TvIcon from '@mui/icons-material/Tv';
-import PlayCircleIcon from '@mui/icons-material/PlayCircle';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import AddIcon from '@mui/icons-material/Add';
 import AdvertiserLayout from '../components/advertiser/AdvertiserLayout';
-import KpiCard from '../components/advertiser/KpiCard';
+import DeliveryKpis from '../components/advertiser/DeliveryKpis';
+import DeliveryAnalytics from '../components/advertiser/DeliveryAnalytics';
+import MyCampaignsCard from '../components/advertiser/MyCampaignsCard';
 import LiveCampaignMap from '../components/advertiser/LiveCampaignMap';
 import CampaignProgressCard from '../components/advertiser/CampaignProgressCard';
 import CampaignTable from '../components/advertiser/CampaignTable';
-import AnalyticsChart from '../components/advertiser/AnalyticsChart';
 import RegionPerformanceCard from '../components/advertiser/RegionPerformanceCard';
 import CreativePerformanceCard from '../components/advertiser/CreativePerformanceCard';
 import VerificationStatusCard from '../components/advertiser/VerificationStatusCard';
@@ -22,37 +19,20 @@ import ReportsListCard from '../components/advertiser/ReportsListCard';
 import { useCreateCampaign } from '../components/advertiser/CreateCampaignContext';
 import { advTokens, cardSx } from '../components/advertiser/theme';
 import { useToast } from '../contexts/ToastProvider';
-import {
-  MOCK_ADVERTISER,
-  KPI_SUMMARY,
-  CAMPAIGNS,
-  CAMPAIGN_ANALYTICS,
-  SCREENS,
-} from '../data/advertiserMockData';
+import { useAuth } from '../contexts/AuthProvider';
+import { CAMPAIGNS } from '../data/advertiserMockData';
 import type { Campaign } from '../types/advertiser';
-
-const KPI_ICONS = [CampaignIcon, TvIcon, PlayCircleIcon, VisibilityIcon];
-
-const SCREEN_STATUS_COLORS: Record<string, string> = {
-  Online: advTokens.green,
-  Offline: advTokens.red,
-  Inactive: advTokens.textMuted,
-  'Pending Sync': advTokens.amber,
-  Maintenance: advTokens.blue,
-};
 
 function DashboardContent() {
   const { showToast } = useToast();
   const { openCreateCampaign } = useCreateCampaign();
+  const { session } = useAuth();
+
+  // The signed-in user's own name, not a fixture. The session carries no company name, so the
+  // subtitle says nothing about one rather than inventing an employer for the reader.
+  const firstName = session?.displayName.trim().split(/\s+/)[0] ?? 'there';
 
   const activeCampaigns = CAMPAIGNS.filter((c) => c.status === 'Active').slice(0, 4);
-
-  const screenStatusDonut = Object.entries(
-    SCREENS.reduce<Record<string, number>>((acc, s) => {
-      acc[s.status] = (acc[s.status] ?? 0) + 1;
-      return acc;
-    }, {}),
-  ).map(([label, value]) => ({ label, value, color: SCREEN_STATUS_COLORS[label] ?? advTokens.textMuted }));
 
   const handleViewDetails = (campaign: Campaign) => showToast(`Opening ${campaign.name}…`);
 
@@ -62,10 +42,10 @@ function DashboardContent() {
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', mb: '24px' }}>
         <Box>
           <Typography sx={{ fontWeight: 800, fontSize: 24, color: advTokens.text, letterSpacing: '-0.01em' }}>
-            Welcome back, {MOCK_ADVERTISER.contactName.split(' ')[0]}
+            Welcome back, {firstName}
           </Typography>
           <Typography sx={{ mt: '4px', fontSize: 13.5, color: advTokens.textMuted }}>
-            Here's how {MOCK_ADVERTISER.companyName}'s campaigns are performing today.
+            Verified delivery across your campaigns over the last 30 days.
           </Typography>
         </Box>
         <Button
@@ -77,20 +57,18 @@ function DashboardContent() {
         </Button>
       </Box>
 
-      {/* KPIs */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4,1fr)' }, gap: '14px', mb: '24px' }}>
-        {KPI_SUMMARY.map((kpi, i) => {
-          const Icon = KPI_ICONS[i];
-          return <KpiCard key={kpi.label} label={kpi.label} value={kpi.value} change={kpi.change} comparison={kpi.comparison} trend={kpi.trend} icon={<Icon sx={{ fontSize: 18 }} />} />;
-        })}
-      </Box>
+      {/* KPIs — counted from delivery reports, not asserted */}
+      <DeliveryKpis days={30} />
 
       {/* Live map */}
       <Box sx={{ mb: '24px' }}>
         <LiveCampaignMap />
       </Box>
 
-      {/* Campaign delivery */}
+      {/* The advertiser's real campaigns */}
+      <MyCampaignsCard />
+
+      {/* Campaign delivery — still fixtures, kept as a design reference */}
       <Box sx={{ ...cardSx, padding: '20px', mb: '24px' }}>
         <Typography sx={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: advTokens.textMuted }}>
           In progress
@@ -137,39 +115,10 @@ function DashboardContent() {
         </Button>
       </Box>
 
-      {/* Analytics */}
+      {/* Analytics — real delivery across every campaign */}
       <Box sx={{ mb: '24px' }}>
         <Typography sx={{ fontWeight: 800, fontSize: 18, color: advTokens.text, mb: '14px' }}>Analytics</Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: '16px' }}>
-          <Box sx={{ ...cardSx, padding: '20px' }}>
-            <Typography sx={{ fontWeight: 700, fontSize: 14, color: advTokens.text, mb: '10px' }}>Verified plays by day</Typography>
-            <AnalyticsChart
-              variant="line"
-              categories={CAMPAIGN_ANALYTICS.verifiedPlaysByDay.map((d) => d.day)}
-              series={[{ label: 'Verified plays', data: CAMPAIGN_ANALYTICS.verifiedPlaysByDay.map((d) => d.plays), color: advTokens.orange }]}
-            />
-          </Box>
-          <Box sx={{ ...cardSx, padding: '20px' }}>
-            <Typography sx={{ fontWeight: 700, fontSize: 14, color: advTokens.text, mb: '10px' }}>Impressions by region</Typography>
-            <AnalyticsChart
-              variant="bar"
-              categories={CAMPAIGN_ANALYTICS.impressionsByRegion.map((d) => d.region)}
-              series={[{ label: 'Impressions', data: CAMPAIGN_ANALYTICS.impressionsByRegion.map((d) => d.impressions), color: advTokens.blue }]}
-            />
-          </Box>
-          <Box sx={{ ...cardSx, padding: '20px' }}>
-            <Typography sx={{ fontWeight: 700, fontSize: 14, color: advTokens.text, mb: '10px' }}>Exposure by time of day</Typography>
-            <AnalyticsChart
-              variant="area"
-              categories={CAMPAIGN_ANALYTICS.exposureByTimeOfDay.map((d) => d.hour)}
-              series={[{ label: 'Exposure index', data: CAMPAIGN_ANALYTICS.exposureByTimeOfDay.map((d) => d.exposure), color: advTokens.orange }]}
-            />
-          </Box>
-          <Box sx={{ ...cardSx, padding: '20px' }}>
-            <Typography sx={{ fontWeight: 700, fontSize: 14, color: advTokens.text, mb: '10px' }}>Screen status distribution</Typography>
-            <AnalyticsChart variant="donut" data={screenStatusDonut} />
-          </Box>
-        </Box>
+        <DeliveryAnalytics days={30} />
       </Box>
 
       {/* Region + creative performance */}
