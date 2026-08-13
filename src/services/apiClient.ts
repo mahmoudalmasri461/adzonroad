@@ -207,6 +207,21 @@ export async function apiUpload<T>(path: string, form: FormData, signal?: AbortS
 }
 
 /**
+ * Fetches bytes the API guards behind a bearer token, for displaying rather than saving.
+ *
+ * An `<img src>` cannot carry an Authorization header, so a guarded image has to be fetched and
+ * turned into an object URL. The caller owns that URL and must revoke it — an object URL held for
+ * every thumbnail on a long page leaks the whole library into memory.
+ */
+export async function apiBlob(path: string, signal?: AbortSignal): Promise<Blob> {
+  const response = await authedFetch(url(path), bearerOnly, signal);
+
+  if (!response.ok) throw await toError(response);
+
+  return await response.blob();
+}
+
+/**
  * Downloads a file the API guards behind a bearer token.
  *
  * A plain link cannot carry an Authorization header, so the bytes are fetched and handed to a
