@@ -5,8 +5,27 @@
  * Vercel builds get the deployed origin injected as `VITE_API_BASE_URL`.
  */
 
+const configured = import.meta.env.VITE_API_BASE_URL as string | undefined;
+
+/**
+ * Where the API lives.
+ *
+ * Three cases, because this build has to run in three places:
+ *
+ *   unset        local development - the Vite server is on 5183, the API on 5080
+ *   empty        same origin as the page, which is how every deployment serves it
+ *   a URL        an explicit override, for pointing a local frontend at a deployed API
+ *
+ * The empty case exists so a deployed bundle carries no hostname at all. Baking one in meant
+ * rebuilding the frontend every time the API moved, and a stale value fails silently - the site
+ * loads and every request goes somewhere that no longer exists.
+ */
 export const API_BASE_URL: string =
-  import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5080';
+  configured === undefined
+    ? 'http://localhost:5080'
+    : configured === ''
+      ? window.location.origin
+      : configured;
 
 const ACCESS_TOKEN_KEY = 'adz.accessToken';
 const REFRESH_TOKEN_KEY = 'adz.refreshToken';
