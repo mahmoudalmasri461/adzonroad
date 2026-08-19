@@ -28,6 +28,14 @@ export interface Session {
   driverId?: string;
   /** When the access token expires. Stored so a stale session can be recognised on startup. */
   expiresAtUtc: string;
+  /**
+   * True while a temporary password issued by an administrator is still in force.
+   *
+   * The API does not refuse requests while this is set - the driver app has no change-password
+   * screen and blocking would strand the very people a reset exists to rescue - so the portal is
+   * what actually insists on it.
+   */
+  mustChangePassword?: boolean;
 }
 
 /** Thrown when the server refuses the sign-in, carrying its own wording rather than a generic one. */
@@ -55,6 +63,7 @@ interface PortalLoginResponse {
   userId: string;
   displayName: string;
   roles: string[];
+  mustChangePassword?: boolean;
 }
 
 interface DriverLoginResponse {
@@ -100,6 +109,7 @@ export async function signInToPortal(email: string, password: string): Promise<S
     displayName: response.displayName || email,
     roles: response.roles,
     expiresAtUtc: response.expiresAtUtc,
+    mustChangePassword: response.mustChangePassword === true,
   }, response.token, response.refreshToken);
 }
 

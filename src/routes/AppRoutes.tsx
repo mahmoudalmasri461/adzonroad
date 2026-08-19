@@ -14,6 +14,7 @@ import TaxiReportsPage from '../pages/taxiCompany/ReportsPage';
 import TaxiSupportPage from '../pages/taxiCompany/SupportPage';
 import TaxiSettingsPage from '../pages/taxiCompany/SettingsPage';
 import LoginPage from '../pages/LoginPage';
+import ChangePasswordPage from '../pages/ChangePasswordPage';
 import SignupPage from '../pages/SignupPage';
 import CampaignsPage from '../pages/advertiser/CampaignsPage';
 import LiveMapPage from '../pages/advertiser/LiveMapPage';
@@ -29,6 +30,7 @@ export default function AppRoutes() {
     <Routes>
       <Route path="/" element={<Homepage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/change-password" element={<RequireAuth><ChangePasswordPage /></RequireAuth>} />
       <Route path="/signup" element={<SignupPage />} />
       {/* Everything below the public pages requires a session. The guard hides surfaces rather
           than securing them — every endpoint enforces its own permissions independently. */}

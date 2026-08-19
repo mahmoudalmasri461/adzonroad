@@ -22,6 +22,14 @@ export default function RequireAuth({ children }: { children: ReactNode }) {
     return <Navigate to={`/login?next=${next}`} replace />;
   }
 
+  // A temporary password an administrator read out over the telephone is live until it is
+  // replaced, so the portal will not go anywhere else until it has been. The API deliberately does
+  // not enforce this - the driver app has no change-password screen and blocking there would
+  // strand the people a reset exists to rescue - which makes this the only place it is insisted on.
+  if (session.mustChangePassword && location.pathname !== '/change-password') {
+    return <Navigate to="/change-password" replace />;
+  }
+
   if (!canReach(session.roles, location.pathname)) {
     return <Navigate to={landingFor(session.roles)} replace />;
   }
