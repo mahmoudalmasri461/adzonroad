@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import Alert from '@mui/material/Alert';
 import AddIcon from '@mui/icons-material/Add';
 import PageHeader from '../../components/PageHeader';
 import StatCard from '../../components/StatCard';
@@ -13,40 +14,47 @@ import EarningsSummary from '../../components/taxiCompany/EarningsSummary';
 import CarsTable from '../../components/taxiCompany/CarsTable';
 import FleetSupportCard from '../../components/taxiCompany/FleetSupportCard';
 import { useFleet } from '../../components/taxiCompany/FleetContext';
-import { FLEET_EARNINGS, MOCK_TAXI_COMPANY } from '../../data/taxiCompanyMockData';
 import { tokens } from '../../theme';
 
 export default function OverviewPage() {
-  const { cars, openAddCar, openAddDriver } = useFleet();
+  const { profile, summary, vehicles, loading, error, openAddCar, openAddDriver } = useFleet();
 
-  const stats = useMemo(() => {
-    const totals = cars.reduce(
-      (acc, c) => ({
-        hours: acc.hours + c.drivingHoursToday,
-        screenTime: acc.screenTime + c.screenTimeHoursToday,
-        distance: acc.distance + c.distanceKmToday,
-      }),
-      { hours: 0, screenTime: 0, distance: 0 },
-    );
-    return {
-      active: cars.filter((c) => c.status === 'Active').length,
-      offline: cars.filter((c) => c.status === 'Offline').length,
-      maintenance: cars.filter((c) => c.status === 'Maintenance').length,
-      gpsLost: cars.filter((c) => c.gpsStatus === 'Lost').length,
-      ...totals,
-    };
-  }, [cars]);
+  const totals = useMemo(
+    () =>
+      vehicles.reduce(
+        (acc, v) => ({
+          hours: acc.hours + v.drivingHoursToday,
+          screenTime: acc.screenTime + v.screenTimeHoursToday,
+          distance: acc.distance + v.distanceKmToday,
+        }),
+        { hours: 0, screenTime: 0, distance: 0 },
+      ),
+    [vehicles],
+  );
 
-  const onDisplayNow = cars.filter((c) => c.screenStatus === 'Online');
+  // Screens actually displaying right now, with the campaign they are carrying.
+  const onDisplayNow = vehicles.filter((v) => v.screenStatus === 'Online' && v.currentCampaign);
+
+  const subtitle = profile
+    ? `${profile.companyName} · ${vehicles.length} ${vehicles.length === 1 ? 'vehicle' : 'vehicles'} registered`
+    : loading
+      ? 'Loading your fleet…'
+      : 'Fleet overview';
 
   return (
     <>
       <PageHeader
         title="Fleet overview"
-        subtitle={`${MOCK_TAXI_COMPANY.companyName} · ${cars.length} vehicles registered`}
+        subtitle={subtitle}
         actions={
           <>
-            <Button variant="outlined" color="inherit" sx={{ borderColor: tokens.border, color: tokens.text }} startIcon={<AddIcon />} onClick={openAddDriver}>
+            <Button
+              variant="outlined"
+              color="inherit"
+              sx={{ borderColor: tokens.border, color: tokens.text }}
+              startIcon={<AddIcon />}
+              onClick={openAddDriver}
+            >
               Add Driver
             </Button>
             <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={openAddCar}>
@@ -56,28 +64,42 @@ export default function OverviewPage() {
         }
       />
 
+      {error && (
+        <Alert severity="error" sx={{ mb: '20px' }}>
+          {error}
+        </Alert>
+      )}
+
+      {!loading && !error && vehicles.length === 0 && (
+        <Card sx={{ p: '20px', mb: '20px' }}>
+          <EmptyState
+            title="Your fleet is empty"
+            description="Add your first car, then add the drivers who will be driving it. Screen time and earnings appear here once a screen is installed and reporting."
+          />
+        </Card>
+      )}
+
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '14px', mb: '28px' }}>
-        <StatCard value={String(cars.length)} label="Total vehicles" />
-        <StatCard value={String(stats.active)} label="Active now" color={tokens.green} />
-        <StatCard value={String(stats.offline)} label="Offline" color={tokens.red} />
-        <StatCard value={String(stats.maintenance)} label="In maintenance" color={tokens.warn} />
-        <StatCard value={String(stats.gpsLost)} label="GPS signal lost" color={tokens.red} />
-        <StatCard value={`${stats.hours.toFixed(1)} hrs`} label="Driving hours today" />
-        <StatCard value={`${stats.screenTime.toFixed(1)} hrs`} label="Screen time today" />
-        <StatCard value={`${stats.distance.toFixed(0)} km`} label="Distance driven today" />
+        <StatCard value={String(summary?.totalVehicles ?? vehicles.length)} label="Total vehicles" />
+        <StatCard value={String(summary?.activeVehicles ?? 0)} label="Active now" color={tokens.green} />
+        <StatCard value={String(summary?.offlineVehicles ?? 0)} label="Offline" color={tokens.red} />
+        <StatCard value={String(summary?.maintenanceVehicles ?? 0)} label="In maintenance" color={tokens.warn} />
+        <StatCard value={String(summary?.gpsLost ?? 0)} label="GPS signal lost" color={tokens.red} />
+        <StatCard value={`${totals.hours.toFixed(1)} hrs`} label="Driving hours today" />
+        <StatCard value={`${totals.screenTime.toFixed(1)} hrs`} label="Verified screen time today" />
+        <StatCard value={`${totals.distance.toFixed(0)} km`} label="Distance driven today" />
       </Box>
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '0.9fr 1.4fr' }, gap: '20px', mb: '28px', alignItems: 'stretch' }}>
         <Card sx={{ p: '20px' }}>
           <Typography sx={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'text.secondary' }}>
-            Fleet payouts
+            Generated by your fleet
           </Typography>
           <Typography sx={{ fontWeight: 700, fontSize: 16, mb: '12px' }}>Earnings</Typography>
           <EarningsSummary />
-          <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: '12px' }}>Next payout {FLEET_EARNINGS.nextPayoutDate}</Typography>
         </Card>
         <Card sx={{ p: 0, overflow: 'hidden' }}>
-          <FleetMap cars={cars} />
+          <FleetMap vehicles={vehicles} />
         </Card>
       </Box>
 
@@ -87,12 +109,15 @@ export default function OverviewPage() {
         </Typography>
         <Typography sx={{ fontWeight: 700, fontSize: 16, mb: '10px' }}>Screens on display now</Typography>
         {onDisplayNow.length === 0 ? (
-          <EmptyState title="No screens currently displaying" description="Screens will show up here once a car starts a campaign." />
+          <EmptyState
+            title="No screens currently displaying"
+            description="Screens appear here once a car is on shift and carrying a campaign."
+          />
         ) : (
           <Box sx={{ display: 'grid', gap: '4px' }}>
-            {onDisplayNow.map((c) => (
+            {onDisplayNow.map((v) => (
               <Box
-                key={c.id}
+                key={v.id}
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
@@ -104,9 +129,10 @@ export default function OverviewPage() {
               >
                 <Box>
                   <Typography sx={{ fontSize: 13.5, fontWeight: 600 }}>
-                    {c.plateNumber} · {c.screenId}
+                    {v.plateNumber}
+                    {v.screenSerialNumber ? ` · ${v.screenSerialNumber}` : ''}
                   </Typography>
-                  <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{c.currentCampaign}</Typography>
+                  <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{v.currentCampaign}</Typography>
                 </Box>
                 <StatusTag label="Online" variant="live" />
               </Box>

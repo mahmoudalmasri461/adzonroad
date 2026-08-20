@@ -1,27 +1,31 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
+import Alert from '@mui/material/Alert';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import PageHeader from '../../components/PageHeader';
 import StatusTag from '../../components/StatusTag';
 import EmptyState from '../../components/EmptyState';
 import EarningsSummary from '../../components/taxiCompany/EarningsSummary';
 import { useFleet } from '../../components/taxiCompany/FleetContext';
-import { DRIVER_HOURLY_RATE_USD } from '../../services/earningsService';
 import { formatCurrency } from '../../utils/format';
-import { FLEET_EARNINGS, PAYOUT_HISTORY } from '../../data/taxiCompanyMockData';
-import type { PayoutRecord } from '../../types/taxiCompany';
+import {
+  getFleetEarnings,
+  getFleetPayouts,
+  type FleetDriverEarnings,
+  type FleetEarnings,
+  type FleetPayout,
+} from '../../services/fleet';
 import { tokens } from '../../theme';
 
-type CarEarningsRow = {
+type VehicleActivityRow = {
   id: string;
   plateNumber: string;
   model: string;
   drivingHoursToday: number;
   screenTimeHoursToday: number;
   distanceKmToday: number;
-  hoursPay: number;
 };
 
 const PAYOUT_STATUS_VARIANT = {
@@ -31,36 +35,55 @@ const PAYOUT_STATUS_VARIANT = {
 } as const;
 
 export default function EarningsPage() {
-  const { cars } = useFleet();
+  const { vehicles } = useFleet();
 
-  const carRows = useMemo<CarEarningsRow[]>(
+  const [earnings, setEarnings] = useState<FleetEarnings | null>(null);
+  const [payouts, setPayouts] = useState<FleetPayout[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    Promise.all([getFleetEarnings(undefined, controller.signal), getFleetPayouts(controller.signal)])
+      .then(([earningsResult, payoutResult]) => {
+        setEarnings(earningsResult);
+        setPayouts(payoutResult);
+      })
+      .catch((e: unknown) => {
+        if (controller.signal.aborted) return;
+        setError(e instanceof Error ? e.message : 'Could not load earnings.');
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  const vehicleRows = useMemo<VehicleActivityRow[]>(
     () =>
-      cars.map((c) => ({
-        id: c.id,
-        plateNumber: c.plateNumber,
-        model: `${c.model} (${c.year})`,
-        drivingHoursToday: c.drivingHoursToday,
-        screenTimeHoursToday: c.screenTimeHoursToday,
-        distanceKmToday: c.distanceKmToday,
-        hoursPay: c.drivingHoursToday * DRIVER_HOURLY_RATE_USD,
+      vehicles.map((v) => ({
+        id: v.id,
+        plateNumber: v.plateNumber,
+        model: v.year ? `${v.model} (${v.year})` : v.model,
+        drivingHoursToday: v.drivingHoursToday,
+        screenTimeHoursToday: v.screenTimeHoursToday,
+        distanceKmToday: v.distanceKmToday,
       })),
-    [cars],
+    [vehicles],
   );
 
-  const totalHoursPay = carRows.reduce((sum, r) => sum + r.hoursPay, 0);
-
-  const carColumns = useMemo<GridColDef<CarEarningsRow>[]>(
+  const driverColumns = useMemo<GridColDef<FleetDriverEarnings>[]>(
     () => [
-      { field: 'plateNumber', headerName: 'Plate', flex: 0.7, minWidth: 110 },
-      { field: 'model', headerName: 'Model', flex: 1, minWidth: 160 },
-      { field: 'drivingHoursToday', headerName: 'Driving hrs', flex: 0.7, minWidth: 110, type: 'number' },
-      { field: 'screenTimeHoursToday', headerName: 'Screen hrs', flex: 0.7, minWidth: 110, type: 'number' },
-      { field: 'distanceKmToday', headerName: 'Distance (km)', flex: 0.7, minWidth: 120, type: 'number' },
+      { field: 'driverName', headerName: 'Driver', flex: 1, minWidth: 160 },
+      { field: 'shiftCount', headerName: 'Shifts', flex: 0.5, minWidth: 90, type: 'number' },
+      { field: 'activeHours', headerName: 'Active hrs', flex: 0.6, minWidth: 110, type: 'number' },
       {
-        field: 'hoursPay',
-        headerName: 'Hours pay',
+        field: 'total',
+        headerName: 'Generated',
         flex: 0.7,
-        minWidth: 110,
+        minWidth: 120,
         type: 'number',
         valueFormatter: (value: number) => formatCurrency(value, { decimals: 2 }),
       },
@@ -68,10 +91,20 @@ export default function EarningsPage() {
     [],
   );
 
-  const payoutColumns = useMemo<GridColDef<PayoutRecord>[]>(
+  const vehicleColumns = useMemo<GridColDef<VehicleActivityRow>[]>(
+    () => [
+      { field: 'plateNumber', headerName: 'Plate', flex: 0.7, minWidth: 110 },
+      { field: 'model', headerName: 'Model', flex: 1, minWidth: 160 },
+      { field: 'drivingHoursToday', headerName: 'Driving hrs', flex: 0.7, minWidth: 110, type: 'number' },
+      { field: 'screenTimeHoursToday', headerName: 'Verified screen hrs', flex: 0.8, minWidth: 150, type: 'number' },
+      { field: 'distanceKmToday', headerName: 'Distance (km)', flex: 0.7, minWidth: 120, type: 'number' },
+    ],
+    [],
+  );
+
+  const payoutColumns = useMemo<GridColDef<FleetPayout>[]>(
     () => [
       { field: 'period', headerName: 'Period', flex: 1, minWidth: 140 },
-      { field: 'vehiclesIncluded', headerName: 'Vehicles', flex: 0.6, minWidth: 100, type: 'number' },
       {
         field: 'amount',
         headerName: 'Amount',
@@ -80,13 +113,24 @@ export default function EarningsPage() {
         type: 'number',
         valueFormatter: (value: number) => formatCurrency(value),
       },
-      { field: 'paidOn', headerName: 'Payout date', flex: 0.8, minWidth: 130 },
+      {
+        field: 'paidAtUtc',
+        headerName: 'Paid on',
+        flex: 0.8,
+        minWidth: 130,
+        valueGetter: (_v, row) => (row.paidAtUtc ? new Date(row.paidAtUtc).toLocaleDateString() : '—'),
+      },
       {
         field: 'status',
         headerName: 'Status',
         flex: 0.7,
         minWidth: 130,
-        renderCell: (params) => <StatusTag label={params.row.status} variant={PAYOUT_STATUS_VARIANT[params.row.status]} />,
+        renderCell: (params) => (
+          <StatusTag
+            label={params.row.status}
+            variant={PAYOUT_STATUS_VARIANT[params.row.status] ?? 'neutral'}
+          />
+        ),
       },
     ],
     [],
@@ -94,31 +138,69 @@ export default function EarningsPage() {
 
   return (
     <>
-      <PageHeader title="Earnings" subtitle={`Fleet payouts and per-vehicle contribution · next payout ${FLEET_EARNINGS.nextPayoutDate}`} />
+      <PageHeader
+        title="Earnings"
+        subtitle="What your drivers generated, and how each vehicle contributed."
+      />
+
+      {error && <Alert severity="error" sx={{ mb: '20px' }}>{error}</Alert>}
 
       <Card sx={{ p: '20px', mb: '24px' }}>
         <Typography sx={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'text.secondary' }}>
-          Fleet payouts
+          Generated by your fleet
         </Typography>
         <Typography sx={{ fontWeight: 700, fontSize: 16, mb: '12px' }}>Summary</Typography>
         <EarningsSummary columns={4} />
+        <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: '12px' }}>
+          Earnings accrue per driver for the shifts they work. How they are shared between your
+          company and your drivers is set by your agreement with them, not by AdzOnRoad.
+        </Typography>
+      </Card>
+
+      <Card sx={{ p: 0, mb: '24px' }}>
+        <Box sx={{ padding: '18px 22px' }}>
+          <Typography sx={{ fontWeight: 700, fontSize: 16 }}>By driver, this month</Typography>
+          <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: '4px' }}>
+            Base, hourly and premium-area bonus, as settled for each completed shift.
+          </Typography>
+        </Box>
+        {loading ? (
+          <EmptyState title="Loading earnings…" description="Fetching settled shifts." />
+        ) : !earnings || earnings.byDriver.length === 0 ? (
+          <EmptyState
+            title="Nothing earned yet this month"
+            description="Earnings appear once a driver completes a shift with a screen fitted and reporting."
+          />
+        ) : (
+          <Box sx={{ height: 380 }}>
+            <DataGrid
+              rows={earnings.byDriver}
+              getRowId={(row) => row.driverId}
+              columns={driverColumns}
+              disableRowSelectionOnClick
+              pageSizeOptions={[5, 10]}
+              initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
+              sx={{ border: 'none' }}
+            />
+          </Box>
+        )}
       </Card>
 
       <Card sx={{ p: 0, mb: '24px' }}>
         <Box sx={{ padding: '18px 22px' }}>
           <Typography sx={{ fontWeight: 700, fontSize: 16 }}>Per-vehicle activity today</Typography>
           <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: '4px' }}>
-            Hours pay is driving hours × {formatCurrency(DRIVER_HOURLY_RATE_USD, { decimals: 2 })}/hr. The monthly base and premium-area
-            bonus are paid per driver and aren't broken out per vehicle here — fleet total today: {formatCurrency(totalHoursPay, { decimals: 2 })}.
+            Verified screen hours count only playback that correlated to a GPS fix — the evidence
+            an advertiser is billed against.
           </Typography>
         </Box>
-        {carRows.length === 0 ? (
-          <EmptyState title="No vehicles yet" description="Add a car to start tracking earnings." />
+        {vehicleRows.length === 0 ? (
+          <EmptyState title="No vehicles yet" description="Add a car to start tracking activity." />
         ) : (
           <Box sx={{ height: 400 }}>
             <DataGrid
-              rows={carRows}
-              columns={carColumns}
+              rows={vehicleRows}
+              columns={vehicleColumns}
               disableRowSelectionOnClick
               pageSizeOptions={[5, 10]}
               initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
@@ -132,16 +214,25 @@ export default function EarningsPage() {
         <Box sx={{ padding: '18px 22px' }}>
           <Typography sx={{ fontWeight: 700, fontSize: 16 }}>Payout history</Typography>
         </Box>
-        <Box sx={{ height: 360, borderTop: `1px solid ${tokens.border}` }}>
-          <DataGrid
-            rows={PAYOUT_HISTORY}
-            columns={payoutColumns}
-            disableRowSelectionOnClick
-            pageSizeOptions={[5, 10]}
-            initialState={{ pagination: { paginationModel: { pageSize: 5 } } }}
-            sx={{ border: 'none' }}
-          />
-        </Box>
+        {payouts.length === 0 ? (
+          <Box sx={{ borderTop: `1px solid ${tokens.border}` }}>
+            <EmptyState
+              title="No payouts yet"
+              description="Payouts appear here once AdzOnRoad settles a period with your company."
+            />
+          </Box>
+        ) : (
+          <Box sx={{ height: 360, borderTop: `1px solid ${tokens.border}` }}>
+            <DataGrid
+              rows={payouts}
+              columns={payoutColumns}
+              disableRowSelectionOnClick
+              pageSizeOptions={[5, 10]}
+              initialState={{ pagination: { paginationModel: { pageSize: 5 } } }}
+              sx={{ border: 'none' }}
+            />
+          </Box>
+        )}
       </Card>
     </>
   );

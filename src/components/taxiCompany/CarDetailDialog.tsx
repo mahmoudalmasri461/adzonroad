@@ -7,18 +7,18 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import { useFleet } from './FleetContext';
 import { tokens } from '../../theme';
-import type { Car } from '../../types/taxiCompany';
+import { gpsLabel, positionAge, type FleetVehicle } from '../../services/fleet';
 
 type CarDetailDialogProps = {
-  car: Car | null;
+  car: FleetVehicle | null;
   onClose: () => void;
 };
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
       <span style={{ color: tokens.textMuted }}>{label}</span>
-      <span style={{ fontWeight: 600 }}>{value}</span>
+      <span style={{ fontWeight: 600, textAlign: 'right' }}>{value}</span>
     </Box>
   );
 }
@@ -45,25 +45,40 @@ export default function CarDetailDialog({ car, onClose }: CarDetailDialogProps) 
               <SectionLabel>Vehicle info</SectionLabel>
             </Box>
             <Box sx={{ display: 'grid', gap: '6px', fontSize: 13, mt: '8px', mb: '16px' }}>
-              <DetailRow label="Category" value={car.plateCategory} />
-              <DetailRow label="Type" value={car.carType} />
-              <DetailRow label="Model" value={`${car.model} (${car.year})`} />
-              <DetailRow label="Papers on file" value={car.papersImageName ?? '—'} />
+              <DetailRow label="Category" value={car.plateCategory || '—'} />
+              <DetailRow label="Type" value={car.carType || '—'} />
+              <DetailRow label="Model" value={car.year ? `${car.model} (${car.year})` : car.model || '—'} />
+              <DetailRow label="Status" value={car.status} />
               <DetailRow label="Driving hours today" value={`${car.drivingHoursToday} hrs`} />
             </Box>
 
-            <SectionLabel>Screen info</SectionLabel>
+            <SectionLabel>Screen</SectionLabel>
             <Box sx={{ display: 'grid', gap: '6px', fontSize: 13, mt: '8px', mb: '16px' }}>
-              <DetailRow label="Screen ID" value={car.screenId} />
-              <DetailRow label="Status" value={car.screenStatus} />
-              <DetailRow label="Current campaign" value={car.currentCampaign ?? 'None active'} />
-              <DetailRow label="Screen time today" value={`${car.screenTimeHoursToday} hrs`} />
+              {car.screenSerialNumber ? (
+                <>
+                  <DetailRow label="Screen ID" value={car.screenSerialNumber} />
+                  <DetailRow label="Status" value={car.screenStatus ?? '—'} />
+                  <DetailRow label="Current campaign" value={car.currentCampaign ?? 'None active'} />
+                  {/* Verified only: playback that correlated to a GPS fix. */}
+                  <DetailRow label="Verified screen time today" value={`${car.screenTimeHoursToday} hrs`} />
+                </>
+              ) : (
+                <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>
+                  No screen installed on this vehicle yet.
+                </Typography>
+              )}
               <DetailRow label="Distance today" value={`${car.distanceKmToday} km`} />
+            </Box>
+
+            <SectionLabel>Position</SectionLabel>
+            <Box sx={{ display: 'grid', gap: '6px', fontSize: 13, mt: '8px', mb: '16px' }}>
+              <DetailRow label="GPS" value={gpsLabel(car)} />
+              <DetailRow label="Last fix" value={positionAge(car.positionCapturedAtUtc)} />
             </Box>
 
             <SectionLabel>Driver</SectionLabel>
             <Box sx={{ display: 'grid', gap: '6px', fontSize: 13, mt: '8px' }}>
-              <DetailRow label="Name" value={driver?.name ?? 'Unassigned'} />
+              <DetailRow label="Name" value={driver?.name ?? car.driverName ?? 'Unassigned'} />
               <DetailRow label="Mobile" value={driver?.mobileNumber ?? '—'} />
             </Box>
           </DialogContent>

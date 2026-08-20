@@ -6,7 +6,7 @@ import PhoneRoundedIcon from '@mui/icons-material/PhoneRounded';
 import BuildRoundedIcon from '@mui/icons-material/BuildRounded';
 import ReportProblemRoundedIcon from '@mui/icons-material/ReportProblemRounded';
 import { useFleet } from './FleetContext';
-import { SUPPORT_CONTACT } from '../../data/taxiCompanyMockData';
+import { SUPPORT_CONTACT } from '../../data/supportContact';
 import { tokens } from '../../theme';
 
 export default function FleetSupportCard() {

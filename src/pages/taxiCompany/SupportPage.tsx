@@ -3,7 +3,7 @@ import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 import PageHeader from '../../components/PageHeader';
 import FleetSupportCard from '../../components/taxiCompany/FleetSupportCard';
-import { SUPPORT_CONTACT } from '../../data/taxiCompanyMockData';
+import { SUPPORT_CONTACT } from '../../data/supportContact';
 
 const FAQ = [
   {
