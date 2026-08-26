@@ -25,8 +25,28 @@ export interface RegionTotal {
   verifiedSeconds: number;
 }
 
+/**
+ * One campaign's delivery, kept beside the totals rather than dissolved into them.
+ *
+ * The portfolio view needs both: a headline that adds everything up, and rows that say which
+ * campaign contributed what. `summary` is null when the report could not be read, which is not
+ * the same as a campaign that delivered nothing — the two are shown differently.
+ */
+export interface CampaignDelivery {
+  campaign: CampaignSummary;
+  summary: DeliverySummary | null;
+  verifiedPlays: number;
+  verifiedSeconds: number;
+  pendingEvidencePlays: number;
+  totalClaims: number;
+  /** Share of this campaign's claims backed by evidence, 0-1. Zero of zero is 0, never 1. */
+  verifiedShare: number;
+}
+
 export interface PortfolioDelivery {
   campaigns: CampaignSummary[];
+  /** Per-campaign rows, in the order the API listed the campaigns. */
+  byCampaign: CampaignDelivery[];
   /** Campaigns the platform could report on. May be fewer than `campaigns` if some had no data. */
   reported: number;
 
@@ -53,6 +73,9 @@ export interface PortfolioDelivery {
  * Days are unioned and sorted, so a chart shows a continuous run rather than one campaign's
  * calendar. Regions are keyed by name, since two campaigns naming the same region must add
  * together rather than appear twice.
+ *
+ * Reports are matched to campaigns by id rather than by position, so a campaign whose report
+ * failed cannot silently take the delivery figures of the next one along.
  */
 export function aggregateDelivery(
   campaigns: CampaignSummary[],
@@ -102,8 +125,11 @@ export function aggregateDelivery(
     }
   }
 
+  const byId = new Map(summaries.map((s) => [s.campaignId, s]));
+
   return {
     campaigns,
+    byCampaign: campaigns.map((campaign) => describeCampaign(campaign, byId.get(campaign.campaignId) ?? null)),
     reported: summaries.length,
     verifiedPlays,
     verifiedSeconds,
@@ -118,6 +144,31 @@ export function aggregateDelivery(
       .map(([qualification, plays]) => ({ qualification, plays }))
       .sort((a, b) => b.plays - a.plays),
     anyRollupStale,
+  };
+}
+
+/**
+ * One campaign's row.
+ *
+ * A campaign with no readable report reads as zero delivery *and* zero claims, which the UI
+ * renders as "nothing reported" rather than as nought per cent delivered — the difference between
+ * "we have no evidence" and "the evidence says nothing ran" is the whole point of the report.
+ */
+function describeCampaign(
+  campaign: CampaignSummary,
+  summary: DeliverySummary | null,
+): CampaignDelivery {
+  const totalClaims = summary?.counts.total ?? 0;
+  const verifiedPlays = summary?.counts.verifiedPlays ?? 0;
+
+  return {
+    campaign,
+    summary,
+    verifiedPlays,
+    verifiedSeconds: summary?.counts.verifiedSeconds ?? 0,
+    pendingEvidencePlays: summary?.counts.pendingEvidencePlays ?? 0,
+    totalClaims,
+    verifiedShare: totalClaims === 0 ? 0 : verifiedPlays / totalClaims,
   };
 }
 
@@ -166,6 +217,42 @@ export function shortDay(day: string): string {
   return Number.isNaN(parsed.getTime())
     ? day
     : parsed.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+}
+
+/**
+ * Where a campaign is in its own schedule, in words.
+ *
+ * Computed from the dates the campaign actually carries rather than stored as a label, so it
+ * cannot go stale the way "Ends in 6 days" did when it was a fixture. Days are counted in UTC to
+ * match the delivery reports; a Beirut reader can be a few hours out at a boundary, which is the
+ * same simplification the rest of the platform makes and better than two figures disagreeing.
+ */
+export function describeSchedule(campaign: CampaignSummary, today = new Date()): string {
+  if (campaign.status === 'Draft') return 'Not submitted';
+  if (campaign.status === 'PendingApproval') return 'Awaiting review';
+  if (campaign.status === 'Rejected') return 'Needs changes';
+  if (campaign.status === 'Cancelled') return 'Cancelled';
+  if (campaign.status === 'Completed') return 'Completed';
+
+  const start = daysBetween(today, campaign.startDate);
+  const end = daysBetween(today, campaign.endDate);
+
+  if (start !== null && start > 0) return start === 1 ? 'Starts tomorrow' : `Starts in ${start} days`;
+  if (end === null) return campaign.status === 'Paused' ? 'Paused' : 'Running';
+  if (end < 0) return 'Ended';
+  if (end === 0) return 'Ends today';
+  if (end === 1) return 'Ends tomorrow';
+
+  return `Ends in ${end} days`;
+}
+
+/** Whole days from now to a `YYYY-MM-DD`, or null if the date will not parse. */
+function daysBetween(from: Date, isoDate: string): number | null {
+  const target = new Date(`${isoDate}T00:00:00Z`);
+  if (Number.isNaN(target.getTime())) return null;
+
+  const startOfToday = Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate());
+  return Math.round((target.getTime() - startOfToday) / 86_400_000);
 }
 
 /** Campaigns an advertiser would consider live right now. */

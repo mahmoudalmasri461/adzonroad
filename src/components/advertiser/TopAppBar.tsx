@@ -2,22 +2,17 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import Badge from '@mui/material/Badge';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Divider from '@mui/material/Divider';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import SearchIcon from '@mui/icons-material/Search';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutlineOutlined';
 import MenuIcon from '@mui/icons-material/Menu';
 import { advTokens } from './theme';
-import { useToast } from '../../contexts/ToastProvider';
+import { useAlerts } from './AlertsContext';
 import { useAuth } from '../../contexts/AuthProvider';
-import { MOCK_ADVERTISER, NOTIFICATIONS } from '../../data/advertiserMockData';
 
 type TopAppBarProps = {
   title: string;
@@ -25,15 +20,15 @@ type TopAppBarProps = {
 };
 
 export default function TopAppBar({ title, onMenuClick }: TopAppBarProps) {
-  const { showToast } = useToast();
   const { session, signOut } = useAuth();
+  const { alerts, ready } = useAlerts();
   const navigate = useNavigate();
   const [accountAnchor, setAccountAnchor] = useState<null | HTMLElement>(null);
   const [notifAnchor, setNotifAnchor] = useState<null | HTMLElement>(null);
 
-  // The signed-in name where there is one. The fixture is still the fallback because the rest of
-  // this bar reads from fixtures, and a half-real header is more confusing than a consistent one.
-  const displayName = session?.displayName || MOCK_ADVERTISER.companyName;
+  // The signed-in name, with no fallback. There is no fixture left to fall back to, and an
+  // account whose token carries no name is a bug worth seeing rather than papering over.
+  const displayName = session?.displayName ?? '';
 
   const initials = displayName
     .split(' ')
@@ -70,38 +65,39 @@ export default function TopAppBar({ title, onMenuClick }: TopAppBarProps) {
       <Typography sx={{ fontWeight: 800, fontSize: 17, color: advTokens.text, display: { xs: 'none', sm: 'block' } }}>
         {title}
       </Typography>
-      <TextField
-        size="small"
-        placeholder="Search campaigns, creatives, invoices…"
-        onChange={() => undefined}
-        sx={{ ml: { sm: '12px' }, flex: 1, maxWidth: 380, display: { xs: 'none', md: 'block' } }}
-        slotProps={{
-          input: {
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon fontSize="small" sx={{ color: advTokens.textMuted }} />
-              </InputAdornment>
-            ),
-          },
-        }}
-      />
-      <Box sx={{ flex: { xs: 1, md: 'unset' } }} />
+      {/* The global search box that used to sit here discarded every keystroke: there is no
+          cross-entity search endpoint. The campaign table has a working search of its own. */}
+      <Box sx={{ flex: 1 }} />
+      {/* The badge counts the same derived alerts the dashboard card lists, so the number here
+          and the list there can never disagree. No badge at all until both halves have loaded. */}
       <IconButton onClick={(e) => setNotifAnchor(e.currentTarget)}>
-        <Badge badgeContent={NOTIFICATIONS.length} sx={{ '& .MuiBadge-badge': { backgroundColor: advTokens.orange, color: '#fff' } }}>
+        <Badge
+          badgeContent={ready ? alerts.length : 0}
+          sx={{ '& .MuiBadge-badge': { backgroundColor: advTokens.orange, color: '#fff' } }}
+        >
           <NotificationsNoneIcon sx={{ color: advTokens.text }} />
         </Badge>
       </IconButton>
-      <Menu anchorEl={notifAnchor} open={!!notifAnchor} onClose={() => setNotifAnchor(null)} slotProps={{ paper: { sx: { width: 320 } } }}>
-        {NOTIFICATIONS.slice(0, 5).map((n) => (
-          <MenuItem key={n.id} onClick={() => setNotifAnchor(null)} sx={{ whiteSpace: 'normal', fontSize: 13 }}>
-            <Box>
-              <Typography sx={{ fontSize: 13, fontWeight: 600 }}>{n.message}</Typography>
-              <Typography sx={{ fontSize: 11, color: advTokens.textMuted }}>{n.timestamp}</Typography>
-            </Box>
+      <Menu anchorEl={notifAnchor} open={!!notifAnchor} onClose={() => setNotifAnchor(null)} slotProps={{ paper: { sx: { width: 340 } } }}>
+        {alerts.length === 0 ? (
+          <MenuItem disabled sx={{ whiteSpace: 'normal', fontSize: 13 }}>
+            {ready ? 'Nothing needs attention' : 'Loading…'}
           </MenuItem>
-        ))}
+        ) : (
+          alerts.slice(0, 6).map((alert) => (
+            <MenuItem key={alert.id} onClick={() => setNotifAnchor(null)} sx={{ whiteSpace: 'normal', fontSize: 13 }}>
+              <Box>
+                <Typography sx={{ fontSize: 13, fontWeight: 600 }}>{alert.message}</Typography>
+                <Typography sx={{ fontSize: 11, color: advTokens.textMuted }}>{alert.detail}</Typography>
+              </Box>
+            </MenuItem>
+          ))
+        )}
       </Menu>
-      <IconButton onClick={() => showToast('Help center isn\'t built in this preview yet')} sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
+      <IconButton
+        onClick={() => { setNotifAnchor(null); navigate('/advertiser/support'); }}
+        sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
+      >
         <HelpOutlineIcon sx={{ color: advTokens.text }} />
       </IconButton>
       <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' }, my: '6px' }} />
@@ -111,12 +107,9 @@ export default function TopAppBar({ title, onMenuClick }: TopAppBarProps) {
       >
         <Box sx={{ display: { xs: 'none', sm: 'flex' }, flexDirection: 'column', alignItems: 'flex-end' }}>
           <Typography sx={{ fontSize: 13, fontWeight: 700, color: advTokens.text }}>{displayName}</Typography>
-          {MOCK_ADVERTISER.accountVerified && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', color: advTokens.green, fontSize: 11, fontWeight: 700 }}>
-              <CheckCircleIcon sx={{ fontSize: 12 }} />
-              Account Verified
-            </Box>
-          )}
+          {/* "Account Verified" used to show unconditionally, from a fixture flag that was
+              always true. An account that can sign in has already been approved, so the claim was
+              never news; the real status now lives on Settings, where it comes from the server. */}
         </Box>
         <Box
           sx={{
@@ -137,8 +130,9 @@ export default function TopAppBar({ title, onMenuClick }: TopAppBarProps) {
         </Box>
       </Box>
       <Menu anchorEl={accountAnchor} open={!!accountAnchor} onClose={() => setAccountAnchor(null)}>
-        <MenuItem onClick={() => { setAccountAnchor(null); showToast('Profile isn\'t built in this preview yet'); }}>Profile</MenuItem>
-        <MenuItem onClick={() => { setAccountAnchor(null); showToast('Account settings isn\'t built in this preview yet'); }}>Account settings</MenuItem>
+        <MenuItem onClick={() => { setAccountAnchor(null); navigate('/advertiser/settings'); }}>
+          Account settings
+        </MenuItem>
         <Divider />
         <MenuItem onClick={handleSignOut}>Sign out</MenuItem>
       </Menu>

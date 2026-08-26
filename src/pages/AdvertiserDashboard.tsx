@@ -5,9 +5,8 @@ import AddIcon from '@mui/icons-material/Add';
 import AdvertiserLayout from '../components/advertiser/AdvertiserLayout';
 import DeliveryKpis from '../components/advertiser/DeliveryKpis';
 import DeliveryAnalytics from '../components/advertiser/DeliveryAnalytics';
-import MyCampaignsCard from '../components/advertiser/MyCampaignsCard';
 import LiveCampaignMap from '../components/advertiser/LiveCampaignMap';
-import CampaignProgressCard from '../components/advertiser/CampaignProgressCard';
+import CampaignDeliveryCard from '../components/advertiser/CampaignDeliveryCard';
 import CampaignTable from '../components/advertiser/CampaignTable';
 import RegionPerformanceCard from '../components/advertiser/RegionPerformanceCard';
 import CreativePerformanceCard from '../components/advertiser/CreativePerformanceCard';
@@ -18,23 +17,15 @@ import SupportCard from '../components/advertiser/SupportCard';
 import ReportsListCard from '../components/advertiser/ReportsListCard';
 import { useCreateCampaign } from '../components/advertiser/CreateCampaignContext';
 import { advTokens, cardSx } from '../components/advertiser/theme';
-import { useToast } from '../contexts/ToastProvider';
 import { useAuth } from '../contexts/AuthProvider';
-import { CAMPAIGNS } from '../data/advertiserMockData';
-import type { Campaign } from '../types/advertiser';
 
 function DashboardContent() {
-  const { showToast } = useToast();
   const { openCreateCampaign } = useCreateCampaign();
   const { session } = useAuth();
 
   // The signed-in user's own name, not a fixture. The session carries no company name, so the
   // subtitle says nothing about one rather than inventing an employer for the reader.
   const firstName = session?.displayName.trim().split(/\s+/)[0] ?? 'there';
-
-  const activeCampaigns = CAMPAIGNS.filter((c) => c.status === 'Active').slice(0, 4);
-
-  const handleViewDetails = (campaign: Campaign) => showToast(`Opening ${campaign.name}…`);
 
   return (
     <>
@@ -65,23 +56,10 @@ function DashboardContent() {
         <LiveCampaignMap />
       </Box>
 
-      {/* The advertiser's real campaigns */}
-      <MyCampaignsCard />
+      {/* Campaign delivery, from the delivery reports */}
+      <CampaignDeliveryCard limit={4} />
 
-      {/* Campaign delivery — still fixtures, kept as a design reference */}
-      <Box sx={{ ...cardSx, padding: '20px', mb: '24px' }}>
-        <Typography sx={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: advTokens.textMuted }}>
-          In progress
-        </Typography>
-        <Typography sx={{ fontWeight: 800, fontSize: 16, color: advTokens.text, mb: '6px' }}>Campaign Delivery</Typography>
-        <Box>
-          {activeCampaigns.map((c) => (
-            <CampaignProgressCard key={c.id} campaign={c} onViewDetails={handleViewDetails} />
-          ))}
-        </Box>
-      </Box>
-
-      {/* Recent campaigns table */}
+      {/* Every campaign on the account */}
       <Box sx={{ mb: '24px' }}>
         <CampaignTable />
       </Box>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -51,6 +52,11 @@ const TONE_COLORS: Record<ClaimTone, string> = {
 
 export default function ProofOfDeliveryCard() {
   const { showToast } = useToast();
+  const [searchParams] = useSearchParams();
+
+  // Campaign lists elsewhere in the portal link here for a single campaign's evidence, which is
+  // the only per-campaign detail view the portal has.
+  const requestedCampaignId = searchParams.get('campaign') ?? '';
 
   const [campaigns, setCampaigns] = useState<ReportableCampaign[] | null>(null);
   const [campaignId, setCampaignId] = useState('');
@@ -76,7 +82,10 @@ export default function ProofOfDeliveryCard() {
     fetchCampaigns(controller.signal)
       .then((list) => {
         setCampaigns(list);
-        setCampaignId((current) => current || list[0]?.campaignId || '');
+        const requested = list.some((c) => c.campaignId === requestedCampaignId)
+          ? requestedCampaignId
+          : '';
+        setCampaignId((current) => requested || current || list[0]?.campaignId || '');
       })
       .catch((e: unknown) => {
         if (controller.signal.aborted) return;
@@ -85,7 +94,7 @@ export default function ProofOfDeliveryCard() {
       });
 
     return () => controller.abort();
-  }, []);
+  }, [requestedCampaignId]);
 
   useEffect(() => {
     if (!campaignId) return;

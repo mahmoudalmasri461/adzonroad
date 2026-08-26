@@ -3,8 +3,6 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
 import MuiTooltip from '@mui/material/Tooltip';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -13,25 +11,22 @@ import RoomIcon from '@mui/icons-material/Room';
 import { MapContainer, TileLayer, CircleMarker, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { advTokens, cardSx } from './theme';
-import StatusChip from './StatusChip';
-import { VEHICLES, SCREENS, CAMPAIGNS } from '../../data/advertiserMockData';
+import EmptyState from './EmptyState';
 import { useLiveVehicles } from '../../hooks/useLiveVehicles';
 import { describeAge, type VehiclePresentation } from '../../services/vehicleInterpolation';
-import type { ScreenStatus } from '../../types/advertiser';
 
 const BEIRUT_CENTER: [number, number] = [33.884, 35.508];
 const DEFAULT_ZOOM = 12;
 
-const ZONES = [
-  { name: 'Beirut Central District', lat: 33.8959, lng: 35.5017 },
-  { name: 'Hamra', lat: 33.8959, lng: 35.4818 },
-  { name: 'Verdun', lat: 33.8837, lng: 35.478 },
-  { name: 'Badaro', lat: 33.8788, lng: 35.5138 },
-  { name: 'Hazmieh', lat: 33.8534, lng: 35.545 },
-  { name: 'Sin El Fil', lat: 33.8756, lng: 35.5389 },
-];
+/**
+ * Filters the feed can actually answer.
+ *
+ * Campaign, Region and Date were offered before and were backed by fixture metadata; the live
+ * hub sends a position and a fix age and nothing else, so filtering by campaign meant filtering
+ * a fabricated field. What is left is what a vehicle's own reporting state supports.
+ */
 
-const FILTERS = ['All', 'Active', 'Offline', 'Campaign', 'Region', 'Date'] as const;
+const FILTERS = ['All', 'Reporting live', 'Not reporting'] as const;
 type FilterKey = (typeof FILTERS)[number];
 
 /**
@@ -48,13 +43,7 @@ interface MapVehicle {
   lng: number;
   presentation: VehiclePresentation;
   isDerived: boolean;
-  fixAgeSeconds: number | null;
-  speedKmh: number | null;
-  region: string | null;
-  screenId: string | null;
-  campaignName: string | null;
-  screenStatus: ScreenStatus | null;
-  networkStatus: string | null;
+  fixAgeSeconds: number;
 }
 
 function ZoomControls() {
@@ -87,66 +76,28 @@ function ZoomControls() {
 
 export default function LiveCampaignMap() {
   const [activeFilter, setActiveFilter] = useState<FilterKey>('All');
-  const [regionFilter, setRegionFilter] = useState<string | null>(null);
-  const [regionAnchor, setRegionAnchor] = useState<null | HTMLElement>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const { vehicles: liveVehicles, connectionState, lastReconciliation } = useLiveVehicles();
 
-  const isLiveFeed = liveVehicles.length > 0;
-
-  const mapVehicles = useMemo<MapVehicle[]>(() => {
-    if (isLiveFeed) {
-      return liveVehicles.map((v) => ({
-        id: v.vehicleId,
-        // Until vehicle metadata is fetched alongside the feed, the identifier is all the hub
-        // sends. A short prefix is enough to tell markers apart without implying a plate number.
-        label: v.vehicleId.slice(0, 8).toUpperCase(),
-        lat: v.lat,
-        lng: v.lng,
-        presentation: v.presentation,
-        isDerived: v.isDerived,
-        fixAgeSeconds: v.fixAgeSeconds,
-        speedKmh: null,
-        region: null,
-        screenId: null,
-        campaignName: null,
-        screenStatus: null,
-        networkStatus: null,
-      }));
-    }
-
-    // Sample fixtures, shown only when nothing is reporting. Labelled as such in the header so a
-    // demo is never mistaken for verified traffic.
-    return VEHICLES.map((v) => {
-      const screen = SCREENS.find((s) => s.vehicleId === v.id);
-      const campaign = screen?.currentCampaignId
-        ? CAMPAIGNS.find((c) => c.id === screen.currentCampaignId)
-        : null;
-
-      return {
-        id: v.id,
-        label: v.taxiId,
-        lat: v.lat,
-        lng: v.lng,
-        presentation: screen?.status === 'Online' ? 'live' : 'offline',
-        isDerived: false,
-        fixAgeSeconds: null,
-        speedKmh: v.speedKmh,
-        region: v.region,
-        screenId: screen?.screenId ?? null,
-        campaignName: campaign?.name ?? null,
-        screenStatus: screen?.status ?? null,
-        networkStatus: screen?.networkStatus ?? null,
-      } satisfies MapVehicle;
-    });
-  }, [isLiveFeed, liveVehicles]);
+  const mapVehicles = useMemo<MapVehicle[]>(
+    () => liveVehicles.map((v) => ({
+      id: v.vehicleId,
+      // Until vehicle metadata is fetched alongside the feed, the identifier is all the hub
+      // sends. A short prefix is enough to tell markers apart without implying a plate number.
+      label: v.vehicleId.slice(0, 8).toUpperCase(),
+      lat: v.lat,
+      lng: v.lng,
+      presentation: v.presentation,
+      isDerived: v.isDerived,
+      fixAgeSeconds: v.fixAgeSeconds,
+    })),
+    [liveVehicles],
+  );
 
   const filtered = mapVehicles.filter((v) => {
-    if (activeFilter === 'Active') return v.presentation === 'live';
-    if (activeFilter === 'Offline') return v.presentation === 'offline';
-    if (activeFilter === 'Campaign') return !!v.campaignName;
-    if (activeFilter === 'Region') return regionFilter ? v.region === regionFilter : true;
+    if (activeFilter === 'Reporting live') return v.presentation === 'live';
+    if (activeFilter === 'Not reporting') return v.presentation !== 'live';
     return true;
   });
 
@@ -164,7 +115,6 @@ export default function LiveCampaignMap() {
           <Typography sx={{ fontWeight: 800, fontSize: 16, color: advTokens.text }}>Live Campaign Map</Typography>
         </Box>
         <FeedStatus
-          isLiveFeed={isLiveFeed}
           connectionState={connectionState}
           liveCount={liveCount}
           total={mapVehicles.length}
@@ -185,15 +135,8 @@ export default function LiveCampaignMap() {
         {FILTERS.map((f) => (
           <Chip
             key={f}
-            label={f === 'Region' && regionFilter ? regionFilter : f}
-            onClick={(e) => {
-              if (f === 'Region') {
-                setRegionAnchor(e.currentTarget);
-                setActiveFilter('Region');
-              } else {
-                setActiveFilter(f);
-              }
-            }}
+            label={f}
+            onClick={() => setActiveFilter(f)}
             size="small"
             variant={activeFilter === f ? 'filled' : 'outlined'}
             sx={{
@@ -207,19 +150,6 @@ export default function LiveCampaignMap() {
           />
         ))}
       </Box>
-      <Menu anchorEl={regionAnchor} open={!!regionAnchor} onClose={() => setRegionAnchor(null)}>
-        {ZONES.map((z) => (
-          <MenuItem
-            key={z.name}
-            onClick={() => {
-              setRegionFilter(z.name);
-              setRegionAnchor(null);
-            }}
-          >
-            {z.name}
-          </MenuItem>
-        ))}
-      </Menu>
 
       <Box sx={{ position: 'relative', height: { xs: 320, md: 420 }, mt: '12px', borderTop: `1px solid ${advTokens.border}` }}>
         <MapContainer center={BEIRUT_CENTER} zoom={DEFAULT_ZOOM} zoomControl={false} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
@@ -228,14 +158,6 @@ export default function LiveCampaignMap() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <ZoomControls />
-
-          {ZONES.map((z) => (
-            <CircleMarker key={z.name} center={[z.lat, z.lng]} radius={3} pathOptions={{ color: advTokens.orange, fillColor: advTokens.orange, fillOpacity: 0.5, weight: 1 }}>
-              <Tooltip permanent direction="top" offset={[0, -4]} className="adv-zone-label">
-                {z.name}
-              </Tooltip>
-            </CircleMarker>
-          ))}
 
           {filtered.map((v) => {
             const isSelected = selectedId === v.id;
@@ -256,14 +178,38 @@ export default function LiveCampaignMap() {
               >
                 <Tooltip direction="top" offset={[0, -6]}>
                   {v.label}
-                  {v.presentation !== 'live' && v.fixAgeSeconds !== null
-                    ? ` — last fix ${describeAge(v.fixAgeSeconds)}`
-                    : ''}
+                  {v.presentation !== 'live' ? ` — last fix ${describeAge(v.fixAgeSeconds)}` : ''}
                 </Tooltip>
               </CircleMarker>
             );
           })}
         </MapContainer>
+
+        {/* Nothing to draw. The map stays visible underneath so the reader can see it is the
+            fleet that is quiet, not the page that is broken. */}
+        {mapVehicles.length === 0 && (
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 900,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'rgba(255,255,255,0.86)',
+            }}
+          >
+            <EmptyState
+              icon={<RoomIcon />}
+              title="No vehicles reporting"
+              description={
+                connectionState === 'connected'
+                  ? 'Connected to the live feed, and nothing is currently sending a position.'
+                  : 'Not connected to the live feed. Reconnecting automatically.'
+              }
+            />
+          </Box>
+        )}
 
         {selected && (
           <Box
@@ -291,57 +237,34 @@ export default function LiveCampaignMap() {
               </IconButton>
             </Box>
             <Box sx={{ display: 'grid', gap: '5px', fontSize: 12 }}>
-              {selected.screenId && <Row label="Screen ID" value={selected.screenId} />}
-              {selected.campaignName !== null && <Row label="Campaign" value={selected.campaignName} />}
-              {selected.region && <Row label="Region" value={selected.region} />}
-              {selected.speedKmh !== null && <Row label="Speed" value={`${selected.speedKmh} km/h`} />}
-
-              {selected.fixAgeSeconds !== null && (
-                <Row label="Last GPS fix" value={describeAge(selected.fixAgeSeconds)} />
-              )}
+              <Row label="Last GPS fix" value={describeAge(selected.fixAgeSeconds)} />
 
               {/* The distinction the whole architecture rests on: a smoothly moving marker is not
                   the same thing as a confirmed position. */}
-              {isLiveFeed && (
-                <MuiTooltip
-                  title={
-                    selected.isDerived
-                      ? 'Drawn between two confirmed GPS fixes to keep movement smooth. Delivery is only ever counted against confirmed fixes.'
-                      : 'These are the coordinates the vehicle actually reported.'
-                  }
-                >
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', cursor: 'help' }}>
-                    <span style={{ color: advTokens.textMuted }}>Position</span>
-                    <span style={{ fontWeight: 700, color: selected.isDerived ? advTokens.textMuted : advTokens.green }}>
-                      {selected.isDerived ? 'Estimated' : 'Confirmed GPS'}
-                    </span>
-                  </Box>
-                </MuiTooltip>
-              )}
-
-              {selected.screenStatus && (
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: '4px' }}>
-                  <Typography sx={{ fontSize: 11.5, color: advTokens.textMuted }}>Screen</Typography>
-                  <StatusChip status={selected.screenStatus} size="small" />
-                </Box>
-              )}
-              {selected.networkStatus && (
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5 }}>
-                  <span style={{ color: advTokens.textMuted }}>Network</span>
-                  <span style={{ fontWeight: 700, color: selected.networkStatus === 'Connected' ? advTokens.green : advTokens.red }}>
-                    {selected.networkStatus}
+              <MuiTooltip
+                title={
+                  selected.isDerived
+                    ? 'Drawn between two confirmed GPS fixes to keep movement smooth. Delivery is only ever counted against confirmed fixes.'
+                    : 'These are the coordinates the vehicle actually reported.'
+                }
+              >
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', cursor: 'help' }}>
+                  <span style={{ color: advTokens.textMuted }}>Position</span>
+                  <span style={{ fontWeight: 700, color: selected.isDerived ? advTokens.textMuted : advTokens.green }}>
+                    {selected.isDerived ? 'Estimated' : 'Confirmed GPS'}
                   </span>
                 </Box>
-              )}
+              </MuiTooltip>
 
-              {isLiveFeed && (
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, pt: '2px' }}>
-                  <span style={{ color: advTokens.textMuted }}>Reporting</span>
-                  <span style={{ fontWeight: 700, color: PRESENTATION_COLORS[selected.presentation] }}>
-                    {PRESENTATION_LABELS[selected.presentation]}
-                  </span>
-                </Box>
-              )}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, pt: '2px' }}>
+                <span style={{ color: advTokens.textMuted }}>Reporting</span>
+                <span style={{ fontWeight: 700, color: PRESENTATION_COLORS[selected.presentation] }}>
+                  {PRESENTATION_LABELS[selected.presentation]}
+                </span>
+              </Box>
+
+              {/* Plate, screen serial and current campaign are not on the live feed. They were
+                  fixture fields before; the hub sends a vehicle id, a position and its age. */}
             </Box>
           </Box>
         )}
@@ -384,29 +307,26 @@ const PRESENTATION_COLORS: Record<VehiclePresentation, string> = {
  * connection, and the taxis going quiet. Only the second is a fleet problem.
  */
 function FeedStatus({
-  isLiveFeed,
   connectionState,
   liveCount,
   total,
 }: {
-  isLiveFeed: boolean;
   connectionState: string;
   liveCount: number;
   total: number;
 }) {
-  if (!isLiveFeed) {
-    const waiting = connectionState === 'connected';
+  if (total === 0) {
     return (
       <MuiTooltip
         title={
-          waiting
-            ? 'Connected to the live feed, but no vehicle is currently reporting. Showing sample data.'
-            : 'Not connected to the live feed. Showing sample data.'
+          connectionState === 'connected'
+            ? 'Connected to the live feed. No vehicle is currently reporting a position.'
+            : 'Not connected to the live feed.'
         }
       >
         <Chip
           size="small"
-          label={waiting ? 'No vehicles reporting — sample data' : 'Sample data'}
+          label={connectionState === 'connected' ? 'No vehicles reporting' : 'Reconnecting…'}
           sx={{ fontWeight: 700, fontSize: 11, color: advTokens.textMuted, backgroundColor: advTokens.bg, cursor: 'help' }}
         />
       </MuiTooltip>

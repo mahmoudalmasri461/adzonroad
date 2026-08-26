@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   aggregateDelivery,
+  describeSchedule,
   formatScreenTime,
   liveCampaigns,
   shortDay,
@@ -232,5 +233,76 @@ describe('presentation helpers', () => {
     ];
 
     expect(liveCampaigns(list).map((c) => c.campaignId)).toEqual(['a', 'b']);
+  });
+});
+
+describe('per-campaign rows', () => {
+  it('pairs each campaign with its own report, by id rather than by position', () => {
+    const portfolio = aggregateDelivery(
+      [campaign({ campaignId: 'a', name: 'A' }), campaign({ campaignId: 'b', name: 'B' })],
+      // Deliberately out of order: a positional zip would give A's delivery to B.
+      [
+        summary({ campaignId: 'b', counts: counts({ total: 10, verifiedPlays: 6 }) }),
+        summary({ campaignId: 'a', counts: counts({ total: 4, verifiedPlays: 4 }) }),
+      ],
+    );
+
+    expect(portfolio.byCampaign.map((r) => [r.campaign.name, r.verifiedPlays])).toEqual([
+      ['A', 4],
+      ['B', 6],
+    ]);
+  });
+
+  it('distinguishes a campaign with no report from one that reported nothing', () => {
+    const portfolio = aggregateDelivery(
+      [campaign({ campaignId: 'a' }), campaign({ campaignId: 'b' })],
+      [summary({ campaignId: 'b' })],
+    );
+
+    const [unreadable, reportedNothing] = portfolio.byCampaign;
+
+    expect(unreadable.summary).toBeNull();
+    expect(reportedNothing.summary).not.toBeNull();
+    expect(reportedNothing.totalClaims).toBe(0);
+  });
+
+  it('never flatters a campaign with no claims as fully verified', () => {
+    const portfolio = aggregateDelivery([campaign()], [summary()]);
+
+    expect(portfolio.byCampaign[0].verifiedShare).toBe(0);
+  });
+});
+
+describe('describing where a campaign is in its schedule', () => {
+  const today = new Date('2026-08-20T09:00:00Z');
+
+  it('counts down to the end of a running campaign', () => {
+    expect(describeSchedule(campaign({ status: 'Active', endDate: '2026-08-26' }), today))
+      .toBe('Ends in 6 days');
+    expect(describeSchedule(campaign({ status: 'Active', endDate: '2026-08-21' }), today))
+      .toBe('Ends tomorrow');
+    expect(describeSchedule(campaign({ status: 'Active', endDate: '2026-08-20' }), today))
+      .toBe('Ends today');
+  });
+
+  it('counts down to the start of one that has not begun', () => {
+    expect(describeSchedule(campaign({ status: 'Scheduled', startDate: '2026-08-22', endDate: '2026-09-22' }), today))
+      .toBe('Starts in 2 days');
+  });
+
+  it('describes states that have nothing to do with dates', () => {
+    expect(describeSchedule(campaign({ status: 'Draft' }), today)).toBe('Not submitted');
+    expect(describeSchedule(campaign({ status: 'PendingApproval' }), today)).toBe('Awaiting review');
+    expect(describeSchedule(campaign({ status: 'Rejected' }), today)).toBe('Needs changes');
+    expect(describeSchedule(campaign({ status: 'Completed' }), today)).toBe('Completed');
+  });
+
+  it('says a campaign has ended rather than counting backwards', () => {
+    expect(describeSchedule(campaign({ status: 'Active', endDate: '2026-08-10' }), today)).toBe('Ended');
+  });
+
+  it('falls back to the status when a date will not parse', () => {
+    expect(describeSchedule(campaign({ status: 'Paused', startDate: '', endDate: '' }), today))
+      .toBe('Paused');
   });
 });

@@ -4,20 +4,12 @@ import Button from '@mui/material/Button';
 import AddIcon from '@mui/icons-material/Add';
 import AdvertiserLayout from '../../components/advertiser/AdvertiserLayout';
 import CampaignTable from '../../components/advertiser/CampaignTable';
-import CampaignProgressCard from '../../components/advertiser/CampaignProgressCard';
-import MyCampaignsCard from '../../components/advertiser/MyCampaignsCard';
+import CampaignDeliveryCard from '../../components/advertiser/CampaignDeliveryCard';
 import { useCreateCampaign } from '../../components/advertiser/CreateCampaignContext';
-import { advTokens, cardSx } from '../../components/advertiser/theme';
-import { useToast } from '../../contexts/ToastProvider';
-import { CAMPAIGNS } from '../../data/advertiserMockData';
-import type { Campaign } from '../../types/advertiser';
+import { advTokens } from '../../components/advertiser/theme';
 
 function CampaignsContent() {
-  const { showToast } = useToast();
   const { openCreateCampaign } = useCreateCampaign();
-  const activeCampaigns = CAMPAIGNS.filter((c) => c.status === 'Active');
-
-  const handleViewDetails = (campaign: Campaign) => showToast(`Opening ${campaign.name}…`);
 
   return (
     <>
@@ -37,19 +29,7 @@ function CampaignsContent() {
         </Button>
       </Box>
 
-      <MyCampaignsCard />
-
-      <Box sx={{ ...cardSx, padding: '20px', mb: '24px' }}>
-        <Typography sx={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: advTokens.textMuted }}>
-          In progress
-        </Typography>
-        <Typography sx={{ fontWeight: 800, fontSize: 16, color: advTokens.text, mb: '6px' }}>Active now</Typography>
-        <Box>
-          {activeCampaigns.map((c) => (
-            <CampaignProgressCard key={c.id} campaign={c} onViewDetails={handleViewDetails} />
-          ))}
-        </Box>
-      </Box>
+      <CampaignDeliveryCard title="Active now" />
 
       <CampaignTable />
     </>
