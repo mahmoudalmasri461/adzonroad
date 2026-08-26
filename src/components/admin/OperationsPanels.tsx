@@ -15,6 +15,8 @@ import {
   fetchLiveVehicles,
   fetchPlaybackConflicts,
   fetchScreens,
+  presentScreen,
+  reportingScreens,
   type AdminScreen,
   type DeviceStatus,
   type LiveVehicle,
@@ -87,14 +89,16 @@ export default function OperationsPanels() {
     );
   }
 
-  const online = data.screens.filter((s) => s.status === 'Online').length;
+  // Derived from heartbeats, not from the stored status column. Counting the column produced
+  // "9 screens online" sitting directly above an alert reading "8 screens disconnected".
+  const online = reportingScreens(data.screens);
   const reporting = data.devices.filter((d) => d.connectivity === 'Healthy').length;
 
   return (
     <>
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '14px', mb: '28px' }}>
         <StatCard value={String(data.screens.length)} label="Screens registered" />
-        <StatCard value={String(online)} label="Screens online" color={online > 0 ? tokens.green : undefined} />
+        <StatCard value={String(online)} label="Screens reporting" color={online > 0 ? tokens.green : undefined} />
         <StatCard value={String(data.vehicles.length)} label="Vehicles with a position" />
         <StatCard value={String(reporting)} label="Devices reporting" color={reporting > 0 ? tokens.green : undefined} />
         <StatCard
@@ -157,7 +161,9 @@ export default function OperationsPanels() {
                 </Box>
               </Box>
               <Box component="tbody">
-                {filteredScreens.map((s) => (
+                {filteredScreens.map((s) => {
+                const presented = presentScreen(s);
+                return (
                   <Box
                     key={s.screenId}
                     component="tr"
@@ -168,15 +174,13 @@ export default function OperationsPanels() {
                     <td>{s.driverName?.trim() || '—'}</td>
                     <td>{s.region ?? '—'}</td>
                     <td>
-                      <StatusTag
-                        label={s.status}
-                        variant={s.status === 'Online' ? 'live' : s.status === 'Offline' ? 'error' : 'warn'}
-                      />
+                      <StatusTag label={presented.label} variant={presented.tone} />
                     </td>
                     <td>{s.batteryLevel !== null ? `${s.batteryLevel}%` : '—'}</td>
                     <td style={{ color: tokens.textMuted }}>{describeLastSignal(s.lastHeartbeatAtUtc)}</td>
                   </Box>
-                ))}
+                );
+              })}
               </Box>
             </Box>
           </Box>

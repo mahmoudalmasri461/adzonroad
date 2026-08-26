@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  approve, deriveAlerts, describeLastSignal, hasAllDocuments, reject, waitingFor,
-  type AdminScreen, type DeviceStatus, type DriverRegistration, type PlaybackConflict,
+  approve, createStaffUser, deriveAlerts, describeLastSignal, hasAllDocuments, invoiceTotals,
+  isOpen, ownerOf, plateOf, presentScreen, readableStatus, reject, reportingScreens,
+  suspendDriver, toneForStatus, updateRolePermissions, updateTicketStatus, waitingFor,
+  type AdminInvoice, type AdminScreen, type AdminVehicle, type DeviceStatus,
+  type DriverRegistration, type PlaybackConflict, type SupportTicket,
 } from './admin';
 
 function installStorage() {
@@ -184,5 +187,223 @@ describe('decisions', () => {
     await approve('driver', 'd1');
 
     expect(JSON.parse(body!)).toEqual({ notes: null });
+  });
+
+  /**
+   * Suspension is not a rejection. It has its own endpoint and its own permission on the server,
+   * and sending it to the reject route would record the wrong thing against a working driver.
+   */
+  it('sends a suspension to the suspend endpoint, not the reject one', async () => {
+    let url = '';
+    vi.stubGlobal('fetch', vi.fn(async (u: string) => { url = u; return response({}); }));
+
+    await suspendDriver('d1', 'Papers expired.');
+
+    expect(url).toContain('/admin/driver-registrations/d1/suspend');
+    expect(url).not.toContain('reject');
+  });
+
+  it('escapes a role name on its way into the path', async () => {
+    let url = '';
+    vi.stubGlobal('fetch', vi.fn(async (u: string) => { url = u; return response({}); }));
+
+    await updateRolePermissions('Fleet Manager', ['fleets.read']);
+
+    expect(url).toContain('/admin/roles/Fleet%20Manager/permissions');
+  });
+
+  it('trims the name and address but never the password', async () => {
+    let body: string | undefined;
+    vi.stubGlobal('fetch', vi.fn(async (_u: string, init: RequestInit) => {
+      body = init.body as string;
+      return response({});
+    }));
+
+    await createStaffUser({
+      email: '  ops@adzonroad.com ', firstName: ' Mahmoud ', lastName: ' Al-Masri ',
+      // Leading and trailing spaces are legitimate characters in a password. Trimming it here
+      // would create an account nobody can sign in to, and the failure would look like a typo.
+      password: ' spaced out 9A ', roles: ['Admin'],
+    });
+
+    expect(JSON.parse(body!)).toEqual({
+      email: 'ops@adzonroad.com',
+      firstName: 'Mahmoud',
+      lastName: 'Al-Masri',
+      password: ' spaced out 9A ',
+      roles: ['Admin'],
+    });
+  });
+
+  it('sends null rather than an empty note when moving a ticket', async () => {
+    let body: string | undefined;
+    vi.stubGlobal('fetch', vi.fn(async (_u: string, init: RequestInit) => {
+      body = init.body as string;
+      return response({});
+    }));
+
+    await updateTicketStatus('t1', 'InProgress');
+
+    expect(JSON.parse(body!)).toEqual({ status: 'InProgress', notes: null });
+  });
+});
+
+describe('the ledger', () => {
+  const invoice = (over: Partial<AdminInvoice>): AdminInvoice => ({
+    invoiceId: 'i1', number: 'INV-1', description: 'Campaign', advertiserId: 'a1',
+    advertiserName: 'Cedar Retail', campaignId: 'c1', amount: 100, currency: 'USD',
+    status: 'Open', dueDate: '2026-09-01', daysUntilDue: 7,
+    issuedAtUtc: '2026-08-01T00:00:00Z', paidAtUtc: null, paymentReference: null,
+    ...over,
+  });
+
+  it('counts a paid invoice as collected and not as outstanding', () => {
+    const totals = invoiceTotals([
+      invoice({ amount: 300, status: 'Paid' }),
+      invoice({ invoiceId: 'i2', amount: 200, status: 'Open' }),
+    ]);
+
+    expect(totals).toEqual({
+      billed: 500, collected: 300, outstanding: 200, overdue: 0, overdueCount: 0,
+    });
+  });
+
+  /**
+   * Overdue is the server's verdict, carried on the row. Deciding it here from the due date
+   * would be a second opinion, and the two would disagree the moment a day rolls over.
+   */
+  it('takes overdue from the status rather than recomputing it from the due date', () => {
+    const totals = invoiceTotals([
+      invoice({ amount: 400, status: 'Overdue', daysUntilDue: -12 }),
+      // Past its due date on the numbers, but the server still calls it open. It is open.
+      invoice({ invoiceId: 'i2', amount: 50, status: 'Open', daysUntilDue: -3 }),
+    ]);
+
+    expect(totals.overdue).toBe(400);
+    expect(totals.overdueCount).toBe(1);
+    expect(totals.outstanding).toBe(450);
+  });
+
+  it('reports zeroes rather than NaN for an empty ledger', () => {
+    expect(invoiceTotals([])).toEqual({
+      billed: 0, collected: 0, outstanding: 0, overdue: 0, overdueCount: 0,
+    });
+  });
+});
+
+describe('vehicles', () => {
+  const vehicle = (over: Partial<AdminVehicle>): AdminVehicle => ({
+    vehicleId: 'v1', plateNumber: '123456', plateCharacter: 'B', plateCategory: 'Public',
+    carType: 'Sedan', model: 'Corolla', year: 2019,
+    taxiCompanyId: null, taxiCompanyName: null, driverId: null, driverName: null,
+    driverStatus: null, region: 'Beirut', screenSerial: null, screenStatus: null,
+    lastFixAtUtc: null, createdAtUtc: '2026-08-01T00:00:00Z',
+    ...over,
+  });
+
+  /** A car with no company is an independent driver's own, which is a category, not a gap. */
+  it('names a company-less car Independent rather than leaving it blank', () => {
+    expect(ownerOf(vehicle({}))).toBe('Independent');
+    expect(ownerOf(vehicle({ taxiCompanyName: 'Cedar Taxi' }))).toBe('Cedar Taxi');
+  });
+
+  it('reassembles the plate as it is painted', () => {
+    expect(plateOf(vehicle({}))).toBe('B 123456');
+  });
+
+  it('falls back to the number alone when no character was recorded', () => {
+    expect(plateOf(vehicle({ plateCharacter: '' }))).toBe('123456');
+  });
+});
+
+describe('support tickets', () => {
+  const ticket = (status: string): SupportTicket => ({
+    ticketId: 't1', type: 'Damage', status, message: 'Cracked screen',
+    driverId: 'd1', driverName: 'Elie Haddad', taxiCompanyName: null,
+    vehicleId: 'v1', vehiclePlate: 'B 123456', resolutionNotes: null,
+    createdAtUtc: '2026-08-01T00:00:00Z', resolvedAtUtc: null,
+  });
+
+  it('treats in-progress as still needing somebody', () => {
+    expect(isOpen(ticket('Open'))).toBe(true);
+    expect(isOpen(ticket('InProgress'))).toBe(true);
+    expect(isOpen(ticket('Resolved'))).toBe(false);
+    expect(isOpen(ticket('Closed'))).toBe(false);
+  });
+});
+
+describe('what a screen is actually doing', () => {
+  const NOW_MS = Date.parse('2026-08-25T12:00:00Z');
+
+  const screen = (over: Partial<AdminScreen>): AdminScreen => ({
+    screenId: 's1', serialNumber: 'AZR-0001', status: 'Online', networkStatus: 'Connected',
+    plate: 'B 123456', driverName: 'Elie Haddad', region: 'Beirut',
+    lastHeartbeatAtUtc: '2026-08-25T11:59:00Z', batteryLevel: 80,
+    ...over,
+  });
+
+  /**
+   * The bug this exists for: a screen whose status column said Online had never sent a single
+   * heartbeat, and the console believed the column.
+   */
+  it('does not call a screen online when it has never checked in', () => {
+    const presented = presentScreen(screen({ status: 'Online', lastHeartbeatAtUtc: null }), NOW_MS);
+
+    expect(presented.label).toBe('Never checked in');
+    expect(presented.tone).not.toBe('live');
+  });
+
+  it('stops calling it online once it goes quiet, whatever the column says', () => {
+    const presented = presentScreen(
+      screen({ status: 'Online', lastHeartbeatAtUtc: '2026-08-25T11:00:00Z' }), NOW_MS);
+
+    expect(presented.label).toBe('Not reporting');
+    expect(presented.tone).toBe('error');
+  });
+
+  it('trusts a recent heartbeat on a connected screen', () => {
+    expect(presentScreen(screen({}), NOW_MS)).toEqual({ label: 'Online', tone: 'live' });
+  });
+
+  it('reports a disconnected network even when the heartbeat is fresh', () => {
+    expect(presentScreen(screen({ networkStatus: 'Disconnected' }), NOW_MS).label)
+      .toBe('Disconnected');
+  });
+
+  /**
+   * The counter and the alert beside it read the same rows. Counting the stored column gave
+   * "9 screens online" directly above "8 screens disconnected".
+   */
+  it('counts only the screens it can vouch for', () => {
+    const screens = [
+      screen({ screenId: 'a' }),
+      screen({ screenId: 'b', lastHeartbeatAtUtc: null }),
+      screen({ screenId: 'c', lastHeartbeatAtUtc: '2026-08-25T11:00:00Z' }),
+      screen({ screenId: 'd', networkStatus: 'Disconnected' }),
+    ];
+
+    expect(reportingScreens(screens, NOW_MS)).toBe(1);
+  });
+});
+
+describe('status wording', () => {
+  it('turns a database word into one worth showing a person', () => {
+    expect(readableStatus('PendingVerification')).toBe('Pending review');
+    expect(readableStatus('PendingApproval')).toBe('Pending review');
+    expect(readableStatus('Approved')).toBe('Approved');
+    expect(readableStatus('InProgress')).toBe('In Progress');
+  });
+
+  it('says Unknown rather than rendering nothing for a missing status', () => {
+    expect(readableStatus(null)).toBe('Unknown');
+    expect(readableStatus(undefined)).toBe('Unknown');
+  });
+
+  it('colours a refusal and a suspension the same way, and an approval differently', () => {
+    expect(toneForStatus('Rejected')).toBe('error');
+    expect(toneForStatus('Suspended')).toBe('error');
+    expect(toneForStatus('Approved')).toBe('live');
+    // An unrecognised status must not be coloured as though it were good news.
+    expect(toneForStatus('SomethingNew')).toBe('neutral');
   });
 });

@@ -222,6 +222,45 @@ export function deriveAlerts(
   return alerts;
 }
 
+/**
+ * How long a screen may go quiet before we stop calling it online.
+ *
+ * Looser than the two minutes used for driver devices: a rooftop unit reports less often than a
+ * phone on an active shift, and treating it to the same threshold would flap.
+ */
+export const SCREEN_SILENCE_SECONDS = 300;
+
+/**
+ * What a screen is actually doing, decided from evidence rather than from its status column.
+ *
+ * `Screen.Status` is a stored field — something wrote `Online` into it — and the whole point of
+ * this platform is that stored claims do not count as evidence. Showing it raw produced a screen
+ * that had never sent a single heartbeat displaying as Online, and an Overview reading
+ * "9 screens online" directly above an alert saying "8 screens disconnected". Both came from the
+ * same rows; only one of them was derived.
+ *
+ * Order matters: never-heard-from outranks everything, because it is the difference between a
+ * screen that is failing and a screen that was never really there.
+ */
+export function presentScreen(
+  screen: AdminScreen, now = Date.now(),
+): { label: string; tone: Tone } {
+  if (!screen.lastHeartbeatAtUtc) return { label: 'Never checked in', tone: 'neutral' };
+
+  const silentFor = Math.max(0, (now - Date.parse(screen.lastHeartbeatAtUtc)) / 1000);
+  if (silentFor > SCREEN_SILENCE_SECONDS) return { label: 'Not reporting', tone: 'error' };
+
+  if (screen.networkStatus !== 'Connected') return { label: 'Disconnected', tone: 'error' };
+  if (screen.status === 'Maintenance') return { label: 'Maintenance', tone: 'warn' };
+
+  return { label: 'Online', tone: 'live' };
+}
+
+/** Screens the platform can currently vouch for. The only honest "online" count. */
+export function reportingScreens(screens: AdminScreen[], now = Date.now()): number {
+  return screens.filter((s) => presentScreen(s, now).tone === 'live').length;
+}
+
 /** Freshness of a heartbeat, for the screen table. Null means it has never checked in. */
 export function describeLastSignal(lastHeartbeatAtUtc: string | null, now = Date.now()): string {
   if (!lastHeartbeatAtUtc) return 'never';
@@ -297,4 +336,478 @@ export function waitingFor(createdAtUtc: string, now = Date.now()): string {
 export function hasAllDocuments(registration: DriverRegistration): boolean {
   return ['NationalId', 'DriverLicense', 'CarPapers'].every((type) =>
     registration.documentTypes.includes(type));
+}
+
+// ---------------------------------------------------------------------------- the whole book
+
+/**
+ * Everything beyond the review desk.
+ *
+ * The console's other twelve sections read from endpoints that mostly already existed — the
+ * platform had the answers, nothing asked for them. Where a call is new it was added to the API
+ * rather than assembled here. Nothing below computes a figure the server also computes: the same
+ * number arrived at two ways is two numbers.
+ */
+
+export type AccountStatusFilter = 'pending' | 'approved' | 'rejected' | 'suspended' | 'all';
+
+export interface AdminCampaign extends PendingCampaign {
+  /** Screens the network could give this campaign right now. */
+  freeScreens: number;
+  /** Null once a campaign is live, where the assignment count is the real answer. */
+  couldFillNow: number | null;
+}
+
+export function fetchCampaigns(status = 'all', signal?: AbortSignal): Promise<AdminCampaign[]> {
+  return apiGet(`${BASE}/campaigns`, { status }, signal);
+}
+
+export interface Assignment {
+  assignmentId: string;
+  campaignId: string;
+  campaignName: string | null;
+  campaignStatus: string | null;
+  advertiser: string | null;
+  screenId: string;
+  screenSerial: string | null;
+  vehiclePlate: string | null;
+  assignedBy: string;
+  /** Whether the screen was chosen on observed presence or only on its declared region. */
+  matchBasis: string;
+  assignedAtUtc: string;
+  releasedAtUtc: string | null;
+  releaseReason: string | null;
+}
+
+export interface CampaignFill {
+  campaignId: string;
+  campaignName: string;
+  advertiserName: string;
+  requestedTaxis: number;
+  filledTaxis: number;
+  shortfall: number;
+  observedPresenceMatches: number;
+  declaredRegionMatches: number;
+}
+
+export interface AssignmentCapacity {
+  usableScreens: number;
+  assignedScreens: number;
+  freeScreens: number;
+  taxiSlotsRequested: number;
+  taxiSlotsFilled: number;
+  totalShortfall: number;
+  campaigns: CampaignFill[];
+}
+
+export interface AssignmentRunResult {
+  assigned: number;
+  released: number;
+  campaignsConsidered: number;
+  screensAvailable: number;
+  shortfalls: CampaignFill[];
+  ranAtUtc: string;
+}
+
+export function fetchAssignments(current = true, signal?: AbortSignal): Promise<Assignment[]> {
+  return apiGet(`${BASE}/assignments`, { current: String(current) }, signal);
+}
+
+export function fetchCapacity(signal?: AbortSignal): Promise<AssignmentCapacity> {
+  return apiGet(`${BASE}/assignments/capacity`, undefined, signal);
+}
+
+export function releaseAssignment(assignmentId: string): Promise<unknown> {
+  return apiJson(`${BASE}/assignments/${assignmentId}/release`, 'POST');
+}
+
+export function runAssignmentSweep(): Promise<AssignmentRunResult> {
+  return apiJson(`${BASE}/assignments/run`, 'POST');
+}
+
+// ---------------------------------------------------------------------------- accounts
+
+export interface Paged<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export function fetchDrivers(
+  status: AccountStatusFilter = 'all',
+  page = 1,
+  pageSize = 100,
+  signal?: AbortSignal,
+): Promise<Paged<DriverRegistration>> {
+  return apiGet(`${BASE}/driver-registrations`, { status, page, pageSize }, signal);
+}
+
+export function fetchAdvertisers(
+  status: AccountStatusFilter = 'all', signal?: AbortSignal,
+): Promise<AccountRegistration[]> {
+  return apiGet(`${BASE}/advertiser-registrations`, { status }, signal);
+}
+
+export function fetchTaxiCompanies(
+  status: AccountStatusFilter = 'all', signal?: AbortSignal,
+): Promise<AccountRegistration[]> {
+  return apiGet(`${BASE}/taxi-company-registrations`, { status }, signal);
+}
+
+/**
+ * Suspension is separately permissioned on the server and separately worded here, because it is
+ * not a rejection: it stops a working driver earning, and whoever does it should be in no doubt
+ * which of the two they are doing.
+ */
+export function suspendDriver(driverId: string, notes: string): Promise<unknown> {
+  return apiJson(`${BASE}/driver-registrations/${driverId}/suspend`, 'POST', { notes });
+}
+
+// ---------------------------------------------------------------------------- vehicles
+
+export interface AdminVehicle {
+  vehicleId: string;
+  plateNumber: string;
+  plateCharacter: string;
+  plateCategory: string;
+  carType: string;
+  model: string;
+  year: number;
+  taxiCompanyId: string | null;
+  taxiCompanyName: string | null;
+  driverId: string | null;
+  driverName: string | null;
+  driverStatus: string | null;
+  region: string | null;
+  /** Null for every vehicle today: no screen hardware has been built. */
+  screenSerial: string | null;
+  screenStatus: string | null;
+  lastFixAtUtc: string | null;
+  createdAtUtc: string;
+}
+
+export function fetchVehicles(
+  fitted?: 'yes' | 'no', page = 1, pageSize = 200, signal?: AbortSignal,
+): Promise<Paged<AdminVehicle>> {
+  return apiGet(`${BASE}/vehicles`, { fitted, page, pageSize }, signal);
+}
+
+/** A car with no company belongs to an independent driver, which is a category rather than a gap. */
+export function ownerOf(vehicle: AdminVehicle): string {
+  return vehicle.taxiCompanyName ?? 'Independent';
+}
+
+/** The plate as it is painted, rather than three columns the reader has to reassemble. */
+export function plateOf(vehicle: AdminVehicle): string {
+  return [vehicle.plateCharacter, vehicle.plateNumber].filter(Boolean).join(' ').trim()
+    || vehicle.plateNumber;
+}
+
+// ---------------------------------------------------------------------------- money
+
+export interface AdminInvoice {
+  invoiceId: string;
+  number: string;
+  description: string;
+  advertiserId: string;
+  advertiserName: string;
+  campaignId: string | null;
+  amount: number;
+  currency: string;
+  status: string;
+  dueDate: string;
+  daysUntilDue: number;
+  issuedAtUtc: string;
+  paidAtUtc: string | null;
+  paymentReference: string | null;
+}
+
+export interface EarningsSummary {
+  totalAccrued: number;
+  accruedLast30Days: number;
+  driversWithEarnings: number;
+  shiftsSettled: number;
+  /** Zero platform-wide, and stays zero until something creates payout records. */
+  totalPaidOut: number;
+  payoutsRecorded: number;
+  outstandingToDrivers: number;
+}
+
+export function fetchInvoices(status?: string, signal?: AbortSignal): Promise<AdminInvoice[]> {
+  return apiGet(`${BASE}/invoices`, { status }, signal);
+}
+
+export function markInvoicePaid(invoiceId: string, reference: string): Promise<AdminInvoice> {
+  return apiJson(`${BASE}/invoices/${invoiceId}/mark-paid`, 'POST', { reference });
+}
+
+export function backfillInvoices(): Promise<{ issued: number }> {
+  return apiJson(`${BASE}/invoices/backfill`, 'POST');
+}
+
+export function fetchEarningsSummary(signal?: AbortSignal): Promise<EarningsSummary> {
+  return apiGet(`${BASE}/earnings/summary`, undefined, signal);
+}
+
+/**
+ * What has been billed, collected and left owing.
+ *
+ * Overdue is the server's verdict, carried on the row — recomputing it here from the due date
+ * would produce a second opinion, and the two would disagree at midnight.
+ */
+export function invoiceTotals(invoices: AdminInvoice[]): {
+  billed: number; collected: number; outstanding: number; overdue: number; overdueCount: number;
+} {
+  let billed = 0, collected = 0, outstanding = 0, overdue = 0, overdueCount = 0;
+
+  for (const invoice of invoices) {
+    billed += invoice.amount;
+
+    if (invoice.status === 'Paid') {
+      collected += invoice.amount;
+      continue;
+    }
+
+    outstanding += invoice.amount;
+
+    if (invoice.status === 'Overdue') {
+      overdue += invoice.amount;
+      overdueCount += 1;
+    }
+  }
+
+  return { billed, collected, outstanding, overdue, overdueCount };
+}
+
+// ---------------------------------------------------------------------------- pricing
+
+export interface Pricing {
+  ratePerTaxiPerSecondUsd: number;
+  additionalRegionSurchargeUsd: number;
+  validDurationsSeconds: number[];
+  currency: string;
+  /** False. Pricing is a constant in the API, and the page says so rather than offering a field. */
+  editable: boolean;
+  source: string;
+}
+
+export function fetchPricing(signal?: AbortSignal): Promise<Pricing> {
+  return apiGet(`${BASE}/pricing`, undefined, signal);
+}
+
+// ---------------------------------------------------------------------------- reporting
+
+export interface DeliverySummaryRow {
+  campaignId: string;
+  verifiedPlays: number;
+  verifiedSeconds: number;
+  pendingPlays: number;
+  conflictPlays: number;
+  screens: number;
+  hours: number;
+}
+
+export interface TelemetryVolume {
+  totalPings: number;
+  pingsLast24h: number;
+  pingsLast7d: number;
+  shiftsRaw: number;
+  shiftsCompacted: number;
+  compactedTrackPoints: number;
+  estimatedRawMegabytes: number;
+  projectedYearlyGigabytes: number;
+  oldestCaptureDate: string | null;
+  newestCaptureDate: string | null;
+}
+
+export interface RollupResult {
+  bucketsWritten: number;
+  playbackEventsConsidered: number;
+  verifiedPlays: number;
+  verifiedSeconds: number;
+  pendingPlays: number;
+  conflictPlays: number;
+}
+
+export function fetchDeliverySummary(hours = 168, signal?: AbortSignal): Promise<DeliverySummaryRow[]> {
+  return apiGet(`${BASE}/delivery/summary`, { hours }, signal);
+}
+
+export function fetchTelemetryVolume(signal?: AbortSignal): Promise<TelemetryVolume> {
+  return apiGet(`${BASE}/telemetry/volume`, undefined, signal);
+}
+
+export function rebuildDeliveryRollup(hours = 48): Promise<RollupResult> {
+  return apiJson(`${BASE}/delivery/rollup?hours=${hours}`, 'POST');
+}
+
+// ---------------------------------------------------------------------------- support
+
+export interface SupportTicket {
+  ticketId: string;
+  type: string;
+  status: string;
+  message: string;
+  driverId: string | null;
+  driverName: string | null;
+  taxiCompanyName: string | null;
+  vehicleId: string | null;
+  vehiclePlate: string | null;
+  resolutionNotes: string | null;
+  createdAtUtc: string;
+  resolvedAtUtc: string | null;
+}
+
+export type TicketStatus = 'Open' | 'InProgress' | 'Resolved' | 'Closed';
+
+export function fetchSupportTickets(
+  status?: string, type?: string, signal?: AbortSignal,
+): Promise<SupportTicket[]> {
+  return apiGet(`${BASE}/support-tickets`, { status, type }, signal);
+}
+
+export function updateTicketStatus(
+  ticketId: string, status: TicketStatus, notes?: string,
+): Promise<SupportTicket> {
+  return apiJson(`${BASE}/support-tickets/${ticketId}/status`, 'POST', { status, notes: notes ?? null });
+}
+
+/** Open and in-progress both still need somebody; resolved and closed do not. */
+export function isOpen(ticket: SupportTicket): boolean {
+  return ticket.status === 'Open' || ticket.status === 'InProgress';
+}
+
+// ---------------------------------------------------------------------------- staff accounts
+
+export interface StaffUser {
+  userId: string;
+  userName: string;
+  email: string | null;
+  fullName: string;
+  roles: string[];
+  isActive: boolean;
+  createdAtUtc: string;
+  lastLoginAtUtc: string | null;
+}
+
+export interface RoleSummary {
+  role: string;
+  permissions: string[];
+}
+
+export function fetchUsers(page = 1, pageSize = 100, signal?: AbortSignal): Promise<Paged<StaffUser>> {
+  return apiGet(`${BASE}/users`, { page, pageSize }, signal);
+}
+
+export interface NewStaffUser {
+  email: string;
+  firstName: string;
+  lastName: string;
+  password: string;
+  roles: string[];
+}
+
+/**
+ * Creates a staff account directly, with no review step — an administrator made it.
+ *
+ * The server refuses a caller who is not already a SuperAdmin from granting SuperAdmin, so the
+ * form offers the role and lets the refusal come back rather than second-guessing the token: the
+ * permission set in a browser is a copy made at sign-in, and the server's answer is the real one.
+ */
+export function createStaffUser(input: NewStaffUser): Promise<StaffUser> {
+  return apiJson(`${BASE}/users`, 'POST', {
+    email: input.email.trim(),
+    firstName: input.firstName.trim(),
+    lastName: input.lastName.trim(),
+    password: input.password,
+    roles: input.roles,
+  });
+}
+
+export function fetchRoles(signal?: AbortSignal): Promise<RoleSummary[]> {
+  return apiGet(`${BASE}/roles`, undefined, signal);
+}
+
+export function fetchPermissionCatalogue(signal?: AbortSignal): Promise<string[]> {
+  return apiGet(`${BASE}/permissions`, undefined, signal);
+}
+
+export interface PasswordReset {
+  userId: string;
+  userName: string;
+  temporaryPassword: string;
+  /** Sessions killed by the reset. A reset that left the old token working would be no reset. */
+  sessionsRevoked: number;
+  resetAtUtc: string;
+}
+
+/**
+ * Issues a temporary password and returns it exactly once.
+ *
+ * The server never stores it in readable form and never logs it, so the only copy is the one in
+ * this response. The screen that shows it has to treat that as the last chance to read it.
+ */
+export function resetUserPassword(userId: string): Promise<PasswordReset> {
+  return apiJson(`${BASE}/users/${userId}/reset-password`, 'POST');
+}
+
+/**
+ * Replaces what a role may do, outright.
+ *
+ * Takes effect at each holder's next sign-in, because permissions are copied into the token then
+ * rather than read per request. SuperAdmin is refused by the server — a SuperAdmin able to strip
+ * SuperAdmin's own permissions can lock everybody out with one request.
+ */
+export function updateRolePermissions(role: string, permissions: string[]): Promise<RoleSummary> {
+  return apiJson(`${BASE}/roles/${encodeURIComponent(role)}/permissions`, 'PUT', { permissions });
+}
+
+export function deactivateUser(userId: string, reason?: string): Promise<unknown> {
+  return apiJson(`${BASE}/users/${userId}/deactivate`, 'POST', { reason: reason ?? null });
+}
+
+export function reactivateUser(userId: string): Promise<unknown> {
+  return apiJson(`${BASE}/users/${userId}/reactivate`, 'POST');
+}
+
+// ---------------------------------------------------------------------------- presentation
+
+/** Status colouring shared by every table in the console, so one word means one thing. */
+export type Tone = 'live' | 'warn' | 'error' | 'neutral' | 'outline';
+
+const STATUS_TONES: Record<string, Tone> = {
+  Approved: 'live',
+  Active: 'live',
+  Online: 'live',
+  Paid: 'live',
+  PendingVerification: 'warn',
+  PendingApproval: 'warn',
+  Open: 'warn',
+  InProgress: 'warn',
+  Scheduled: 'warn',
+  Rejected: 'error',
+  Suspended: 'error',
+  Overdue: 'error',
+  Cancelled: 'neutral',
+  Completed: 'neutral',
+  Resolved: 'neutral',
+  Closed: 'neutral',
+  Draft: 'outline',
+};
+
+export function toneForStatus(status: string | null | undefined): Tone {
+  if (!status) return 'neutral';
+  return STATUS_TONES[status] ?? 'neutral';
+}
+
+/** "PendingVerification" is a database word. This is the one to put in front of a person. */
+export function readableStatus(status: string | null | undefined): string {
+  if (!status) return 'Unknown';
+
+  const spaced = status.replace(/([a-z])([A-Z])/g, '$1 $2');
+
+  return spaced === 'Pending Verification' || spaced === 'Pending Approval'
+    ? 'Pending review'
+    : spaced;
 }
