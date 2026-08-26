@@ -207,6 +207,33 @@ describe('writes', () => {
     expect(error.problems).toHaveLength(2);
     expect(error.problems[0]).toContain('creative');
   });
+
+  /**
+   * Two names for one thing: campaign submission answers with `problems`, anything creating an
+   * Identity account answers with `errors` carrying the password-policy reasons. Reading only the
+   * first meant those reasons arrived and were silently dropped.
+   */
+  it('carries the list when the server calls it errors instead of problems', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => response({
+      message: 'Could not create the account.',
+      errors: ['Passwords must have at least one digit.', 'Passwords must have at least one uppercase.'],
+    }, 400)));
+
+    const error = (await apiJson('/api/v1/admin/users', 'POST').catch((e) => e)) as ApiError;
+
+    expect(error.problems).toHaveLength(2);
+    expect(error.problems[0]).toContain('digit');
+  });
+
+  it('prefers problems when a response somehow carries both', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => response({
+      message: 'No.', problems: ['the real one'], errors: ['the other one'],
+    }, 400)));
+
+    const error = (await apiJson('/api/v1/campaigns/c1/submit', 'POST').catch((e) => e)) as ApiError;
+
+    expect(error.problems).toEqual(['the real one']);
+  });
 });
 
 describe('errors', () => {

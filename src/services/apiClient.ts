@@ -61,7 +61,15 @@ async function toError(response: Response): Promise<ApiError> {
   try {
     const body = await response.json();
     const message = body?.error ?? body?.message ?? body?.title ?? body?.detail;
-    const problems = Array.isArray(body?.problems) ? (body.problems as string[]) : [];
+
+    // Two names for the same thing. Campaign submission answers with `problems`; anything
+    // creating an Identity account answers with `errors`, carrying the password-policy reasons.
+    // Reading only the first meant those reasons arrived and were dropped, leaving the caller
+    // with "Could not create the account." and no way to learn which rule it broke.
+    const list = Array.isArray(body?.problems) ? body.problems
+      : Array.isArray(body?.errors) ? body.errors
+        : [];
+    const problems = list as string[];
 
     if (typeof message === 'string' && message) {
       return new ApiError(response.status, message, problems);
