@@ -1,0 +1,31 @@
+# Netlify build for the React frontend, deployed separately from the API.
+#
+# This is the split arrangement: Netlify serves the SPA, Render runs the API. The other supported
+# arrangement bundles this build into the API's wwwroot and serves both from one origin — see the
+# Dockerfile in AdzOnRoadApi. The two differ in exactly one setting, VITE_API_BASE_URL, described
+# below.
+
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# VITE_API_BASE_URL is deliberately NOT set here. It is build-time configuration that changes with
+# the API's address, and src/services/apiConfig.ts reads it in three cases:
+#
+#   unset   -> http://localhost:5080   (local development)
+#   empty   -> window.location.origin  (same-origin, i.e. the bundled wwwroot deployment)
+#   a URL   -> that URL                (this deployment)
+#
+# On Netlify the API is on a different origin, so the empty case is wrong: it would point the app
+# at the Netlify domain, which serves no API. Set it in the Netlify UI to the Render service URL,
+# e.g. https://adzonroad-api.onrender.com — Site configuration > Environment variables.
+
+# React Router owns the routing. Without this a reload on /admin asks Netlify for a file that does
+# not exist and gets a 404 instead of the app.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
