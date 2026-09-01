@@ -6,6 +6,7 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import { DataGrid, type GridColDef, type GridValidRowModel } from '@mui/x-data-grid';
 import SearchBox from '../SearchBox';
+import FilterBar from '../FilterBar';
 import EmptyState from '../EmptyState';
 
 /**
@@ -64,7 +65,7 @@ export default function DataCard<T extends GridValidRowModel>({
       <Box
         sx={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '18px 22px', flexWrap: 'wrap', gap: '10px',
+          padding: { xs: '16px', sm: '18px 22px' }, flexWrap: 'wrap', gap: '10px',
         }}
       >
         <Typography sx={{ fontWeight: 700, fontSize: 16 }}>
@@ -72,7 +73,7 @@ export default function DataCard<T extends GridValidRowModel>({
           {count !== undefined && count > 0 && ` (${count})`}
         </Typography>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <FilterBar>
           {search && (
             <SearchBox
               value={search.value}
@@ -82,17 +83,17 @@ export default function DataCard<T extends GridValidRowModel>({
             />
           )}
           {actions}
-        </Box>
+        </FilterBar>
       </Box>
 
       {note && (
-        <Box sx={{ px: '22px', pb: '14px' }}>
+        <Box sx={{ px: { xs: '16px', sm: '22px' }, pb: '14px' }}>
           <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>{note}</Typography>
         </Box>
       )}
 
       {error ? (
-        <Box sx={{ px: '22px', pb: '20px' }}>
+        <Box sx={{ px: { xs: '16px', sm: '22px' }, pb: '20px' }}>
           <Alert
             severity="error"
             sx={{ fontSize: 13 }}

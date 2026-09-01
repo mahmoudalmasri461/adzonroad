@@ -16,8 +16,11 @@ export default function DevSwitcher() {
     <Box
       sx={{
         position: 'fixed',
-        bottom: 16,
-        right: 16,
+        bottom: { xs: 10, sm: 16 },
+        right: { xs: 10, sm: 16 },
+        // Five labels are wider than a phone, so the pill spans the screen and scrolls instead of
+        // running off the left edge.
+        left: { xs: 10, sm: 'auto' },
         zIndex: 1300,
         display: 'flex',
         gap: '4px',
@@ -25,6 +28,10 @@ export default function DevSwitcher() {
         borderRadius: '999px',
         padding: '6px',
         boxShadow: tokens.shadowLg,
+        maxWidth: 'calc(100vw - 20px)',
+        overflowX: 'auto',
+        scrollbarWidth: 'none',
+        '&::-webkit-scrollbar': { display: 'none' },
       }}
     >
       {SCREENS.map((screen) => {
@@ -36,9 +43,10 @@ export default function DevSwitcher() {
             to={screen.to}
             sx={{
               textDecoration: 'none',
-              fontSize: 12.5,
+              fontSize: { xs: 11.5, sm: 12.5 },
               fontWeight: 600,
-              padding: '7px 14px',
+              padding: { xs: '6px 10px', sm: '7px 14px' },
+              flexShrink: 0,
               borderRadius: '999px',
               color: active ? tokens.navy : 'rgba(255,255,255,0.7)',
               backgroundColor: active ? tokens.amber : 'transparent',

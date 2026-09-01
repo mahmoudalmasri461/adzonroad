@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
+import PasswordField from '../components/PasswordField';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -75,9 +75,8 @@ export default function ChangePasswordPage() {
         </Typography>
 
         <Box component="form" onSubmit={handleSubmit} sx={{ display: 'grid', gap: '14px' }}>
-          <TextField
+          <PasswordField
             label={forced ? 'Temporary password' : 'Current password'}
-            type="password"
             value={current}
             onChange={(e) => setCurrent(e.target.value)}
             autoComplete="current-password"
@@ -85,9 +84,8 @@ export default function ChangePasswordPage() {
             required
           />
 
-          <TextField
+          <PasswordField
             label="New password"
-            type="password"
             value={next}
             onChange={(e) => setNext(e.target.value)}
             autoComplete="new-password"
@@ -95,9 +93,8 @@ export default function ChangePasswordPage() {
             required
           />
 
-          <TextField
+          <PasswordField
             label="New password again"
-            type="password"
             value={confirmation}
             onChange={(e) => setConfirmation(e.target.value)}
             autoComplete="new-password"

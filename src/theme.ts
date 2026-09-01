@@ -122,6 +122,38 @@ const theme = createTheme({
         root: { backgroundImage: 'none' },
       },
     },
+    MuiDialog: {
+      styleOverrides: {
+        // MUI's default 32px margin plus its 24px gutters leaves a 375px screen about 270px of
+        // usable dialog. Reclaim the margin below `sm` — but not on dialogs that have gone
+        // full-screen, which own the whole viewport by design.
+        paper: {
+          '@media (max-width:599.95px)': {
+            '&:not(.MuiDialog-paperFullScreen)': {
+              margin: 16,
+              width: 'calc(100% - 32px)',
+              maxWidth: 'calc(100% - 32px)',
+              maxHeight: 'calc(100% - 32px)',
+            },
+          },
+        },
+      },
+    },
+    MuiDialogTitle: {
+      styleOverrides: {
+        root: { '@media (max-width:599.95px)': { padding: '18px 18px 12px' } },
+      },
+    },
+    MuiDialogContent: {
+      styleOverrides: {
+        root: { '@media (max-width:599.95px)': { padding: '0 18px 8px' } },
+      },
+    },
+    MuiDialogActions: {
+      styleOverrides: {
+        root: { '@media (max-width:599.95px)': { padding: '12px 18px 16px' } },
+      },
+    },
   },
 });
 

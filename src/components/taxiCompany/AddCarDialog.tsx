@@ -12,6 +12,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import type { CarType, PlateCategory } from '../../types/taxiCompany';
 import type { RegisterVehicleInput } from '../../services/fleet';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 const PLATE_CATEGORIES: PlateCategory[] = ['Public (Taxi — Red)', 'Private', 'Rental (Green)', 'Transit', 'Diplomatic'];
 const CAR_TYPES: CarType[] = ['Sedan', 'SUV', 'Van', 'Hatchback', 'Pickup', 'Minibus'];
@@ -33,6 +34,7 @@ type AddCarDialogProps = {
  * installed and starts reporting.
  */
 export default function AddCarDialog({ open, onClose, onAdd }: AddCarDialogProps) {
+  const isMobile = useIsMobile();
   const [plateNumber, setPlateNumber] = useState('');
   const [plateCategory, setPlateCategory] = useState<PlateCategory>('Public (Taxi — Red)');
   const [carType, setCarType] = useState<CarType>('Sedan');
@@ -82,7 +84,7 @@ export default function AddCarDialog({ open, onClose, onAdd }: AddCarDialogProps
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth fullScreen={isMobile}>
       <DialogTitle sx={{ fontWeight: 700 }}>Add car</DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'grid', gap: 2, pt: 1 }}>

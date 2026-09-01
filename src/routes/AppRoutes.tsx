@@ -27,6 +27,7 @@ import TaxiReportsPage from '../pages/taxiCompany/ReportsPage';
 import TaxiSupportPage from '../pages/taxiCompany/SupportPage';
 import TaxiSettingsPage from '../pages/taxiCompany/SettingsPage';
 import LoginPage from '../pages/LoginPage';
+import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 import ChangePasswordPage from '../pages/ChangePasswordPage';
 import SignupPage from '../pages/SignupPage';
 import CampaignsPage from '../pages/advertiser/CampaignsPage';
@@ -43,6 +44,7 @@ export default function AppRoutes() {
     <Routes>
       <Route path="/" element={<Homepage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/change-password" element={<RequireAuth><ChangePasswordPage /></RequireAuth>} />
       <Route path="/signup" element={<SignupPage />} />
       {/* Everything below the public pages requires a session. The guard hides surfaces rather

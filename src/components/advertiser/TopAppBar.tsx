@@ -78,7 +78,7 @@ export default function TopAppBar({ title, onMenuClick }: TopAppBarProps) {
           <NotificationsNoneIcon sx={{ color: advTokens.text }} />
         </Badge>
       </IconButton>
-      <Menu anchorEl={notifAnchor} open={!!notifAnchor} onClose={() => setNotifAnchor(null)} slotProps={{ paper: { sx: { width: 340 } } }}>
+      <Menu anchorEl={notifAnchor} open={!!notifAnchor} onClose={() => setNotifAnchor(null)} slotProps={{ paper: { sx: { width: { xs: 'calc(100vw - 32px)', sm: 340 }, maxWidth: 'calc(100vw - 32px)' } } }}>
         {alerts.length === 0 ? (
           <MenuItem disabled sx={{ whiteSpace: 'normal', fontSize: 13 }}>
             {ready ? 'Nothing needs attention' : 'Loading…'}

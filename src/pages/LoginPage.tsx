@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link as RouterLink } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
@@ -7,6 +7,7 @@ import Link from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
 import AuthLayout, { type AuthRole } from '../layouts/AuthLayout';
+import PasswordField from '../components/PasswordField';
 import { useToast } from '../contexts/ToastProvider';
 import { useAuth } from '../contexts/AuthProvider';
 import { canReach, landingFor, SignInError } from '../services/auth';
@@ -99,9 +100,8 @@ export default function LoginPage() {
           disabled={submitting}
         />
         <Box>
-          <TextField
+          <PasswordField
             label="Password"
-            type="password"
             autoComplete="current-password"
             required
             fullWidth
@@ -110,11 +110,13 @@ export default function LoginPage() {
             disabled={submitting}
           />
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: '6px' }}>
+            {/* Carries the chosen role across: who restores an account differs by role, and
+                arriving on that page having to pick the tab again wastes the one thing the
+                person already told us. */}
             <Link
-              component="button"
-              type="button"
-              onClick={() => showToast('Password reset isn\'t wired up yet')}
-              sx={{ fontSize: 12.5, background: 'none', border: 0, p: 0, cursor: 'pointer' }}
+              component={RouterLink}
+              to={`/forgot-password?role=${role}`}
+              sx={{ fontSize: 12.5 }}
             >
               Forgot password?
             </Link>

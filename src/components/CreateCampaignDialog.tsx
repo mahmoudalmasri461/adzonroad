@@ -25,6 +25,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import { formatCurrency } from '../utils/format';
 import { ApiError } from '../services/apiClient';
 import { fetchRegions, type RegionOption } from '../services/registration';
+import { useIsMobile } from '../hooks/useIsMobile';
 import {
   createCampaign,
   fetchQuote,
@@ -58,6 +59,7 @@ type CreateCampaignDialogProps = {
 
 export default function CreateCampaignDialog({ open, onClose, onCreated }: CreateCampaignDialogProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isMobile = useIsMobile();
 
   const [activeStep, setActiveStep] = useState(0);
   const [name, setName] = useState('');
@@ -194,7 +196,7 @@ export default function CreateCampaignDialog({ open, onClose, onCreated }: Creat
 
   if (done) {
     return (
-      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth fullScreen={isMobile}>
         <DialogContent>
           <Box sx={{ py: 3, display: 'grid', gap: 1.5, textAlign: 'center' }}>
             <Box
@@ -350,7 +352,7 @@ export default function CreateCampaignDialog({ open, onClose, onCreated }: Creat
       case 4:
         return (
           <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, pt: 1 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, pt: 1 }}>
               <DatePicker
                 label="Start date"
                 value={startDate}
@@ -450,14 +452,37 @@ export default function CreateCampaignDialog({ open, onClose, onCreated }: Creat
   };
 
   return (
-    <Dialog open={open} onClose={submitting ? undefined : handleClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={submitting ? undefined : handleClose} maxWidth="sm" fullWidth fullScreen={isMobile}>
       <DialogTitle sx={{ fontWeight: 700 }}>Create campaign</DialogTitle>
       <DialogContent>
-        <Stepper activeStep={activeStep} alternativeLabel sx={{ pt: 1, pb: 3 }}>
+        <Stepper
+          activeStep={activeStep}
+          alternativeLabel
+          sx={{
+            pt: 1,
+            pb: { xs: 1, sm: 3 },
+            // Seven labels across a 375px screen shred into single characters. On a phone the
+            // stepper keeps only the dots, and the line below names where you are.
+            '@media (max-width:599.95px)': { '& .MuiStepLabel-label': { display: 'none' } },
+          }}
+        >
           {STEPS.map((label) => (
             <Step key={label}><StepLabel>{label}</StepLabel></Step>
           ))}
         </Stepper>
+
+        <Typography
+          sx={{
+            display: { xs: 'block', sm: 'none' },
+            textAlign: 'center',
+            fontSize: 13,
+            fontWeight: 600,
+            color: 'text.secondary',
+            pb: 2,
+          }}
+        >
+          Step {activeStep + 1} of {STEPS.length} — {STEPS[activeStep]}
+        </Typography>
 
         {error && (
           <Alert severity="error" sx={{ mb: 2, fontSize: 13 }}>

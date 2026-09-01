@@ -18,7 +18,7 @@ export default function SearchBox({ value, onChange, placeholder = 'Search', wid
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      sx={{ width, ...sx }}
+      sx={{ width: { xs: '100%', sm: width }, ...sx }}
       slotProps={{
         input: {
           startAdornment: (

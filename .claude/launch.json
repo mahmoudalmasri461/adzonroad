@@ -6,18 +6,6 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--", "--port", "5183"],
       "port": 5183
-    },
-    {
-      "name": "adzonroad-api",
-      "runtimeExecutable": "dotnet",
-      "runtimeArgs": [
-        "run",
-        "--project",
-        "C:\\Users\\malmasri\\Desktop\\AdzOnRoadApi\\src\\AdzOnRoad.Api",
-        "--launch-profile",
-        "http"
-      ],
-      "port": 5223
     }
   ]
 }

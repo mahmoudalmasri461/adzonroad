@@ -50,7 +50,7 @@ export default function AuthLayout({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '32px 20px',
+        padding: { xs: '24px 14px', sm: '32px 20px' },
       }}
     >
       <Box sx={{ mb: '28px' }}>
@@ -59,7 +59,7 @@ export default function AuthLayout({
         </RouterLink>
       </Box>
 
-      <Card sx={{ width: '100%', maxWidth: 440, p: '36px' }}>
+      <Card sx={{ width: '100%', maxWidth: 440, p: { xs: '22px', sm: '36px' } }}>
         <Typography sx={{ fontWeight: 700, fontSize: 24, letterSpacing: '-0.01em', textAlign: 'center' }}>{title}</Typography>
         <Typography sx={{ fontSize: 14, color: 'text.secondary', textAlign: 'center', mt: '6px', mb: '24px' }}>{subtitle}</Typography>
 
@@ -78,7 +78,13 @@ export default function AuthLayout({
               '& .MuiTab-root': {
                 minHeight: 32,
                 borderRadius: '8px',
-                fontSize: 13.5,
+                // A phone gives four tabs about 73px each, and "Taxi Company" does not fit that
+                // at 13.5px. Shrinking the type keeps every role on screen and tappable, which
+                // matters more here than an even line count — a role behind a scroll is a role
+                // nobody finds.
+                fontSize: { xs: 11.5, sm: 13.5 },
+                px: { xs: '4px', sm: '12px' },
+                minWidth: 0,
                 fontWeight: 600,
                 textTransform: 'none',
                 color: tokens.textMuted,

@@ -22,8 +22,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         autoHideDuration={2600}
         onClose={() => setMessage(null)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        sx={{ maxWidth: 'calc(100vw - 16px)' }}
       >
-        <Alert onClose={() => setMessage(null)} severity="info" variant="filled" sx={{ width: '100%' }}>
+        <Alert
+          onClose={() => setMessage(null)}
+          severity="info"
+          variant="filled"
+          sx={{ width: '100%', maxWidth: '100%', '& .MuiAlert-message': { minWidth: 0, overflowWrap: 'anywhere' } }}
+        >
           {message}
         </Alert>
       </Snackbar>

@@ -6,12 +6,14 @@ import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
+import PasswordField from '../PasswordField';
 import Alert from '@mui/material/Alert';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import ImageUploadField from '../ImageUploadField';
 import { toCompressedBase64 } from '../../services/imageUpload';
 import type { AddFleetDriverInput } from '../../services/fleet';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 type AddDriverDialogProps = {
   open: boolean;
@@ -31,6 +33,7 @@ type AddDriverDialogProps = {
  * through self-registration, so this dialog is their only route in.
  */
 export default function AddDriverDialog({ open, onClose, onAdd }: AddDriverDialogProps) {
+  const isMobile = useIsMobile();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
@@ -86,7 +89,7 @@ export default function AddDriverDialog({ open, onClose, onAdd }: AddDriverDialo
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth fullScreen={isMobile}>
       <DialogTitle sx={{ fontWeight: 700 }}>Add driver</DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'grid', gap: 2, pt: 1 }}>
@@ -114,9 +117,8 @@ export default function AddDriverDialog({ open, onClose, onAdd }: AddDriverDialo
             placeholder="e.g. 71234567"
             helperText="The driver signs into the app with this number."
           />
-          <TextField
+          <PasswordField
             label="Temporary password"
-            type="password"
             required
             fullWidth
             value={password}

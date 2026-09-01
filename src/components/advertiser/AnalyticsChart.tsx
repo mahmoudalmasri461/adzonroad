@@ -34,9 +34,11 @@ export default function AnalyticsChart(props: AnalyticsChartProps) {
 
   if (props.variant === 'donut') {
     const pieData = props.data.map((d, i) => ({ id: i, value: d.value, label: d.label, color: d.color }));
+    // No explicit width on the provider: it measures its container instead, so the donut and its
+    // legend fit whatever column they land in rather than a hard 360px that runs off a phone.
     return (
-      <Box sx={{ height, display: 'flex', alignItems: 'center' }}>
-        <ChartsDataProvider series={[{ type: 'pie', data: pieData, innerRadius: 45, outerRadius: 92, paddingAngle: 2, cornerRadius: 3 }]} height={height} width={height + 120}>
+      <Box sx={{ height, width: '100%', display: 'flex', alignItems: 'center' }}>
+        <ChartsDataProvider series={[{ type: 'pie', data: pieData, innerRadius: 45, outerRadius: 92, paddingAngle: 2, cornerRadius: 3 }]} height={height}>
           <ChartsSurface>
             <PiePlot />
             <ChartsTooltip />
@@ -60,7 +62,7 @@ export default function AnalyticsChart(props: AnalyticsChartProps) {
   }));
 
   return (
-    <Box sx={{ height }}>
+    <Box sx={{ height, width: '100%' }}>
       <ChartsDataProvider series={series} xAxis={[{ scaleType: 'band', data: props.categories, id: 'x' }]} height={height}>
         <ChartsSurface>
           {isBar && <BarPlot />}

@@ -26,7 +26,19 @@ import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import EmailRoundedIcon from '@mui/icons-material/EmailRounded';
 import PhoneRoundedIcon from '@mui/icons-material/PhoneRounded';
 import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined';
+import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
+import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
+import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded';
+import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
+import SendRoundedIcon from '@mui/icons-material/SendRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Divider from '@mui/material/Divider';
+import Drawer from '@mui/material/Drawer';
+import IconButton from '@mui/material/IconButton';
+import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import Logo from '../components/Logo';
 import LebanonMap from '../components/LebanonMap';
 import Reveal from '../components/Reveal';
@@ -122,6 +134,47 @@ const ABOUT_STATS = [
   { value: '2,610', label: 'Drivers' },
 ];
 
+const ABOUT_PILLARS = [
+  {
+    title: 'Verified, not estimated',
+    body: 'Every play is matched to a GPS fix and a timestamp before it counts. If we cannot prove an ad ran, it does not appear on the report.',
+    icon: VerifiedRoundedIcon,
+  },
+  {
+    title: 'Built for these roads',
+    body: 'Regions, traffic corridors and shift patterns that make sense in Lebanon — not a template lifted from a market that works nothing like this one.',
+    icon: PublicRoundedIcon,
+  },
+  {
+    title: 'Drivers paid, not used',
+    body: 'Screens are installed and insured at no cost, and the earnings sit on top of the fares a driver was already taking.',
+    icon: GroupsRoundedIcon,
+  },
+];
+
+const ABOUT_COMMITMENTS = [
+  'Every screen reports its own position',
+  'Drivers keep 100% of their fare income',
+  'No long-term lock-in for advertisers',
+];
+
+const CONTACT_CHANNELS = [
+  { label: 'Email', value: 'Info@adzonroad.com', href: 'mailto:Info@adzonroad.com', icon: EmailRoundedIcon },
+  { label: 'Phone', value: '+961 71 600 011', href: 'tel:+96171600011', icon: PhoneRoundedIcon },
+  { label: 'Office', value: 'Beirut, Lebanon', href: null, icon: PlaceOutlinedIcon },
+  { label: 'Hours', value: 'Mon–Fri, 9:00–18:00', href: null, icon: AccessTimeRoundedIcon },
+];
+
+/** Routing the enquiry at the form rather than in somebody's inbox. */
+const CONTACT_REASONS = [
+  'I want to run a campaign',
+  'I drive a taxi and want a screen',
+  'I run a fleet and want to partner',
+  'Press or something else',
+];
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function StepCard({ title, steps, badgeBg, badgeColor }: { title: string; steps: typeof ADVERTISER_STEPS; badgeBg: string; badgeColor: string }) {
   return (
     <Card
@@ -173,19 +226,53 @@ function SectionEyebrow({ children }: { children: string }) {
 export default function Homepage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const [navOpen, setNavOpen] = useState(false);
   const [hours, setHours] = useState(8);
   const [days, setDays] = useState(24);
   const [drivesPremiumAreas, setDrivesPremiumAreas] = useState(true);
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [contactReason, setContactReason] = useState(CONTACT_REASONS[0]);
   const [contactMessage, setContactMessage] = useState('');
+  const [contactErrors, setContactErrors] = useState<Record<string, string>>({});
+  const [contactSent, setContactSent] = useState(false);
+
+  /**
+   * Checked here rather than left to `required`, so all three problems surface at once instead of
+   * the browser stopping at the first and scrolling away from the rest.
+   */
+  const validateContact = (): Record<string, string> => {
+    const problems: Record<string, string> = {};
+
+    if (contactName.trim().length < 2) problems.name = 'Please tell us your name.';
+    if (!EMAIL_PATTERN.test(contactEmail.trim())) problems.email = 'That does not look like an email address.';
+    if (contactMessage.trim().length < 10) problems.message = 'A sentence or two helps us route this properly.';
+
+    return problems;
+  };
 
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    showToast("Message sent — we'll get back to you soon (preview only)");
+
+    const problems = validateContact();
+    setContactErrors(problems);
+    if (Object.keys(problems).length > 0) return;
+
+    // No mail provider is connected, so nothing is actually delivered. The confirmation says so
+    // rather than implying somebody is now reading it.
+    setContactSent(true);
+    showToast('Thanks — your message is ready to send (preview only)');
+  };
+
+  const resetContactForm = () => {
     setContactName('');
     setContactEmail('');
+    setContactPhone('');
+    setContactReason(CONTACT_REASONS[0]);
     setContactMessage('');
+    setContactErrors({});
+    setContactSent(false);
   };
 
   const { total, base, hourlyEarnings, premiumBonus } = useMemo(() => {
@@ -215,31 +302,88 @@ export default function Homepage() {
         }}
       >
         <Logo size="lg" />
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '22px', flexWrap: 'wrap' }}>
+
+        {/* Seven links do not fit a phone, and wrapping them turns the bar into a third of the
+            screen — below md they move into the drawer instead. */}
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: '22px', flexWrap: 'wrap' }}>
           {NAV_LINKS.map((link) => (
             <Link key={link} href={`#${link.toLowerCase().replace(/ /g, '-')}`} underline="none" sx={{ fontSize: 14, color: 'text.primary', fontWeight: 500 }}>
               {link}
             </Link>
           ))}
         </Box>
+
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Button
             variant="outlined"
             color="inherit"
-            sx={{ borderColor: tokens.border, color: tokens.text }}
+            sx={{ display: { xs: 'none', sm: 'inline-flex' }, borderColor: tokens.border, color: tokens.text }}
             onClick={() => navigate('/login')}
           >
             Sign In
           </Button>
           <Button
             variant="contained"
-            sx={{ backgroundColor: tokens.navy, color: '#fff', '&:hover': { backgroundColor: tokens.navy700 } }}
+            sx={{
+              display: { xs: 'none', sm: 'inline-flex' },
+              backgroundColor: tokens.navy,
+              color: '#fff',
+              '&:hover': { backgroundColor: tokens.navy700 },
+            }}
             onClick={() => navigate('/signup?role=advertiser')}
           >
             Launch Campaign
           </Button>
+          <IconButton
+            aria-label="Open menu"
+            onClick={() => setNavOpen(true)}
+            sx={{ display: { xs: 'inline-flex', md: 'none' }, color: tokens.navy }}
+          >
+            <MenuRoundedIcon />
+          </IconButton>
         </Box>
       </Box>
+
+      <Drawer anchor="right" open={navOpen} onClose={() => setNavOpen(false)}>
+        <Box sx={{ width: 260, p: '16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: '8px' }}>
+            <Logo size="md" />
+            <IconButton aria-label="Close menu" onClick={() => setNavOpen(false)}>
+              <CloseRoundedIcon />
+            </IconButton>
+          </Box>
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link}
+              href={`#${link.toLowerCase().replace(/ /g, '-')}`}
+              underline="none"
+              onClick={() => setNavOpen(false)}
+              sx={{ fontSize: 15, fontWeight: 500, color: 'text.primary', py: '10px', px: '8px', borderRadius: '8px', '&:hover': { backgroundColor: tokens.bg } }}
+            >
+              {link}
+            </Link>
+          ))}
+          <Box sx={{ display: 'grid', gap: '10px', mt: '16px' }}>
+            <Button
+              fullWidth
+              variant="contained"
+              sx={{ backgroundColor: tokens.navy, color: '#fff', '&:hover': { backgroundColor: tokens.navy700 } }}
+              onClick={() => { setNavOpen(false); navigate('/signup?role=advertiser'); }}
+            >
+              Launch Campaign
+            </Button>
+            <Button
+              fullWidth
+              variant="outlined"
+              color="inherit"
+              sx={{ borderColor: tokens.border, color: tokens.text }}
+              onClick={() => { setNavOpen(false); navigate('/login'); }}
+            >
+              Sign In
+            </Button>
+          </Box>
+        </Box>
+      </Drawer>
 
       {/* HERO */}
       <Box
@@ -297,7 +441,7 @@ export default function Homepage() {
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(4,1fr)',
+                gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4,1fr)' },
                 gap: '1px',
                 backgroundColor: 'rgba(255,255,255,0.12)',
                 borderRadius: '12px',
@@ -324,7 +468,7 @@ export default function Homepage() {
         <Reveal>
           <Box component="section" sx={{ py: '64px' }}>
             <SectionEyebrow>How it works</SectionEyebrow>
-            <Typography sx={{ fontWeight: 700, fontSize: 30, mb: '32px', letterSpacing: '-0.01em' }}>Two journeys, one platform</Typography>
+            <Typography sx={{ fontWeight: 700, fontSize: 'clamp(24px,5.2vw,30px)', mb: '32px', letterSpacing: '-0.01em' }}>Two journeys, one platform</Typography>
             <Box sx={{ display: 'grid', gap: '24px' }}>
               <Box id="advertisers" sx={{ scrollMarginTop: '20px' }}>
                 <StepCard title="For advertisers" steps={ADVERTISER_STEPS} badgeBg="#EAF0FF" badgeColor={tokens.blue} />
@@ -340,7 +484,7 @@ export default function Homepage() {
         <Reveal>
           <Box component="section" id="taxi-companies" sx={{ py: '64px', scrollMarginTop: '20px' }}>
             <SectionEyebrow>For taxi companies</SectionEyebrow>
-            <Typography sx={{ fontWeight: 700, fontSize: 30, mb: '10px', letterSpacing: '-0.01em' }}>Partner your fleet with AdzOnRoad</Typography>
+            <Typography sx={{ fontWeight: 700, fontSize: 'clamp(24px,5.2vw,30px)', mb: '10px', letterSpacing: '-0.01em' }}>Partner your fleet with AdzOnRoad</Typography>
             <Typography sx={{ fontSize: 15.5, color: 'text.secondary', maxWidth: '60ch', mb: '28px' }}>
               Turn your entire fleet into a revenue stream — we handle installation, maintenance, and driver payouts.
             </Typography>
@@ -394,7 +538,7 @@ export default function Homepage() {
         <Reveal>
           <Box component="section" id="coverage" sx={{ py: '64px' }}>
             <SectionEyebrow>Live network</SectionEyebrow>
-            <Typography sx={{ fontWeight: 700, fontSize: 30, mb: '10px', letterSpacing: '-0.01em' }}>Coverage across Lebanon</Typography>
+            <Typography sx={{ fontWeight: 700, fontSize: 'clamp(24px,5.2vw,30px)', mb: '10px', letterSpacing: '-0.01em' }}>Coverage across Lebanon</Typography>
             <Typography sx={{ fontSize: 15.5, color: 'text.secondary', maxWidth: '60ch', mb: '28px' }}>
               Live taxi and screen positions, campaign zones, and regional availability, updated in real time.
             </Typography>
@@ -451,7 +595,7 @@ export default function Homepage() {
         <Reveal>
           <Box component="section" id="pricing" sx={{ py: '64px', scrollMarginTop: '20px' }}>
             <SectionEyebrow>Pricing</SectionEyebrow>
-            <Typography sx={{ fontWeight: 700, fontSize: 30, mb: '10px', letterSpacing: '-0.01em' }}>Simple, transparent rates</Typography>
+            <Typography sx={{ fontWeight: 700, fontSize: 'clamp(24px,5.2vw,30px)', mb: '10px', letterSpacing: '-0.01em' }}>Simple, transparent rates</Typography>
             <Typography sx={{ fontSize: 15.5, color: 'text.secondary', maxWidth: '60ch', mb: '10px' }}>
               Choose a plan based on region coverage and taxi count. No hidden fees.
             </Typography>
@@ -523,7 +667,7 @@ export default function Homepage() {
         <Reveal>
           <Box component="section" sx={{ py: '64px' }}>
             <SectionEyebrow>Why AdzOnRoad</SectionEyebrow>
-            <Typography sx={{ fontWeight: 700, fontSize: 30, mb: '28px', letterSpacing: '-0.01em' }}>Built for measurable results</Typography>
+            <Typography sx={{ fontWeight: 700, fontSize: 'clamp(24px,5.2vw,30px)', mb: '28px', letterSpacing: '-0.01em' }}>Built for measurable results</Typography>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4,1fr)' }, gap: '16px' }}>
               {BENEFITS.map((b) => {
                 const Icon = b.icon;
@@ -572,8 +716,8 @@ export default function Homepage() {
         <Reveal>
         <Box component="section" sx={{ py: '64px' }}>
           <SectionEyebrow>Driver earnings</SectionEyebrow>
-          <Typography sx={{ fontWeight: 700, fontSize: 30, mb: '28px', letterSpacing: '-0.01em' }}>Estimate what you could earn</Typography>
-          <Card sx={{ p: '32px' }}>
+          <Typography sx={{ fontWeight: 700, fontSize: 'clamp(24px,5.2vw,30px)', mb: '28px', letterSpacing: '-0.01em' }}>Estimate what you could earn</Typography>
+          <Card sx={{ p: { xs: '20px', sm: '32px' } }}>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.1fr 0.9fr' }, gap: '36px', alignItems: 'center' }}>
               <Box sx={{ display: 'grid', gap: '22px' }}>
                 <Box>
@@ -598,7 +742,7 @@ export default function Homepage() {
                 <Typography sx={{ fontSize: 12.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'text.secondary' }}>
                   Estimated monthly earnings
                 </Typography>
-                <Typography sx={{ mt: '6px', mb: '18px', fontWeight: 800, fontSize: 44, color: tokens.navy }}>${total}</Typography>
+                <Typography sx={{ mt: '6px', mb: '18px', fontWeight: 800, fontSize: 'clamp(34px,8vw,44px)', color: tokens.navy }}>${total}</Typography>
                 <Box sx={{ display: 'grid', gap: '8px', fontSize: 14 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ color: tokens.textMuted }}>Base pay</span>
@@ -623,44 +767,177 @@ export default function Homepage() {
         <Reveal>
           <Box component="section" id="about" sx={{ py: '64px', scrollMarginTop: '20px' }}>
             <SectionEyebrow>About us</SectionEyebrow>
-            <Typography sx={{ fontWeight: 700, fontSize: 30, mb: '20px', letterSpacing: '-0.01em' }}>Built in Beirut, for Lebanon's roads</Typography>
-            <Typography sx={{ fontSize: 15.5, color: 'text.secondary', lineHeight: 1.7, maxWidth: '70ch', mb: '28px' }}>
-              AdzOnRoad started with a simple idea: Lebanon's roads are full of taxis, and every one of them is a
-              billboard waiting to happen. We built GPS-verified rooftop screens so advertisers get proof their ads
-              were actually shown, and so drivers earn extra income for miles they're already driving. No guesswork,
-              no wasted impressions — just measurable advertising on the roads people already use.
+            <Typography sx={{ fontWeight: 700, fontSize: 'clamp(24px,5.2vw,32px)', mb: '20px', letterSpacing: '-0.015em', maxWidth: '18ch' }}>
+              Built in Beirut, for Lebanon&rsquo;s roads
             </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', backgroundColor: tokens.border, borderRadius: '12px', overflow: 'hidden', border: `1px solid ${tokens.border}`, mb: '28px' }}>
-              {ABOUT_STATS.map((stat) => (
-                <Box key={stat.label} sx={{ backgroundColor: 'background.paper', padding: '18px 16px' }}>
-                  <Typography sx={{ fontSize: 24, fontWeight: 800, color: tokens.navy }}>{stat.value}</Typography>
-                  <Typography sx={{ mt: '4px', fontSize: 11, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'text.secondary' }}>
-                    {stat.label}
-                  </Typography>
+
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.15fr 0.85fr' }, gap: { xs: '32px', md: '48px' }, alignItems: 'start' }}>
+              <Box>
+                <Typography sx={{ fontSize: 'clamp(16px,2vw,18px)', color: tokens.text, lineHeight: 1.65, mb: '16px', fontWeight: 500 }}>
+                  Lebanon&rsquo;s roads are full of taxis, and every one of them is the most-seen
+                  surface in the country that nobody could measure.
+                </Typography>
+                <Typography sx={{ fontSize: 15.5, color: 'text.secondary', lineHeight: 1.75, mb: '10px' }}>
+                  Outdoor advertising here has always been sold on a photograph and a promise. You paid
+                  for a location, and what came back was an estimate somebody made up. We started
+                  AdzOnRoad to close that gap: rooftop screens that report where they were, when they
+                  played and for how long &mdash; so an advertiser gets evidence instead of an assurance.
+                </Typography>
+                <Typography sx={{ fontSize: 15.5, color: 'text.secondary', lineHeight: 1.75 }}>
+                  The other half of it is the drivers. They were already covering the ground; they just
+                  were not being paid for it. Now the same trip earns twice.
+                </Typography>
+
+                <Box sx={{ display: 'grid', gap: '2px', mt: '32px' }}>
+                  {ABOUT_PILLARS.map((pillar) => {
+                    const Icon = pillar.icon;
+                    return (
+                      <Box
+                        key={pillar.title}
+                        sx={{
+                          display: 'flex',
+                          gap: '16px',
+                          alignItems: 'flex-start',
+                          py: '18px',
+                          borderTop: `1px solid ${tokens.border}`,
+                          '&:last-of-type': { borderBottom: `1px solid ${tokens.border}` },
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: '11px',
+                            flexShrink: 0,
+                            backgroundColor: '#EAF0FF',
+                            color: tokens.blue,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Icon sx={{ fontSize: 21 }} />
+                        </Box>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography sx={{ fontWeight: 700, fontSize: 15.5, color: tokens.navy, mb: '4px' }}>
+                            {pillar.title}
+                          </Typography>
+                          <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.6 }}>
+                            {pillar.body}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    );
+                  })}
                 </Box>
-              ))}
+              </Box>
+
+              {/* The panel and the photograph travel together. This column ran 293px shorter
+                  than the story beside it, and making the panel alone sticky pinned that gap
+                  open while the text scrolled past it. */}
+              <Box sx={{ position: { md: 'sticky' }, top: { md: '24px' }, display: 'grid', gap: '16px' }}>
+                {/* The stats carry more weight as a dark panel than as the flat four-across strip
+                    this replaced: beside the story it reads as a fact sheet rather than a fifth row. */}
+                <Card
+                  sx={{
+                    p: { xs: '24px', sm: '28px' },
+                    border: 'none',
+                    background: `linear-gradient(160deg, ${tokens.navy} 0%, ${tokens.navy600} 100%)`,
+                  }}
+                >
+                  <Typography sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '18px' }}>
+                    Where we are today
+                  </Typography>
+
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '22px 16px' }}>
+                    {ABOUT_STATS.map((stat) => (
+                      <Box key={stat.label}>
+                        <Typography sx={{ fontSize: 'clamp(26px,4vw,30px)', fontWeight: 800, color: '#fff', lineHeight: 1.1, letterSpacing: '-0.02em' }}>
+                          {stat.value}
+                        </Typography>
+                        <Typography sx={{ mt: '4px', fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)' }}>
+                          {stat.label}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+
+                  <Divider sx={{ my: '22px', borderColor: 'rgba(255,255,255,0.14)' }} />
+
+                  <Box sx={{ display: 'grid', gap: '10px' }}>
+                    {ABOUT_COMMITMENTS.map((line) => (
+                      <Box key={line} sx={{ display: 'flex', alignItems: 'flex-start', gap: '9px' }}>
+                        <CheckCircleRoundedIcon sx={{ fontSize: 16, color: tokens.amber, mt: '2px', flexShrink: 0 }} />
+                        <Typography sx={{ fontSize: 13.5, color: 'rgba(255,255,255,0.8)', lineHeight: 1.5 }}>
+                          {line}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                </Card>
+
+                {/* The site's only photograph, and the hero buries it under a navy gradient at
+                    94% opacity — so this is the first place it is actually legible. The Beirut
+                    sign in the frame is why it belongs under this heading rather than elsewhere. */}
+                <Box
+                  component="img"
+                  src={heroTaxi}
+                  alt="An AdzOnRoad screen mounted on a taxi roof in Beirut at night, lit above wet streets"
+                  loading="lazy"
+                  sx={{
+                    width: '100%',
+                    height: { xs: 190, md: 250 },
+                    objectFit: 'cover',
+                    objectPosition: 'center 32%',
+                    borderRadius: '14px',
+                    display: 'block',
+                  }}
+                />
+              </Box>
             </Box>
-            <Card sx={{ p: '20px', display: 'flex', alignItems: 'center', gap: '16px', maxWidth: 420 }}>
+
+            <Card
+              sx={{
+                mt: '32px',
+                p: { xs: '24px', sm: '30px' },
+                display: 'flex',
+                gap: { xs: '18px', sm: '26px' },
+                alignItems: 'flex-start',
+                flexWrap: 'wrap',
+                backgroundColor: '#FBFCFE',
+              }}
+            >
               <Box
                 sx={{
-                  width: 52,
-                  height: 52,
+                  width: 64,
+                  height: 64,
                   borderRadius: '50%',
                   backgroundColor: tokens.amber,
                   color: tokens.navy,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontWeight: 700,
-                  fontSize: 18,
+                  fontWeight: 800,
+                  fontSize: 22,
                   flexShrink: 0,
                 }}
               >
                 MA
               </Box>
-              <Box>
-                <Typography sx={{ fontWeight: 700, fontSize: 16 }}>Mahmoud Al-Masri</Typography>
-                <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>Founder</Typography>
+              <Box sx={{ flex: '1 1 260px', minWidth: 0 }}>
+                <Typography
+                  component="blockquote"
+                  sx={{ m: 0, fontSize: 'clamp(16px,2vw,18px)', fontWeight: 600, lineHeight: 1.6, color: tokens.navy, letterSpacing: '-0.01em' }}
+                >
+                  &ldquo;I passed the same taxis every morning and thought: that is the most-seen
+                  surface in the country, and nobody can tell you who saw it. So we built the part
+                  that could.&rdquo;
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', mt: '14px', flexWrap: 'wrap' }}>
+                  <Typography sx={{ fontWeight: 700, fontSize: 14.5 }}>Mahmoud Al-Masri</Typography>
+                  <Box sx={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: tokens.border }} />
+                  <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>Founder, AdzOnRoad</Typography>
+                </Box>
               </Box>
             </Card>
           </Box>
@@ -700,70 +977,201 @@ export default function Homepage() {
         <Reveal>
           <Box component="section" id="contact" sx={{ py: '64px', scrollMarginTop: '20px' }}>
             <SectionEyebrow>Contact</SectionEyebrow>
-            <Typography sx={{ fontWeight: 700, fontSize: 30, mb: '10px', letterSpacing: '-0.01em' }}>Let's talk</Typography>
-            <Typography sx={{ fontSize: 15.5, color: 'text.secondary', maxWidth: '60ch', mb: '28px' }}>
-              Questions about campaigns, driver partnerships, or fleet deals — reach out and we'll get back to you.
+            <Typography sx={{ fontWeight: 700, fontSize: 'clamp(24px,5.2vw,32px)', mb: '10px', letterSpacing: '-0.015em' }}>
+              Talk to the team
             </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '0.8fr 1.2fr' }, gap: '24px' }}>
-              <Card sx={{ p: '28px', display: 'grid', gap: '20px', alignContent: 'start' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Box sx={{ width: 36, height: 36, borderRadius: '10px', backgroundColor: '#EAF0FF', color: tokens.blue, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <EmailRoundedIcon sx={{ fontSize: 18 }} />
-                  </Box>
-                  <Box>
-                    <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Email</Typography>
-                    <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Info@adzonroad.com</Typography>
-                  </Box>
+            <Typography sx={{ fontSize: 15.5, color: 'text.secondary', maxWidth: '62ch', mb: '32px', lineHeight: 1.7 }}>
+              Planning a campaign, putting a taxi on the road, or partnering a fleet &mdash; tell us
+              which and it goes straight to the person who handles it.
+            </Typography>
+
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '0.85fr 1.15fr' }, gap: '20px', alignItems: 'stretch' }}>
+              {/* Details as a dark panel: the form is the busy half, and giving the contact
+                  details their own weight stops them reading as a caption to it. */}
+              <Card
+                sx={{
+                  p: { xs: '24px', sm: '30px' },
+                  border: 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  background: `linear-gradient(160deg, ${tokens.navy} 0%, ${tokens.navy600} 100%)`,
+                }}
+              >
+                <Typography sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '20px' }}>
+                  Reach us directly
+                </Typography>
+
+                <Box sx={{ display: 'grid', gap: '18px' }}>
+                  {CONTACT_CHANNELS.map((channel) => {
+                    const Icon = channel.icon;
+                    const value = (
+                      <Typography sx={{ fontSize: 14.5, fontWeight: 600, color: '#fff', wordBreak: 'break-word' }}>
+                        {channel.value}
+                      </Typography>
+                    );
+
+                    return (
+                      <Box key={channel.label} sx={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+                        <Box
+                          sx={{
+                            width: 38,
+                            height: 38,
+                            borderRadius: '11px',
+                            flexShrink: 0,
+                            backgroundColor: 'rgba(255,255,255,0.09)',
+                            color: tokens.amber,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Icon sx={{ fontSize: 19 }} />
+                        </Box>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography sx={{ fontSize: 11.5, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', mb: '3px' }}>
+                            {channel.label}
+                          </Typography>
+                          {channel.href ? (
+                            <Link href={channel.href} underline="hover" sx={{ color: '#fff' }}>
+                              {value}
+                            </Link>
+                          ) : value}
+                        </Box>
+                      </Box>
+                    );
+                  })}
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Box sx={{ width: 36, height: 36, borderRadius: '10px', backgroundColor: '#FEF3E2', color: tokens.amber600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <PhoneRoundedIcon sx={{ fontSize: 18 }} />
-                  </Box>
-                  <Box>
-                    <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Phone</Typography>
-                    <Typography sx={{ fontSize: 14, fontWeight: 600 }}>+961 71 600 011</Typography>
-                  </Box>
+
+                <Divider sx={{ my: '24px', borderColor: 'rgba(255,255,255,0.14)' }} />
+
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '9px', mb: '20px' }}>
+                  <CheckCircleRoundedIcon sx={{ fontSize: 16, color: tokens.amber, mt: '2px', flexShrink: 0 }} />
+                  <Typography sx={{ fontSize: 13.5, color: 'rgba(255,255,255,0.75)', lineHeight: 1.55 }}>
+                    We reply to every enquiry within one business day.
+                  </Typography>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Box sx={{ width: 36, height: 36, borderRadius: '10px', backgroundColor: '#EAF7EF', color: tokens.green, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <PlaceOutlinedIcon sx={{ fontSize: 18 }} />
-                  </Box>
-                  <Box>
-                    <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Office</Typography>
-                    <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Beirut, Lebanon</Typography>
-                  </Box>
-                </Box>
-              </Card>
-              <Card sx={{ p: '28px' }}>
-                <Box component="form" onSubmit={handleContactSubmit} sx={{ display: 'grid', gap: '16px' }}>
-                  <TextField
-                    label="Name"
-                    required
+
+                <Box sx={{ mt: 'auto' }}>
+                  <Typography sx={{ fontSize: 12.5, color: 'rgba(255,255,255,0.5)', mb: '10px' }}>
+                    Already with us?
+                  </Typography>
+                  <Button
                     fullWidth
-                    value={contactName}
-                    onChange={(e) => setContactName(e.target.value)}
-                  />
-                  <TextField
-                    label="Email"
-                    type="email"
-                    required
-                    fullWidth
-                    value={contactEmail}
-                    onChange={(e) => setContactEmail(e.target.value)}
-                  />
-                  <TextField
-                    label="Message"
-                    required
-                    fullWidth
-                    multiline
-                    minRows={4}
-                    value={contactMessage}
-                    onChange={(e) => setContactMessage(e.target.value)}
-                  />
-                  <Button type="submit" variant="contained" color="primary" size="large">
-                    Send Message
+                    variant="outlined"
+                    onClick={() => navigate('/login')}
+                    sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)', '&:hover': { borderColor: 'rgba(255,255,255,0.65)' } }}
+                  >
+                    Sign in to your account
                   </Button>
                 </Box>
+              </Card>
+
+              <Card sx={{ p: { xs: '24px', sm: '30px' }, display: 'flex', flexDirection: 'column' }}>
+                {contactSent ? (
+                  <Box sx={{ display: 'grid', gap: '14px', justifyItems: 'center', textAlign: 'center', my: 'auto', py: '24px' }}>
+                    <Box
+                      sx={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: '50%',
+                        backgroundColor: '#EAF7EF',
+                        color: tokens.green,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <CheckCircleRoundedIcon sx={{ fontSize: 30 }} />
+                    </Box>
+                    <Typography sx={{ fontWeight: 700, fontSize: 18, color: tokens.navy }}>
+                      Thanks, {contactName.trim().split(/\s+/)[0]}
+                    </Typography>
+                    <Typography sx={{ fontSize: 14.5, color: 'text.secondary', maxWidth: '42ch', lineHeight: 1.6 }}>
+                      This is a preview build with no mail provider connected, so nothing has actually
+                      been sent. On the live site this reaches the team and you would hear back within
+                      one business day &mdash; in the meantime,{' '}
+                      <Link href="mailto:Info@adzonroad.com" underline="hover">email us directly</Link>.
+                    </Typography>
+                    <Button onClick={resetContactForm} sx={{ mt: '4px', fontWeight: 700 }}>
+                      Write another message
+                    </Button>
+                  </Box>
+                ) : (
+                  <Box component="form" onSubmit={handleContactSubmit} noValidate sx={{ display: 'grid', gap: '18px' }}>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: '18px' }}>
+                      <TextField
+                        label="Full name"
+                        required
+                        fullWidth
+                        value={contactName}
+                        onChange={(e) => setContactName(e.target.value)}
+                        error={Boolean(contactErrors.name)}
+                        helperText={contactErrors.name}
+                      />
+                      <TextField
+                        label="Email"
+                        type="email"
+                        required
+                        fullWidth
+                        value={contactEmail}
+                        onChange={(e) => setContactEmail(e.target.value)}
+                        error={Boolean(contactErrors.email)}
+                        helperText={contactErrors.email}
+                      />
+                    </Box>
+
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: '18px' }}>
+                      <TextField
+                        select
+                        label="I'm reaching out because"
+                        fullWidth
+                        value={contactReason}
+                        onChange={(e) => setContactReason(e.target.value)}
+                      >
+                        {CONTACT_REASONS.map((reason) => (
+                          <MenuItem key={reason} value={reason} sx={{ whiteSpace: 'normal' }}>
+                            {reason}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                      <TextField
+                        label="Phone (optional)"
+                        type="tel"
+                        fullWidth
+                        value={contactPhone}
+                        onChange={(e) => setContactPhone(e.target.value)}
+                      />
+                    </Box>
+
+                    <TextField
+                      label="Message"
+                      required
+                      fullWidth
+                      multiline
+                      minRows={4}
+                      placeholder="Tell us a little about what you have in mind — regions, timing, fleet size, whatever is relevant."
+                      value={contactMessage}
+                      onChange={(e) => setContactMessage(e.target.value)}
+                      error={Boolean(contactErrors.message)}
+                      helperText={contactErrors.message}
+                    />
+
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        size="large"
+                        endIcon={<SendRoundedIcon sx={{ fontSize: 18 }} />}
+                      >
+                        Send message
+                      </Button>
+                      <Typography sx={{ fontSize: 12.5, color: 'text.secondary', flex: '1 1 220px', lineHeight: 1.5 }}>
+                        We use your details to reply to this enquiry and nothing else.
+                      </Typography>
+                    </Box>
+                  </Box>
+                )}
               </Card>
             </Box>
           </Box>

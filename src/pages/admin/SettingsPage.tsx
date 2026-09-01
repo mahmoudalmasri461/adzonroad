@@ -9,8 +9,13 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import TextField from '@mui/material/TextField';
+import PasswordField from '../../components/PasswordField';
 import Alert from '@mui/material/Alert';
 import Checkbox from '@mui/material/Checkbox';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import CircularProgress from '@mui/material/CircularProgress';
 import type { GridColDef } from '@mui/x-data-grid';
@@ -38,6 +43,7 @@ import {
 import { describeLastSignal } from '../../services/admin';
 import { problemsWith } from '../../services/password';
 import { tokens } from '../../theme';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 /**
  * Who may run the platform, and what running it entitles them to do.
@@ -155,8 +161,13 @@ function RolesCard({
   error: string | null;
   onEdit: (role: RoleSummary) => void;
 }) {
+  // One role open at a time. The catalogue runs to dozens of permissions per role, and four roles
+  // expanded at once is the wall of chips this replaced — the summary row carries the name and the
+  // count, which is what the card is scanned for.
+  const [openRole, setOpenRole] = useState<string | null>(null);
+
   return (
-    <Card sx={{ p: '22px', mb: '20px' }}>
+    <Card sx={{ p: { xs: '18px', sm: '22px' }, mb: '20px' }}>
       <Typography sx={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'text.secondary' }}>
         Who may do what
       </Typography>
@@ -173,53 +184,97 @@ function RolesCard({
       ) : roles.length === 0 ? (
         <EmptyState title="No roles are defined" />
       ) : (
-        roles.map((role) => (
-          <Box
-            key={role.role}
-            sx={{
-              padding: '14px 0', borderBottom: '1px solid', borderColor: 'divider',
-              '&:last-of-type': { borderBottom: 'none' },
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', mb: '8px', flexWrap: 'wrap' }}>
-              <Typography sx={{ fontSize: 14, fontWeight: 700 }}>{role.role}</Typography>
-              <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
-                {role.permissions.length} permission{role.permissions.length === 1 ? '' : 's'}
-              </Typography>
-              <Box sx={{ flex: 1 }} />
-              {role.role === 'SuperAdmin' ? (
-                <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
-                  Not editable — stripping it would lock everyone out
-                </Typography>
-              ) : (
-                <Button size="small" sx={{ textTransform: 'none', fontWeight: 600 }} onClick={() => onEdit(role)}>
-                  Edit
-                </Button>
-              )}
-            </Box>
+        <Box sx={{ display: 'grid', gap: '8px' }}>
+          {roles.map((role) => {
+            const isOpen = openRole === role.role;
 
-            <Box sx={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-              {role.permissions.length === 0 ? (
-                <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>Holds nothing.</Typography>
-              ) : (
-                role.permissions.map((permission) => (
+            return (
+              <Accordion
+                key={role.role}
+                expanded={isOpen}
+                onChange={(_e, open) => setOpenRole(open ? role.role : null)}
+                disableGutters
+                elevation={0}
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: '10px !important',
+                  backgroundColor: isOpen ? '#FAFBFD' : 'transparent',
+                  '&::before': { display: 'none' },
+                }}
+              >
+                <AccordionSummary
+                  expandIcon={<ExpandMoreIcon />}
+                  sx={{
+                    px: '14px',
+                    minHeight: 52,
+                    '& .MuiAccordionSummary-content': {
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      flexWrap: 'wrap',
+                      my: '10px',
+                      minWidth: 0,
+                    },
+                  }}
+                >
+                  <Typography sx={{ fontSize: 14, fontWeight: 700 }}>{role.role}</Typography>
                   <Chip
-                    key={permission}
                     size="small"
-                    label={permission}
-                    sx={{ height: 22, fontSize: 11.5, fontFamily: 'monospace', backgroundColor: '#F1F2F6', color: tokens.textMuted }}
+                    label={`${role.permissions.length} permission${role.permissions.length === 1 ? '' : 's'}`}
+                    sx={{ height: 21, fontSize: 11.5, fontWeight: 600, backgroundColor: '#EAF0FF', color: tokens.blue }}
                   />
-                ))
-              )}
-            </Box>
-          </Box>
-        ))
+                  {role.role === 'SuperAdmin' && (
+                    <Chip
+                      size="small"
+                      label="Locked"
+                      sx={{ height: 21, fontSize: 11.5, fontWeight: 600, backgroundColor: '#F1F2F6', color: tokens.textMuted }}
+                    />
+                  )}
+                </AccordionSummary>
+
+                <AccordionDetails sx={{ px: '14px', pt: 0, pb: '14px' }}>
+                  <Box sx={{ display: 'flex', gap: '6px', flexWrap: 'wrap', mb: '12px' }}>
+                    {role.permissions.length === 0 ? (
+                      <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>Holds nothing.</Typography>
+                    ) : (
+                      role.permissions.map((permission) => (
+                        <Chip
+                          key={permission}
+                          size="small"
+                          label={permission}
+                          sx={{ height: 22, fontSize: 11.5, fontFamily: 'monospace', backgroundColor: '#F1F2F6', color: tokens.textMuted }}
+                        />
+                      ))
+                    )}
+                  </Box>
+
+                  {role.role === 'SuperAdmin' ? (
+                    <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
+                      Not editable — stripping it would lock everyone out.
+                    </Typography>
+                  ) : (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      sx={{ textTransform: 'none', fontWeight: 600 }}
+                      onClick={() => onEdit(role)}
+                    >
+                      Edit permissions
+                    </Button>
+                  )}
+                </AccordionDetails>
+              </Accordion>
+            );
+          })}
+        </Box>
       )}
     </Card>
   );
 }
 
 export default function AdminSettingsPage() {
+  const isMobile = useIsMobile();
   const { showToast } = useToast();
   const { session } = useAuth();
 
@@ -385,7 +440,7 @@ export default function AdminSettingsPage() {
         note={`${active} of ${users.length} active. There is no self-service password reset anywhere on the platform — no email or SMS provider is connected — so a reset here is read out to the person by whoever issues it.`}
       />
 
-      <Dialog open={adding} onClose={working ? undefined : () => setAdding(false)} maxWidth="sm" fullWidth>
+      <Dialog open={adding} onClose={working ? undefined : () => setAdding(false)} maxWidth="sm" fullWidth fullScreen={isMobile}>
         <DialogTitle sx={{ fontWeight: 700, fontSize: 17 }}>Add a staff account</DialogTitle>
         <DialogContent>
           <Typography sx={{ fontSize: 13.5, color: 'text.secondary', mb: 2 }}>
@@ -426,9 +481,8 @@ export default function AdminSettingsPage() {
             helperText="Also becomes their username."
           />
 
-          <TextField
+          <PasswordField
             label="Password"
-            type="password"
             value={draft.password}
             onChange={(e) => setDraft({ ...draft, password: e.target.value })}
             fullWidth

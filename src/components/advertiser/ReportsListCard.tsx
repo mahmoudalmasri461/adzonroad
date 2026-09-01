@@ -93,6 +93,10 @@ function ReportRow({ row, days }: { row: CampaignDelivery; days: number }) {
         gap: '12px',
         padding: '10px 4px',
         borderBottom: `1px solid ${advTokens.border}`,
+        // A grid item defaults to `min-width: auto`, which is the campaign name plus the whole
+        // Download button — wider than a phone. Without this the row sets the column width and
+        // the button lands off-screen instead of the name truncating.
+        minWidth: 0,
         '&:last-of-type': { borderBottom: 'none' },
       }}
     >
@@ -101,7 +105,7 @@ function ReportRow({ row, days }: { row: CampaignDelivery; days: number }) {
         <Typography sx={{ fontSize: 13, fontWeight: 600, color: advTokens.text }} noWrap>
           {row.campaign.name}
         </Typography>
-        <Typography sx={{ fontSize: 11, color: advTokens.textMuted }}>
+        <Typography sx={{ fontSize: 11, color: advTokens.textMuted }} noWrap>
           {row.verifiedPlays.toLocaleString()} verified plays · {formatScreenTime(row.verifiedSeconds)} on screen
         </Typography>
       </Box>
