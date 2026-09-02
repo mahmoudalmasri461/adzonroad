@@ -896,50 +896,126 @@ export default function Homepage() {
               </Box>
             </Box>
 
-            <Card
-              sx={{
-                mt: '32px',
-                p: { xs: '24px', sm: '30px' },
-                display: 'flex',
-                gap: { xs: '18px', sm: '26px' },
-                alignItems: 'flex-start',
-                flexWrap: 'wrap',
-                backgroundColor: '#FBFCFE',
-              }}
-            >
-              <Box
-                sx={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: '50%',
-                  backgroundColor: tokens.amber,
-                  color: tokens.navy,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 800,
-                  fontSize: 22,
-                  flexShrink: 0,
-                }}
-              >
-                MA
-              </Box>
-              <Box sx={{ flex: '1 1 260px', minWidth: 0 }}>
-                <Typography
-                  component="blockquote"
-                  sx={{ m: 0, fontSize: 'clamp(16px,2vw,18px)', fontWeight: 600, lineHeight: 1.6, color: tokens.navy, letterSpacing: '-0.01em' }}
+          </Box>
+        </Reveal>
+
+        {/* FOUNDER STATEMENT
+            Its own section rather than a card at the foot of About: this is a position, not a
+            customer review, and the two read differently. No box, no avatar, no quotation marks —
+            the statement carries itself, and the whitespace around it is doing the work a border
+            used to do badly. */}
+        <Reveal>
+          <Box
+            component="section"
+            sx={{
+              py: { xs: '76px', md: '112px' },
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: 'minmax(0,1fr) 300px' },
+              gap: { xs: '52px', md: '48px' },
+              alignItems: 'center',
+            }}
+          >
+            <Box component="figure" sx={{ m: 0 }}>
+              <Typography component="blockquote" sx={{ m: 0 }}>
+                {/* Two spans rather than a line break, so the size and weight step between the
+                    lines is deliberate rather than a wrap that happens to land well. */}
+                <Box
+                  component="span"
+                  sx={{
+                    display: 'block',
+                    fontSize: 'clamp(26px,4.4vw,42px)',
+                    fontWeight: 600,
+                    lineHeight: 1.14,
+                    letterSpacing: '-0.03em',
+                    color: tokens.navy600,
+                  }}
                 >
-                  &ldquo;I passed the same taxis every morning and thought: that is the most-seen
-                  surface in the country, and nobody can tell you who saw it. So we built the part
-                  that could.&rdquo;
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', mt: '14px', flexWrap: 'wrap' }}>
-                  <Typography sx={{ fontWeight: 700, fontSize: 14.5 }}>Mahmoud Al-Masri</Typography>
-                  <Box sx={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: tokens.border }} />
-                  <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>Founder, AdzOnRoad</Typography>
+                  The road is already{' '}
+                  <Box component="span" sx={{ color: tokens.amber }}>
+                    moving
+                  </Box>
+                  .
+                </Box>
+                <Box
+                  component="span"
+                  sx={{
+                    display: 'block',
+                    mt: { xs: '6px', md: '8px' },
+                    fontSize: 'clamp(32px,5.6vw,56px)',
+                    fontWeight: 800,
+                    lineHeight: 1.04,
+                    letterSpacing: '-0.035em',
+                    color: tokens.navy,
+                    // On a phone this line runs to two, and the default break strands "too." alone.
+                    // Balancing splits it after "brand" instead. Ignored by browsers that lack it,
+                    // which get the same wrap they would have had.
+                    textWrap: 'balance',
+                  }}
+                >
+                  Your brand should be too.
+                </Box>
+              </Typography>
+
+              <Box
+                component="figcaption"
+                sx={{ mt: { xs: '34px', md: '46px' }, display: 'flex', alignItems: 'center', gap: '18px' }}
+              >
+                {/* Road markings: a solid edge line over a broken centre line. Decorative, so it is
+                    hidden from assistive technology rather than announced as two empty boxes. */}
+                <Box aria-hidden sx={{ width: 46, flexShrink: 0, display: 'grid', gap: '4px' }}>
+                  <Box sx={{ height: 2, borderRadius: '2px', backgroundColor: tokens.amber }} />
+                  <Box
+                    sx={{
+                      height: 2,
+                      borderRadius: '2px',
+                      opacity: 0.4,
+                      background: `repeating-linear-gradient(90deg, ${tokens.amber} 0 7px, transparent 7px 13px)`,
+                    }}
+                  />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontWeight: 700, fontSize: 15.5, letterSpacing: '-0.01em', color: tokens.navy }}>
+                    Mahmoud Al-Masri
+                  </Typography>
+                  <Typography sx={{ mt: '2px', fontSize: 13, color: tokens.textMuted }}>
+                    Founder &amp; CEO, AdzOnRoad
+                  </Typography>
                 </Box>
               </Box>
-            </Card>
+            </Box>
+
+            {/* A route, fading in as it arrives. Decorative and deliberately quiet: it sits beside
+                the sentence rather than illustrating it, and drops out entirely on narrow screens
+                where it would only push the statement down the page. */}
+            <Box
+              aria-hidden
+              sx={{ display: { xs: 'none', md: 'block' }, justifySelf: 'end', width: '100%', maxWidth: 300 }}
+            >
+              <Box component="svg" viewBox="0 0 300 230" fill="none" sx={{ width: '100%', height: 'auto', display: 'block' }}>
+                <defs>
+                  <linearGradient id="adzRouteFade" x1="0" y1="1" x2="1" y2="0">
+                    <stop offset="0%" stopColor={tokens.amber} stopOpacity="0" />
+                    <stop offset="55%" stopColor={tokens.amber} stopOpacity="0.5" />
+                    <stop offset="100%" stopColor={tokens.amber} stopOpacity="0.95" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M2 218 C 78 206, 112 168, 133 128 S 190 52, 286 26"
+                  stroke={tokens.navy}
+                  strokeOpacity="0.07"
+                  strokeWidth="9"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M2 218 C 78 206, 112 168, 133 128 S 190 52, 286 26"
+                  stroke="url(#adzRouteFade)"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                />
+                <circle cx="286" cy="26" r="13" fill={tokens.amber} fillOpacity="0.14" />
+                <circle cx="286" cy="26" r="5" fill={tokens.amber} />
+              </Box>
+            </Box>
           </Box>
         </Reveal>
 
