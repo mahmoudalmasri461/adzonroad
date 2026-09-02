@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
@@ -91,7 +91,40 @@ const BENEFITS = [
   { title: 'Fast campaign launch', body: 'Most campaigns go live within 48 hours of approval.', icon: RocketLaunchRoundedIcon },
 ];
 
-const PARTNER_PLACEHOLDERS = ['Advertising Clients', 'Taxi Companies', 'Driver Partners', 'Lebanese Business Partners'];
+/**
+ * The three sides of the network, in the order they matter commercially.
+ *
+ * Three rather than four: the fourth box used to read "Lebanese Business Partners", which is not
+ * an audience with anything to sign up for — it described the others in different words. Every
+ * entry here has a real destination, because a card that leads nowhere is the placeholder these
+ * replaced.
+ */
+const AUDIENCES = [
+  {
+    number: '01',
+    label: 'Advertisers',
+    title: 'Put your brand in motion.',
+    body: 'Launch location-based campaigns across AdzOnRoad’s network and track verified delivery as it happens.',
+    cta: 'Explore advertising',
+    to: '/signup?role=advertiser',
+  },
+  {
+    number: '02',
+    label: 'Drivers',
+    title: 'Turn driving time into extra income.',
+    body: 'Earn additional income while driving your normal routes with an AdzOnRoad display installed on your vehicle.',
+    cta: 'Become a driver',
+    to: '/signup?role=driver',
+  },
+  {
+    number: '03',
+    label: 'Taxi & fleet partners',
+    title: 'Turn your fleet into a media network.',
+    body: 'Partner with AdzOnRoad to activate vehicles across your fleet and create a new revenue opportunity.',
+    cta: 'Partner with us',
+    to: '/signup?role=taxiCompany',
+  },
+] as const;
 
 const TAXI_COMPANY_BENEFITS = [
   { title: 'Fleet-wide revenue', body: 'Every vehicle in your fleet earns — paid out monthly per taxi, on top of fare income.', icon: Fleet },
@@ -215,6 +248,75 @@ function StepCard({ title, steps, badgeBg, badgeColor }: { title: string; steps:
   );
 }
 
+/**
+ * The card visuals.
+ *
+ * Drawn rather than illustrated: each one is the shape of what that audience actually gets — a
+ * campaign landing on screens, income accruing over a shift, vehicles joining one network — at a
+ * weight that reads as texture until you look at it. All three are decorative and carry no
+ * meaning a screen reader would need, so the wrappers mark them hidden.
+ */
+function DeliveryVisual() {
+  return (
+    <Box component="svg" viewBox="0 0 300 96" fill="none" sx={{ width: '100%', height: 'auto', display: 'block' }}>
+      {/* The route, and three screens along it — the last one live. */}
+      <path d="M6 78 C 70 78, 96 42, 152 42 S 236 22, 294 22" stroke={tokens.navy} strokeOpacity="0.09" strokeWidth="1.5" strokeLinecap="round" />
+      {[
+        { x: 44, y: 62, on: false },
+        { x: 150, y: 26, on: false },
+        { x: 256, y: 6, on: true },
+      ].map((s) => (
+        <g key={s.x}>
+          <rect x={s.x} y={s.y} width="30" height="19" rx="3" fill={s.on ? tokens.amber : tokens.navy} fillOpacity={s.on ? 0.9 : 0.1} />
+          <path d={`M${s.x + 15} ${s.y + 19} v6`} stroke={tokens.navy} strokeOpacity="0.14" strokeWidth="1.5" />
+        </g>
+      ))}
+    </Box>
+  );
+}
+
+function EarningsVisual() {
+  return (
+    <Box component="svg" viewBox="0 0 200 72" fill="none" sx={{ width: '100%', height: 'auto', display: 'block' }}>
+      {/* A shift's worth of road, and what accrues over it. */}
+      <path d="M4 66 H 196" stroke={tokens.navy} strokeOpacity="0.08" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M4 66 H 22 M34 66 H 52 M64 66 H 82 M94 66 H 112" stroke={tokens.navy} strokeOpacity="0.12" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M8 54 L 56 44 L 104 30 L 152 20 L 192 8" stroke={tokens.amber} strokeOpacity="0.55" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="192" cy="8" r="3.5" fill={tokens.amber} fillOpacity="0.85" />
+    </Box>
+  );
+}
+
+function FleetVisual() {
+  return (
+    <Box component="svg" viewBox="0 0 200 72" fill="none" sx={{ width: '100%', height: 'auto', display: 'block' }}>
+      {/* Separate vehicles resolving into one network. */}
+      <path
+        d="M28 54 L 74 24 M74 24 L 122 48 M122 48 L 170 18 M28 54 L 122 48"
+        stroke={tokens.navy}
+        strokeOpacity="0.1"
+        strokeWidth="1.25"
+        strokeLinecap="round"
+      />
+      {[
+        { x: 28, y: 54, on: false },
+        { x: 74, y: 24, on: false },
+        { x: 122, y: 48, on: true },
+        { x: 170, y: 18, on: false },
+      ].map((n) => (
+        <circle
+          key={n.x}
+          cx={n.x}
+          cy={n.y}
+          r={n.on ? 4.5 : 3.5}
+          fill={n.on ? tokens.amber : tokens.navy}
+          fillOpacity={n.on ? 0.85 : 0.16}
+        />
+      ))}
+    </Box>
+  );
+}
+
 function SectionEyebrow({ children }: { children: string }) {
   return (
     <Typography sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: tokens.blue, mb: '10px' }}>
@@ -231,6 +333,21 @@ export default function Homepage() {
   const [days, setDays] = useState(24);
   const [drivesPremiumAreas, setDrivesPremiumAreas] = useState(true);
   const [contactName, setContactName] = useState('');
+  const contactNameRef = useRef<HTMLInputElement>(null);
+
+  /**
+   * Takes "Talk to our team" to the form and puts the cursor in it.
+   *
+   * preventScroll on the focus call because focusing would otherwise jump the field to the top of
+   * the viewport and undo the smooth scroll that just ran — the two fight, and the abrupt one wins.
+   */
+  const focusContactForm = () => {
+    const field = contactNameRef.current;
+    if (!field) return;
+    field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    field.focus({ preventScroll: true });
+  };
+
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [contactReason, setContactReason] = useState(CONTACT_REASONS[0]);
@@ -1021,32 +1138,157 @@ export default function Homepage() {
           </Box>
         </Reveal>
 
-        {/* TESTIMONIAL */}
+        {/* WHO WE WORK WITH
+            Replaces an invented customer quote and four dashed boxes. The quote was attributed to
+            nobody and the boxes named audiences without offering them anything — between them they
+            occupied the width of the page and said less than the eyebrow above them.
+
+            Asymmetric on purpose: advertisers are the side that pays, so that card takes the full
+            height of the row and the other two stack beside it. */}
         <Reveal>
-          <Box component="section" sx={{ pt: '40px', pb: '64px' }}>
+          <Box component="section" sx={{ pt: '48px', pb: '72px' }}>
             <Typography
-              component="blockquote"
-              sx={{ fontWeight: 700, fontSize: 'clamp(22px,2.2vw,28px)', lineHeight: 1.5, letterSpacing: '-0.01em', maxWidth: '32ch', m: 0, mb: '16px', color: tokens.navy }}
+              sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '12px' }}
             >
-              &ldquo;AdzOnRoad let us reach every neighborhood in Beirut without buying a single billboard.&rdquo;
+              Who we work with
             </Typography>
-            <Typography sx={{ fontSize: 14, color: 'text.secondary', mb: '32px' }}>— Marketing lead, Lebanese retail client</Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '14px' }}>
-              {PARTNER_PLACEHOLDERS.map((p) => (
-                <Box
-                  key={p}
-                  sx={{
-                    border: `1px dashed ${tokens.border}`,
-                    borderRadius: '12px',
-                    padding: '20px',
-                    textAlign: 'center',
-                    color: 'text.secondary',
-                    fontSize: 13,
-                  }}
-                >
-                  {p}
-                </Box>
-              ))}
+            <Typography
+              sx={{
+                fontWeight: 700,
+                fontSize: 'clamp(26px,4.4vw,40px)',
+                lineHeight: 1.14,
+                letterSpacing: '-0.025em',
+                color: tokens.navy,
+                maxWidth: '20ch',
+              }}
+            >
+              One network.
+              <Box component="span" sx={{ display: 'block' }}>
+                Built for everyone on the road.
+              </Box>
+            </Typography>
+            <Typography sx={{ mt: '16px', fontSize: 15.5, color: 'text.secondary', lineHeight: 1.7, maxWidth: '58ch' }}>
+              AdzOnRoad connects brands, drivers and fleet operators through one measurable
+              advertising network.
+            </Typography>
+
+            <Box
+              sx={{
+                mt: { xs: '32px', md: '44px' },
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '1.2fr 1fr' },
+                gridTemplateRows: { md: 'auto auto' },
+                gap: '16px',
+              }}
+            >
+              {AUDIENCES.map((a, i) => {
+                const feature = i === 0;
+                return (
+                  <Card
+                    key={a.number}
+                    component="article"
+                    sx={{
+                      gridRow: { md: feature ? 'span 2' : 'auto' },
+                      position: 'relative',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      p: { xs: '24px', sm: feature ? '32px' : '26px' },
+                      transition: 'transform .22s ease, box-shadow .22s ease',
+                      // The line arrives from the left on hover rather than fading in, so the
+                      // movement echoes the rest of the page instead of just lighting up.
+                      '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        insetInline: 0,
+                        top: 0,
+                        height: '2px',
+                        backgroundColor: tokens.amber,
+                        transform: 'scaleX(0)',
+                        transformOrigin: 'left',
+                        transition: 'transform .3s ease',
+                      },
+                      '&:hover': {
+                        transform: 'translateY(-3px)',
+                        boxShadow: tokens.shadowMd,
+                        '&::after': { transform: 'scaleX(1)' },
+                      },
+                      '@media (prefers-reduced-motion: reduce)': {
+                        transition: 'none',
+                        '&:hover': { transform: 'none' },
+                        '&::after': { transition: 'none' },
+                      },
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'baseline', gap: '10px', mb: '18px' }}>
+                      <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: tokens.amber, letterSpacing: '0.04em' }}>
+                        {a.number}
+                      </Typography>
+                      <Box aria-hidden sx={{ width: 14, height: '1px', backgroundColor: tokens.border }} />
+                      <Typography
+                        sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.textMuted }}
+                      >
+                        {a.label}
+                      </Typography>
+                    </Box>
+
+                    <Typography
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: feature ? 'clamp(22px,2.6vw,30px)' : 'clamp(18px,2vw,21px)',
+                        lineHeight: 1.2,
+                        letterSpacing: '-0.02em',
+                        color: tokens.navy,
+                        mb: '10px',
+                      }}
+                    >
+                      {a.title}
+                    </Typography>
+
+                    <Typography sx={{ fontSize: feature ? 15 : 14, color: 'text.secondary', lineHeight: 1.65, maxWidth: '46ch' }}>
+                      {a.body}
+                    </Typography>
+
+                    {/* Pushes the visual and CTA to the foot so the three cards align along the
+                        bottom regardless of how long the copy runs. */}
+                    <Box aria-hidden sx={{ mt: feature ? '32px' : '22px', mb: feature ? '28px' : '20px', flexGrow: feature ? 1 : 0, display: 'flex', alignItems: 'flex-end' }}>
+                      {/* Capped rather than left at full card width. These are accents; allowed to
+                          scale with the card they set its height instead of decorating it, which
+                          is what left the feature card 800px tall with nothing in the middle. */}
+                      <Box sx={{ width: '100%', maxWidth: feature ? 340 : 200 }}>
+                        {feature ? <DeliveryVisual /> : i === 1 ? <EarningsVisual /> : <FleetVisual />}
+                      </Box>
+                    </Box>
+
+                    {/* Stretched link: the whole card is the hit area, but there is still exactly
+                        one thing to tab to and one accessible name. */}
+                    <Link
+                      component={RouterLink}
+                      to={a.to}
+                      underline="none"
+                      sx={{
+                        mt: 'auto',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '7px',
+                        alignSelf: 'flex-start',
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: tokens.navy,
+                        '&::after': { content: '""', position: 'absolute', inset: 0 },
+                        '& .arrow': { transition: 'transform .22s ease' },
+                        '.MuiCard-root:hover &': { color: tokens.amber600 },
+                        '.MuiCard-root:hover & .arrow': { transform: 'translateX(3px)' },
+                      }}
+                    >
+                      {a.cta}
+                      <Box component="span" className="arrow" aria-hidden sx={{ fontSize: 16, lineHeight: 1 }}>
+                        &rarr;
+                      </Box>
+                    </Link>
+                  </Card>
+                );
+              })}
             </Box>
           </Box>
         </Reveal>
@@ -1054,14 +1296,38 @@ export default function Homepage() {
         {/* CONTACT */}
         <Reveal>
           <Box component="section" id="contact" sx={{ py: '64px', scrollMarginTop: '20px' }}>
-            <SectionEyebrow>Contact</SectionEyebrow>
-            <Typography sx={{ fontWeight: 700, fontSize: 'clamp(24px,5.2vw,32px)', mb: '10px', letterSpacing: '-0.015em' }}>
-              Talk to the team
+            {/* Reads as the next step after the three cards rather than a new topic: whichever
+                one someone recognised themselves in, this is where it goes. */}
+            <Typography
+              sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '12px' }}
+            >
+              Ready to move?
             </Typography>
-            <Typography sx={{ fontSize: 15.5, color: 'text.secondary', maxWidth: '62ch', mb: '32px', lineHeight: 1.7 }}>
-              Planning a campaign, putting a taxi on the road, or partnering a fleet &mdash; tell us
-              which and it goes straight to the person who handles it.
+            <Typography
+              sx={{ fontWeight: 700, fontSize: 'clamp(26px,4.4vw,40px)', mb: '14px', letterSpacing: '-0.025em', lineHeight: 1.15, color: tokens.navy, maxWidth: '20ch' }}
+            >
+              Let&rsquo;s put your next idea on the road.
             </Typography>
+            <Typography sx={{ fontSize: 15.5, color: 'text.secondary', maxWidth: '62ch', lineHeight: 1.7 }}>
+              Whether you&rsquo;re planning a campaign, bringing vehicles into the network, or
+              exploring a fleet partnership, talk directly to the team that handles it.
+            </Typography>
+
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '14px', mt: '24px', mb: '36px' }}>
+              {/* The form is directly below, so this moves to it and puts the cursor in the first
+                  field — a button that only scrolls would be asking for a second click. */}
+              <Button variant="contained" color="primary" size="large" onClick={focusContactForm}>
+                Talk to our team
+              </Button>
+              <Link
+                href="mailto:Info@adzonroad.com"
+                underline="hover"
+                sx={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: 14.5, fontWeight: 600, color: tokens.navy }}
+              >
+                <EmailRoundedIcon sx={{ fontSize: 17, color: tokens.amber }} />
+                Info@adzonroad.com
+              </Link>
+            </Box>
 
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '0.85fr 1.15fr' }, gap: '20px', alignItems: 'stretch' }}>
               {/* Details as a dark panel: the form is the busy half, and giving the contact
@@ -1181,6 +1447,7 @@ export default function Homepage() {
                         label="Full name"
                         required
                         fullWidth
+                        inputRef={contactNameRef}
                         value={contactName}
                         onChange={(e) => setContactName(e.target.value)}
                         error={Boolean(contactErrors.name)}
