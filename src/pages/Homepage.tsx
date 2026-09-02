@@ -7,7 +7,6 @@ import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Slider from '@mui/material/Slider';
-import Switch from '@mui/material/Switch';
 import Link from '@mui/material/Link';
 import GpsFixedRoundedIcon from '@mui/icons-material/GpsFixedRounded';
 import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
@@ -33,7 +32,7 @@ import Logo from '../components/Logo';
 import LebanonMap from '../components/LebanonMap';
 import Reveal from '../components/Reveal';
 import CountUp from '../components/CountUp';
-import { calculateDriverEarnings } from '../services/earningsService';
+import { calculateDriverEarnings, DRIVER_PREMIUM_AREA_BONUS_USD } from '../services/earningsService';
 import { PRICING_TIERS as CAMPAIGN_PRICING_TIERS } from '../services/pricingService';
 import { formatCurrency } from '../utils/format';
 import { tokens } from '../theme';
@@ -842,56 +841,235 @@ export default function Homepage() {
           </Box>
         </Reveal>
 
-        {/* DRIVER EARNINGS CALCULATOR */}
+        {/* DRIVER EARNINGS CALCULATOR
+            The formula is untouched — base, hourly rate and premium bonus all still come from
+            earningsService, which the driver dashboard shares. Only the presentation changed, plus
+            one fix: the breakdown used to interpolate the raw hourly figure, so the default
+            position rendered "$115.19999999999999". 192 * 0.6 is not 115.2 in floating point, and
+            49 of the 253 slider combinations hit something similar. Displayed values are rounded
+            now. Rounding cannot desync the rows from the total, because base and bonus are whole
+            dollars and 0.6 * n never lands on a half. */}
         <Reveal>
-        <Box component="section" sx={{ py: '64px' }}>
-          <SectionEyebrow>Driver earnings</SectionEyebrow>
-          <Typography sx={{ fontWeight: 700, fontSize: 'clamp(24px,5.2vw,30px)', mb: '28px', letterSpacing: '-0.01em' }}>Estimate what you could earn</Typography>
-          <Card sx={{ p: { xs: '20px', sm: '32px' } }}>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.1fr 0.9fr' }, gap: '36px', alignItems: 'center' }}>
-              <Box sx={{ display: 'grid', gap: '22px' }}>
-                <Box>
-                  <Typography sx={{ fontSize: 13.5, fontWeight: 600 }}>Driving hours per day — {hours} hrs</Typography>
-                  <Slider value={hours} min={2} max={14} onChange={(_, v) => setHours(v as number)} sx={{ mt: '8px' }} />
-                </Box>
-                <Box>
-                  <Typography sx={{ fontSize: 13.5, fontWeight: 600 }}>Days per month — {days} days</Typography>
-                  <Slider value={days} min={10} max={30} onChange={(_, v) => setDays(v as number)} sx={{ mt: '8px' }} />
-                </Box>
-                <Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Typography sx={{ fontSize: 13.5, fontWeight: 600 }}>Drives in premium areas</Typography>
-                    <Switch checked={drivesPremiumAreas} onChange={(e) => setDrivesPremiumAreas(e.target.checked)} />
+          <Box component="section" sx={{ py: { xs: '72px', md: '96px' } }}>
+            <Typography
+              sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '12px' }}
+            >
+              Driver earnings
+            </Typography>
+            <Typography
+              sx={{ fontWeight: 700, fontSize: 'clamp(28px,4.8vw,44px)', letterSpacing: '-0.028em', lineHeight: 1.12, color: tokens.navy }}
+            >
+              See what your driving
+              <Box component="span" sx={{ display: 'block' }}>
+                could earn you.
+              </Box>
+            </Typography>
+            <Typography sx={{ mt: '16px', fontSize: 15.5, color: 'text.secondary', maxWidth: '54ch', lineHeight: 1.7 }}>
+              Choose how much you normally drive and get an instant estimate of your monthly
+              AdzOnRoad earnings.
+            </Typography>
+
+            <Box
+              sx={{
+                mt: { xs: '40px', md: '56px' },
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '1.5fr 1fr' },
+                gap: { xs: '40px', md: '64px' },
+                alignItems: 'start',
+              }}
+            >
+              <Box sx={{ display: 'grid', gap: '34px' }}>
+                {[
+                  {
+                    n: '01',
+                    label: 'Hours on the road',
+                    value: `${hours} hrs / day`,
+                    node: (
+                      <Slider
+                        value={hours}
+                        min={2}
+                        max={12}
+                        onChange={(_, v) => setHours(v as number)}
+                        aria-label="Driving hours per day"
+                        sx={{ color: tokens.amber }}
+                      />
+                    ),
+                    from: '2 hrs',
+                    to: '12 hrs',
+                  },
+                  {
+                    n: '02',
+                    label: 'Days you drive',
+                    value: `${days} days / month`,
+                    node: (
+                      <Slider
+                        value={days}
+                        min={8}
+                        max={30}
+                        onChange={(_, v) => setDays(v as number)}
+                        aria-label="Driving days per month"
+                        sx={{ color: tokens.amber }}
+                      />
+                    ),
+                    from: '8 days',
+                    to: '30 days',
+                  },
+                ].map((input) => (
+                  <Box key={input.n}>
+                    <Box sx={{ display: 'flex', alignItems: 'baseline', gap: '10px', mb: '6px' }}>
+                      <Typography sx={{ fontSize: 12, fontWeight: 800, color: tokens.amber, letterSpacing: '0.04em' }}>
+                        {input.n}
+                      </Typography>
+                      <Typography
+                        sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.textMuted }}
+                      >
+                        {input.label}
+                      </Typography>
+                    </Box>
+                    <Typography sx={{ fontSize: 'clamp(22px,2.4vw,26px)', fontWeight: 700, letterSpacing: '-0.02em', color: tokens.navy }}>
+                      {input.value}
+                    </Typography>
+                    {/* Capped rather than stretched to the column: a slider the width of the page
+                        is harder to place accurately, not easier, and it leaves the row looking
+                        mostly empty. */}
+                    <Box sx={{ maxWidth: 380, mt: '4px' }}>
+                      {input.node}
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: '-2px' }}>
+                        <Typography sx={{ fontSize: 12, color: tokens.textMuted }}>{input.from}</Typography>
+                        <Typography sx={{ fontSize: 12, color: tokens.textMuted }}>{input.to}</Typography>
+                      </Box>
+                    </Box>
                   </Box>
-                  <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: '2px' }}>
-                    Verdun, Gemmayzeh, Saifi, Downtown, etc. — flat $20/month bonus
-                  </Typography>
+                ))}
+
+                <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'baseline', gap: '10px', mb: '10px' }}>
+                    <Typography sx={{ fontSize: 12, fontWeight: 800, color: tokens.amber, letterSpacing: '0.04em' }}>03</Typography>
+                    <Typography
+                      sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.textMuted }}
+                    >
+                      Premium-area driving
+                    </Typography>
+                  </Box>
+
+                  {/* A choice, not a preference switch. The selected look hangs off a data
+                      attribute so there is one class for both states rather than one minted per
+                      state. */}
+                  <Box
+                    component="button"
+                    type="button"
+                    role="checkbox"
+                    aria-checked={drivesPremiumAreas}
+                    data-selected={drivesPremiumAreas ? 'true' : undefined}
+                    onClick={() => setDrivesPremiumAreas((on) => !on)}
+                    sx={{
+                      width: '100%',
+                      maxWidth: 460,
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '14px',
+                      padding: '16px 18px',
+                      borderRadius: '12px',
+                      fontFamily: 'inherit',
+                      backgroundColor: '#FBFBFD',
+                      border: `1px solid ${tokens.border}`,
+                      transition: 'background-color .2s ease, border-color .2s ease',
+                      '&:hover': { borderColor: '#D3D8E2' },
+                      '&:focus-visible': { outline: `2px solid ${tokens.amber}`, outlineOffset: '2px' },
+                      '&[data-selected="true"]': {
+                        backgroundColor: 'rgba(245,166,35,0.10)',
+                        borderColor: tokens.amber,
+                      },
+                      '& .tick': {
+                        flexShrink: 0,
+                        width: 20,
+                        height: 20,
+                        borderRadius: '6px',
+                        border: `1.5px solid ${tokens.border}`,
+                        backgroundColor: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'transparent',
+                        transition: 'background-color .2s ease, border-color .2s ease, color .2s ease',
+                      },
+                      '&[data-selected="true"] .tick': {
+                        backgroundColor: tokens.amber,
+                        borderColor: tokens.amber,
+                        color: tokens.navy,
+                      },
+                      '@media (prefers-reduced-motion: reduce)': {
+                        transition: 'none',
+                        '& .tick': { transition: 'none' },
+                      },
+                    }}
+                  >
+                    <Box className="tick" aria-hidden>
+                      <CheckRoundedIcon sx={{ fontSize: 15 }} />
+                    </Box>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography sx={{ fontSize: 14.5, fontWeight: 700, color: tokens.navy, lineHeight: 1.35 }}>
+                        I regularly drive in premium areas
+                      </Typography>
+                      <Typography sx={{ mt: '4px', fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5 }}>
+                        Verdun &middot; Gemmayzeh &middot; Saifi &middot; Downtown &middot; other eligible areas
+                      </Typography>
+                      <Typography sx={{ mt: '8px', fontSize: 12.5, fontWeight: 700, color: tokens.amber600 }}>
+                        +${DRIVER_PREMIUM_AREA_BONUS_USD} monthly bonus
+                      </Typography>
+                    </Box>
+                  </Box>
                 </Box>
               </Box>
-              <Box sx={{ borderLeft: { md: `1px solid ${tokens.border}` }, pl: { md: '32px' } }}>
-                <Typography sx={{ fontSize: 12.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'text.secondary' }}>
-                  Estimated monthly earnings
+
+              <Box
+                sx={{
+                  backgroundColor: '#FBFBFD',
+                  border: `1px solid ${tokens.border}`,
+                  borderRadius: '16px',
+                  p: { xs: '26px', sm: '32px' },
+                }}
+              >
+                <Typography
+                  sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: tokens.textMuted }}
+                >
+                  Your estimated monthly earnings
                 </Typography>
-                <Typography sx={{ mt: '6px', mb: '18px', fontWeight: 800, fontSize: 'clamp(34px,8vw,44px)', color: tokens.navy }}>${total}</Typography>
-                <Box sx={{ display: 'grid', gap: '8px', fontSize: 14 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: tokens.textMuted }}>Base pay</span>
-                    <span style={{ fontWeight: 600 }}>${base}</span>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: tokens.textMuted }}>Driving hours ({hours * days} hrs × $0.60)</span>
-                    <span style={{ fontWeight: 600 }}>${hourlyEarnings}</span>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: tokens.textMuted }}>Premium areas bonus</span>
-                    <span style={{ fontWeight: 600 }}>${premiumBonus}</span>
-                  </Box>
+                <Typography
+                  sx={{
+                    mt: '10px',
+                    fontWeight: 800,
+                    fontSize: 'clamp(52px,7vw,76px)',
+                    lineHeight: 1,
+                    letterSpacing: '-0.04em',
+                    color: tokens.navy,
+                  }}
+                >
+                  ${Math.round(total)}
+                </Typography>
+                <Typography sx={{ mt: '12px', fontSize: 13.5, color: 'text.secondary' }}>
+                  Based on {hours * days} driving hours this month
+                </Typography>
+
+                <Box sx={{ mt: '24px', pt: '22px', borderTop: `1px solid ${tokens.border}`, display: 'grid', gap: '12px' }}>
+                  {[
+                    { label: 'Base pay', value: base },
+                    { label: 'Driving time', value: hourlyEarnings },
+                    { label: 'Premium-area bonus', value: premiumBonus },
+                  ].map((row) => (
+                    <Box key={row.label} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '16px' }}>
+                      <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>{row.label}</Typography>
+                      <Typography sx={{ fontSize: 14.5, fontWeight: 700, color: tokens.navy }}>${Math.round(row.value)}</Typography>
+                    </Box>
+                  ))}
                 </Box>
               </Box>
             </Box>
-          </Card>
-        </Box>
+          </Box>
         </Reveal>
+
 
         {/* ABOUT
             The traction figures that used to sit here — 142 advertisers, 2,610 drivers — described
