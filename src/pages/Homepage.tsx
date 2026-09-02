@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
@@ -23,10 +23,12 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import Logo from '../components/Logo';
 import LebanonMap from '../components/LebanonMap';
 import Reveal from '../components/Reveal';
-import CountUp from '../components/CountUp';
 import { calculateDriverEarnings, DRIVER_PREMIUM_AREA_BONUS_USD } from '../services/earningsService';
 import { useInView } from '../hooks/useInView';
 import { useAuth } from '../contexts/AuthProvider';
+import { fetchRegions, type RegionOption } from '../services/registration';
+import LoadingState from '../components/LoadingState';
+import ErrorState from '../components/ErrorState';
 import { tokens } from '../theme';
 import heroTaxi from '../assets/hero/hero-taxi.jpg';
 
@@ -49,15 +51,6 @@ const DRIVER_STEPS = [
   { title: 'Register your vehicle', body: 'Quick onboarding for drivers and fleets.' },
   { title: 'Install the screen', body: 'Free rooftop install, fully insured.' },
   { title: 'Drive and earn', body: 'Paid for coverage, uptime and verified hours.' },
-];
-
-const REGIONS = [
-  { name: 'Beirut', screens: 15, status: 'active' },
-  { name: 'Mount Lebanon', screens: 7, status: 'active' },
-  { name: 'Jounieh', screens: 5, status: 'active' },
-  { name: 'Tripoli', screens: 5, status: 'active' },
-  { name: 'Byblos', screens: 3, status: 'active' },
-  { name: 'Saida', screens: 3, status: 'active' },
 ];
 
 /**
@@ -100,6 +93,35 @@ const TAXI_COMPANY_BENEFITS = [
   { title: 'Zero hardware cost', body: 'Screens are installed and fully insured at no cost to your company.', icon: BuildRoundedIcon },
   { title: 'Dedicated account manager', body: 'One point of contact for onboarding, support, and reporting.', icon: SupportAgentRoundedIcon },
   { title: 'Consolidated reporting', body: "Track every vehicle's uptime and earnings from a single dashboard.", icon: DashboardRoundedIcon },
+];
+
+/**
+ * Where the map puts a pin, and which of the platform's regions sit inside each one.
+ *
+ * The coordinates are geography and the groupings are geography — Hamra and Achrafieh are in
+ * Beirut whatever the API says. What is *not* decided here is whether an area is covered: that
+ * comes from which of these names the regions endpoint actually returns, so an area the platform
+ * drops server-side greys out here without anyone editing this file.
+ *
+ * No screen counts, deliberately. There are none to state.
+ */
+const COVERAGE_AREAS = [
+  {
+    name: 'Beirut',
+    lon: 35.5018,
+    lat: 33.8938,
+    regions: ['Beirut', 'Hamra', 'Achrafieh', 'Verdun', 'Downtown', 'Gemmayze', 'Saifi'],
+    labelDx: 13,
+    labelDy: -2,
+  },
+  // Sits close enough to Beirut that the two labels collide; this one goes below its pin.
+  { name: 'Mount Lebanon', lon: 35.63, lat: 33.82, regions: ['Mount Lebanon'], labelDx: 13, labelDy: 16 },
+  { name: 'Jounieh', lon: 35.6178, lat: 33.9808, regions: ['Jounieh'] },
+  { name: 'Byblos', lon: 35.6481, lat: 34.1208, regions: ['Byblos'] },
+  { name: 'Tripoli', lon: 35.8497, lat: 34.4367, regions: ['Tripoli'] },
+  { name: 'Zahle', lon: 35.902, lat: 33.8463, regions: ['Zahle'] },
+  { name: 'Sidon', lon: 35.3758, lat: 33.5606, regions: ['Sidon'] },
+  { name: 'Tyre', lon: 35.2038, lat: 33.2704, regions: ['Tyre'] },
 ];
 
 /**
@@ -358,6 +380,52 @@ export default function Homepage() {
   const [measureRef, measureInView] = useInView<HTMLDivElement>();
 
   const { isSignedIn } = useAuth();
+
+  /**
+   * Coverage comes from the API, not from this file.
+   *
+   * /api/v1/regions is public and is the same list the campaign builder targets against, so an
+   * area is shown as available exactly when a campaign could actually be pointed at it. If the
+   * call fails the section says so and offers a retry, rather than falling back to a hardcoded
+   * list that would quietly claim coverage the platform might not have.
+   */
+  const [regions, setRegions] = useState<RegionOption[] | null>(null);
+  const [regionsError, setRegionsError] = useState(false);
+
+  const loadRegions = useCallback(() => {
+    setRegionsError(false);
+    setRegions(null);
+    fetchRegions()
+      .then(setRegions)
+      .catch(() => setRegionsError(true));
+  }, []);
+
+  useEffect(() => {
+    loadRegions();
+  }, [loadRegions]);
+
+  const regionsLoading = regions === null && !regionsError;
+
+  const mapAreas = useMemo(
+    () =>
+      COVERAGE_AREAS.map((area) => ({
+        name: area.name,
+        lon: area.lon,
+        lat: area.lat,
+        labelDx: area.labelDx,
+        labelDy: area.labelDy,
+        covered: (regions ?? []).some((r) => area.regions.includes(r.name)),
+      })),
+    [regions],
+  );
+
+  const [selectedArea, setSelectedArea] = useState('Beirut');
+
+  const selectedAreaDetail = useMemo(() => {
+    const area = COVERAGE_AREAS.find((a) => a.name === selectedArea) ?? COVERAGE_AREAS[0];
+    const matched = (regions ?? []).filter((r) => area.regions.includes(r.name));
+    return { name: area.name, covered: matched.length > 0, regions: matched };
+  }, [selectedArea, regions]);
 
   /** What the visitor has configured. null on any field means "Custom", which carries no number. */
   const [campaign, setCampaign] = useState<{
@@ -700,62 +768,239 @@ export default function Homepage() {
           </Box>
         </Reveal>
 
-        {/* COVERAGE MAP */}
+        {/* NETWORK COVERAGE
+            The eyebrow said "Live network" and the copy said positions were "updated in real
+            time". Nothing here was live: the map carried about 1,235 invented screens and the six
+            cards below it another 38, which is also where the hero's screen count came from. The
+            "high demand" chip was calculated from nothing at all.
+
+            What is real is the regions endpoint, and this section now runs on it. An area shows as
+            covered because /api/v1/regions returned regions inside it — drop one server-side and it
+            greys out here. Nothing states a screen count, because the platform has none to state. */}
         <Reveal>
-          <Box component="section" id="coverage" sx={{ py: '64px' }}>
-            <SectionEyebrow>Live network</SectionEyebrow>
-            <Typography sx={{ fontWeight: 700, fontSize: 'clamp(24px,5.2vw,30px)', mb: '10px', letterSpacing: '-0.01em' }}>Coverage across Lebanon</Typography>
-            <Typography sx={{ fontSize: 15.5, color: 'text.secondary', maxWidth: '60ch', mb: '28px' }}>
-              Live taxi and screen positions, campaign zones, and regional availability, updated in real time.
+          <Box component="section" id="coverage" sx={{ py: { xs: '72px', md: '96px' }, scrollMarginTop: '20px' }}>
+            <Typography
+              sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '12px' }}
+            >
+              Network coverage
             </Typography>
-            <Card sx={{ p: 0, overflow: 'hidden', height: { xs: 320, md: 440 }, position: 'relative', mb: '28px' }}>
-              <LebanonMap />
-            </Card>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: '16px', flexWrap: 'wrap', gap: '12px' }}>
-              <Typography sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'text.secondary' }}>
-                Regional breakdown
-              </Typography>
-              <Chip
-                label="Beirut & Mount Lebanon — high demand"
-                sx={{ width: 'fit-content', backgroundColor: '#EAF7EF', color: '#0F7A3D', fontWeight: 600, fontSize: 12 }}
-              />
-            </Box>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3,1fr)' }, gap: '18px' }}>
-              {REGIONS.map((region) => (
-                <Card
-                  key={region.name}
+            <Typography
+              sx={{ fontWeight: 700, fontSize: 'clamp(28px,4.8vw,44px)', letterSpacing: '-0.028em', lineHeight: 1.12, color: tokens.navy }}
+            >
+              See where AdzOnRoad moves.
+            </Typography>
+            <Typography sx={{ mt: '16px', fontSize: 15.5, color: 'text.secondary', maxWidth: '58ch', lineHeight: 1.7 }}>
+              Explore our available and expanding coverage areas across Lebanon.
+            </Typography>
+
+            {regionsError ? (
+              <Box sx={{ mt: '32px' }}>
+                <ErrorState
+                  title="Coverage areas could not be loaded"
+                  description="The region list comes from the AdzOnRoad API and is not reachable right now."
+                  onRetry={loadRegions}
+                />
+              </Box>
+            ) : regionsLoading ? (
+              <Box sx={{ mt: '32px' }}>
+                <LoadingState label="Loading coverage areas…" />
+              </Box>
+            ) : (
+              <>
+                <Box
                   sx={{
-                    p: '24px',
-                    transition: 'transform 0.25s ease, box-shadow 0.25s ease',
-                    cursor: 'default',
-                    '&:hover': { transform: 'translateY(-4px)', boxShadow: tokens.shadowMd },
+                    mt: { xs: '32px', md: '48px' },
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', md: '1.6fr 1fr' },
+                    gap: { xs: '32px', md: '56px' },
+                    alignItems: 'start',
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', mb: '14px' }}>
+                  <Box>
                     <Box
                       sx={{
-                        width: 9,
-                        height: 9,
-                        borderRadius: '50%',
-                        backgroundColor: region.status === 'active' ? tokens.green : tokens.warn,
-                        flexShrink: 0,
+                        borderRadius: '16px',
+                        border: `1px solid ${tokens.border}`,
+                        backgroundColor: tokens.surface,
+                        p: { xs: '16px', sm: '24px' },
                       }}
-                    />
-                    <Typography sx={{ fontSize: 16, fontWeight: 700, letterSpacing: '-0.01em' }} noWrap>
-                      {region.name}
+                    >
+                      <LebanonMap areas={mapAreas} selected={selectedArea} onSelect={setSelectedArea} />
+                    </Box>
+
+                    <Box sx={{ mt: '16px', display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
+                      {[
+                        { label: 'Available for targeting', colour: tokens.navy },
+                        { label: 'Expanding', colour: tokens.textMuted },
+                      ].map((item) => (
+                        <Box key={item.label} sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: item.colour }} />
+                          <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>{item.label}</Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                  </Box>
+
+                  <Box>
+                    <Typography
+                      sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: tokens.textMuted, mb: '8px' }}
+                    >
+                      {selectedAreaDetail.covered ? 'Available for targeting' : 'Expanding'}
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: 'clamp(24px,3vw,30px)', fontWeight: 800, letterSpacing: '-0.028em', color: tokens.navy, lineHeight: 1.1 }}
+                    >
+                      {selectedAreaDetail.name}
+                    </Typography>
+
+                    <Typography sx={{ mt: '12px', fontSize: 14.5, color: 'text.secondary', lineHeight: 1.7 }}>
+                      {selectedAreaDetail.covered
+                        ? `Campaigns can be targeted at ${selectedAreaDetail.regions.length === 1 ? 'this area' : 'these areas'} when you build a campaign.`
+                        : 'Not part of the targetable network yet. The network expands with advertiser and fleet demand.'}
+                    </Typography>
+
+                    {selectedAreaDetail.regions.length > 0 && (
+                      <Box sx={{ mt: '22px' }}>
+                        <Typography
+                          sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: tokens.textMuted, mb: '10px' }}
+                        >
+                          Coverage areas
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                          {selectedAreaDetail.regions.map((region) => (
+                            <Box
+                              key={region.id}
+                              sx={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '7px',
+                                fontSize: 13,
+                                fontWeight: 600,
+                                color: tokens.navy,
+                                backgroundColor: '#FBFBFD',
+                                border: `1px solid ${tokens.border}`,
+                                borderRadius: '999px',
+                                padding: '7px 13px',
+                              }}
+                            >
+                              {region.name}
+                              {region.isPremium && (
+                                <Box component="span" sx={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: tokens.amber600 }}>
+                                  Premium
+                                </Box>
+                              )}
+                            </Box>
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      size="large"
+                      fullWidth
+                      disabled={!selectedAreaDetail.covered}
+                      onClick={() => navigate('/signup?role=advertiser')}
+                      sx={{ mt: '26px' }}
+                    >
+                      Target {selectedAreaDetail.name} &rarr;
+                    </Button>
+
+                    {/* The region navigator. Rows rather than cards — six boxes below the map were
+                        what made this a statistics wall instead of a way to answer "can I run my
+                        campaign where my customers are". */}
+                    <Box sx={{ mt: '30px', borderTop: `1px solid ${tokens.border}` }}>
+                      {mapAreas.map((area) => {
+                        const isSelected = area.name === selectedArea;
+                        return (
+                          <Box
+                            key={area.name}
+                            component="button"
+                            type="button"
+                            onClick={() => setSelectedArea(area.name)}
+                            aria-pressed={isSelected}
+                            data-selected={isSelected ? 'true' : undefined}
+                            sx={{
+                              fontFamily: 'inherit',
+                              width: '100%',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: '16px',
+                              padding: '13px 4px',
+                              background: 'none',
+                              border: 0,
+                              borderBottom: `1px solid ${tokens.border}`,
+                              textAlign: 'left',
+                              transition: 'padding-left .18s ease',
+                              '&:hover': { paddingLeft: '10px' },
+                              '&:focus-visible': { outline: `2px solid ${tokens.amber}`, outlineOffset: '-2px' },
+                              '&[data-selected="true"]': { paddingLeft: '10px' },
+                              '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                              <Box
+                                sx={{
+                                  width: 7,
+                                  height: 7,
+                                  borderRadius: '50%',
+                                  flexShrink: 0,
+                                  backgroundColor: !area.covered ? tokens.textMuted : isSelected ? tokens.amber : tokens.navy,
+                                }}
+                              />
+                              <Typography
+                                sx={{ fontSize: 14, fontWeight: isSelected ? 700 : 600, color: tokens.navy, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                              >
+                                {area.name}
+                              </Typography>
+                            </Box>
+                            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', flexShrink: 0 }}>
+                              {area.covered ? 'Available' : 'Expanding'}
+                            </Typography>
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                  </Box>
+                </Box>
+
+                <Box
+                  sx={{
+                    mt: { xs: '36px', md: '48px' },
+                    pt: { xs: '28px', md: '32px' },
+                    borderTop: `1px solid ${tokens.border}`,
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '18px',
+                  }}
+                >
+                  <Box>
+                    <Typography sx={{ fontSize: 15.5, fontWeight: 700, color: tokens.navy, mb: '4px' }}>
+                      Need coverage somewhere else?
+                    </Typography>
+                    <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.6, maxWidth: '54ch' }}>
+                      AdzOnRoad&rsquo;s network is expanding based on advertiser and fleet demand.
                     </Typography>
                   </Box>
-                  <Typography sx={{ fontSize: 28, fontWeight: 800, color: tokens.navy, letterSpacing: '-0.01em' }}>
-                    <CountUp value={region.screens} />
-                  </Typography>
-                  <Typography sx={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'text.secondary', mt: '2px' }}>
-                    Screens
-                  </Typography>
-                </Card>
-              ))}
-            </Box>
+                  <Button
+                    variant="outlined"
+                    size="large"
+                    onClick={() => navigate('/#contact')}
+                    sx={{ borderColor: tokens.border, color: tokens.navy, flexShrink: 0 }}
+                  >
+                    Talk to our team &rarr;
+                  </Button>
+                </Box>
+              </>
+            )}
           </Box>
         </Reveal>
+
 
         {/* CAMPAIGN PRICING
             The old section sold a slot: three taxi-count cards, "1 of 6 ad units", "repeats every
