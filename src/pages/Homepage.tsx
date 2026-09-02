@@ -23,12 +23,8 @@ import BuildRoundedIcon from '@mui/icons-material/BuildRounded';
 import SupportAgentRoundedIcon from '@mui/icons-material/SupportAgentRounded';
 import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
-import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
-import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
-import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import TextField from '@mui/material/TextField';
-import Divider from '@mui/material/Divider';
 import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
@@ -153,35 +149,33 @@ const PRICING_TIERS = [
   },
 ];
 
-const ABOUT_STATS = [
-  { value: '2026', label: 'Founded' },
-  { value: '6', label: 'Regions' },
-  { value: '142', label: 'Advertisers' },
-  { value: '2,610', label: 'Drivers' },
-];
-
-const ABOUT_PILLARS = [
+/**
+ * What the platform does, stated without a number attached to any of it.
+ *
+ * The traction panel this replaced claimed 142 advertisers and 2,610 drivers. Neither figure came
+ * from anywhere — the production database holds no screens at all — and a measurement company is
+ * the worst possible place to put an invented measurement. Numbers belong here only once something
+ * real produces them.
+ */
+const ABOUT_PRINCIPLES = [
   {
-    title: 'Verified, not estimated',
-    body: 'Every play is matched to a GPS fix and a timestamp before it counts. If we cannot prove an ad ran, it does not appear on the report.',
-    icon: VerifiedRoundedIcon,
+    number: '01',
+    label: 'Verified delivery',
+    headline: 'Not estimated.',
+    body: 'Campaign activity is connected to location and playback evidence so advertisers can understand where their ads actually ran.',
   },
   {
-    title: 'Built for these roads',
-    body: 'Regions, traffic corridors and shift patterns that make sense in Lebanon — not a template lifted from a market that works nothing like this one.',
-    icon: PublicRoundedIcon,
+    number: '02',
+    label: 'Built for the road',
+    headline: 'Designed around Lebanon.',
+    body: 'Regions, routes, traffic patterns and fleet operations are designed around the local market rather than copied from another country.',
   },
   {
-    title: 'Drivers paid, not used',
-    body: 'Screens are installed and insured at no cost, and the earnings sit on top of the fares a driver was already taking.',
-    icon: GroupsRoundedIcon,
+    number: '03',
+    label: 'Drivers benefit too',
+    headline: 'New income from existing routes.',
+    body: 'Drivers continue their normal work while AdzOnRoad creates an additional earning opportunity from the vehicle.',
   },
-];
-
-const ABOUT_COMMITMENTS = [
-  'Every screen reports its own position',
-  'Drivers keep 100% of their fare income',
-  'No long-term lock-in for advertisers',
 ];
 
 /**
@@ -899,141 +893,180 @@ export default function Homepage() {
         </Box>
         </Reveal>
 
-        {/* ABOUT */}
+        {/* ABOUT
+            The traction figures that used to sit here — 142 advertisers, 2,610 drivers — described
+            a network that does not exist yet: the production database currently holds no screens at
+            all. They are gone rather than restated, and nothing has been invented to replace them.
+            What the section claims now is what the platform does, which is true today. */}
         <Reveal>
-          <Box component="section" id="about" sx={{ py: '64px', scrollMarginTop: '20px' }}>
-            <SectionEyebrow>About us</SectionEyebrow>
-            <Typography sx={{ fontWeight: 700, fontSize: 'clamp(24px,5.2vw,32px)', mb: '20px', letterSpacing: '-0.015em', maxWidth: '18ch' }}>
-              Built in Beirut, for Lebanon&rsquo;s roads
+          <Box component="section" id="about" sx={{ py: { xs: '72px', md: '96px' }, scrollMarginTop: '20px' }}>
+            <Typography
+              sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '12px' }}
+            >
+              Built for Lebanon
+            </Typography>
+            <Typography
+              sx={{ fontWeight: 700, fontSize: 'clamp(30px,5.2vw,48px)', letterSpacing: '-0.03em', lineHeight: 1.1, color: tokens.navy }}
+            >
+              Advertising that moves
+              <Box component="span" sx={{ display: 'block' }}>
+                with the city.
+              </Box>
+            </Typography>
+            <Typography sx={{ mt: '18px', fontSize: 'clamp(16px,1.8vw,18px)', fontWeight: 500, color: tokens.text, lineHeight: 1.6, maxWidth: '46ch' }}>
+              AdzOnRoad turns vehicles already moving through Lebanon into a measurable digital
+              advertising network.
+            </Typography>
+            <Typography sx={{ mt: '14px', fontSize: 15.5, color: 'text.secondary', lineHeight: 1.75, maxWidth: '62ch' }}>
+              Traditional outdoor advertising tells you where a billboard is. AdzOnRoad goes further
+              &mdash; connecting every campaign to real vehicles, real locations and verified display
+              activity, giving advertisers measurable proof of where their campaigns moved.
             </Typography>
 
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.15fr 0.85fr' }, gap: { xs: '32px', md: '48px' }, alignItems: 'start' }}>
+            <Box
+              sx={{
+                mt: { xs: '48px', md: '68px' },
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '1.1fr 0.9fr' },
+                gap: { xs: '48px', md: '64px' },
+                alignItems: 'start',
+              }}
+            >
               <Box>
-                <Typography sx={{ fontSize: 'clamp(16px,2vw,18px)', color: tokens.text, lineHeight: 1.65, mb: '16px', fontWeight: 500 }}>
-                  Lebanon&rsquo;s roads are full of taxis, and every one of them is the most-seen
-                  surface in the country that nobody could measure.
-                </Typography>
-                <Typography sx={{ fontSize: 15.5, color: 'text.secondary', lineHeight: 1.75, mb: '10px' }}>
-                  Outdoor advertising here has always been sold on a photograph and a promise. You paid
-                  for a location, and what came back was an estimate somebody made up. We started
-                  AdzOnRoad to close that gap: rooftop screens that report where they were, when they
-                  played and for how long &mdash; so an advertiser gets evidence instead of an assurance.
-                </Typography>
-                <Typography sx={{ fontSize: 15.5, color: 'text.secondary', lineHeight: 1.75 }}>
-                  The other half of it is the drivers. They were already covering the ground; they just
-                  were not being paid for it. Now the same trip earns twice.
-                </Typography>
-
-                <Box sx={{ display: 'grid', gap: '2px', mt: '32px' }}>
-                  {ABOUT_PILLARS.map((pillar) => {
-                    const Icon = pillar.icon;
-                    return (
-                      <Box
-                        key={pillar.title}
-                        sx={{
-                          display: 'flex',
-                          gap: '16px',
-                          alignItems: 'flex-start',
-                          py: '18px',
-                          borderTop: `1px solid ${tokens.border}`,
-                          '&:last-of-type': { borderBottom: `1px solid ${tokens.border}` },
-                        }}
+                {ABOUT_PRINCIPLES.map((p, i) => (
+                  <Box
+                    key={p.number}
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: '46px 1fr',
+                      gap: '4px',
+                      pt: i === 0 ? 0 : '26px',
+                      mt: i === 0 ? 0 : '26px',
+                      // A hairline between principles rather than three boxes. The rule is the
+                      // separator; nothing needs a container.
+                      borderTop: i === 0 ? 'none' : `1px solid ${tokens.border}`,
+                    }}
+                  >
+                    <Typography sx={{ fontSize: 13, fontWeight: 800, color: tokens.amber, letterSpacing: '0.04em', pt: '2px' }}>
+                      {p.number}
+                    </Typography>
+                    <Box>
+                      <Typography
+                        sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.textMuted, mb: '6px' }}
                       >
-                        <Box
-                          sx={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: '11px',
-                            flexShrink: 0,
-                            backgroundColor: '#EAF0FF',
-                            color: tokens.blue,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <Icon sx={{ fontSize: 21 }} />
-                        </Box>
-                        <Box sx={{ minWidth: 0 }}>
-                          <Typography sx={{ fontWeight: 700, fontSize: 15.5, color: tokens.navy, mb: '4px' }}>
-                            {pillar.title}
-                          </Typography>
-                          <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.6 }}>
-                            {pillar.body}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    );
-                  })}
-                </Box>
-              </Box>
+                        {p.label}
+                      </Typography>
+                      <Typography
+                        sx={{ fontSize: 'clamp(18px,2vw,21px)', fontWeight: 700, letterSpacing: '-0.02em', color: tokens.navy, mb: '8px' }}
+                      >
+                        {p.headline}
+                      </Typography>
+                      <Typography sx={{ fontSize: 14.5, color: 'text.secondary', lineHeight: 1.7, maxWidth: '48ch' }}>
+                        {p.body}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ))}
 
-              {/* The panel and the photograph travel together. This column ran 293px shorter
-                  than the story beside it, and making the panel alone sticky pinned that gap
-                  open while the text scrolled past it. */}
-              <Box sx={{ position: { md: 'sticky' }, top: { md: '24px' }, display: 'grid', gap: '16px' }}>
-                {/* The stats carry more weight as a dark panel than as the flat four-across strip
-                    this replaced: beside the story it reads as a fact sheet rather than a fifth row. */}
-                <Card
+                {/* The argument the three principles make, said once and large. */}
+                <Typography
                   sx={{
-                    p: { xs: '24px', sm: '28px' },
-                    border: 'none',
-                    background: `linear-gradient(160deg, ${tokens.navy} 0%, ${tokens.navy600} 100%)`,
+                    mt: { xs: '44px', md: '56px' },
+                    fontWeight: 800,
+                    fontSize: 'clamp(26px,3.4vw,40px)',
+                    letterSpacing: '-0.03em',
+                    lineHeight: 1.06,
+                    color: tokens.navy,
+                    textTransform: 'uppercase',
                   }}
                 >
-                  <Typography sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '18px' }}>
-                    Where we are today
-                  </Typography>
-
-                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '22px 16px' }}>
-                    {ABOUT_STATS.map((stat) => (
-                      <Box key={stat.label}>
-                        <Typography sx={{ fontSize: 'clamp(26px,4vw,30px)', fontWeight: 800, color: '#fff', lineHeight: 1.1, letterSpacing: '-0.02em' }}>
-                          {stat.value}
-                        </Typography>
-                        <Typography sx={{ mt: '4px', fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)' }}>
-                          {stat.label}
-                        </Typography>
-                      </Box>
-                    ))}
+                  Not just seen.
+                  <Box component="span" sx={{ display: 'block', color: tokens.amber }}>
+                    Verified.
                   </Box>
+                </Typography>
+              </Box>
 
-                  <Divider sx={{ my: '22px', borderColor: 'rgba(255,255,255,0.14)' }} />
-
-                  <Box sx={{ display: 'grid', gap: '10px' }}>
-                    {ABOUT_COMMITMENTS.map((line) => (
-                      <Box key={line} sx={{ display: 'flex', alignItems: 'flex-start', gap: '9px' }}>
-                        <CheckCircleRoundedIcon sx={{ fontSize: 16, color: tokens.amber, mt: '2px', flexShrink: 0 }} />
-                        <Typography sx={{ fontSize: 13.5, color: 'rgba(255,255,255,0.8)', lineHeight: 1.5 }}>
-                          {line}
-                        </Typography>
-                      </Box>
-                    ))}
-                  </Box>
-                </Card>
-
-                {/* The site's only photograph, and the hero buries it under a navy gradient at
-                    94% opacity — so this is the first place it is actually legible. The Beirut
-                    sign in the frame is why it belongs under this heading rather than elsewhere. */}
+              <Box sx={{ position: 'relative' }}>
                 <Box
                   component="img"
                   src={heroTaxi}
-                  alt="An AdzOnRoad screen mounted on a taxi roof in Beirut at night, lit above wet streets"
+                  alt="An AdzOnRoad screen mounted on a taxi roof in Beirut, lit above the street"
                   loading="lazy"
                   sx={{
                     width: '100%',
-                    height: { xs: 190, md: 250 },
+                    height: { xs: 320, sm: 400, md: 520 },
                     objectFit: 'cover',
-                    objectPosition: 'center 32%',
-                    borderRadius: '14px',
+                    objectPosition: 'center 38%',
+                    borderRadius: '16px',
                     display: 'block',
                   }}
                 />
+
+                {/* Illustrative, not live: a picture of what the platform records, so the section
+                    reads as a connected system rather than a screen bolted to a roof. Marked hidden
+                    because a screen reader announcing "campaign active" would be stating it as fact.
+                    Deliberately carries no impression or audience figures — there are none to show. */}
+                <Box
+                  aria-hidden
+                  sx={{
+                    position: 'absolute',
+                    left: { xs: '12px', sm: '18px' },
+                    bottom: { xs: '12px', sm: '18px' },
+                    width: { xs: 'calc(100% - 24px)', sm: 236 },
+                    backgroundColor: 'rgba(255,255,255,0.96)',
+                    backdropFilter: 'blur(6px)',
+                    borderRadius: '12px',
+                    border: `1px solid ${tokens.border}`,
+                    boxShadow: tokens.shadowMd,
+                    p: '14px',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '7px', mb: '10px' }}>
+                    <Box
+                      sx={{
+                        width: 7,
+                        height: 7,
+                        borderRadius: '50%',
+                        backgroundColor: tokens.green,
+                        boxShadow: `0 0 0 3px ${tokens.green}22`,
+                      }}
+                    />
+                    <Typography sx={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.textMuted }}>
+                      Live delivery
+                    </Typography>
+                  </Box>
+
+                  <Typography sx={{ fontSize: 14.5, fontWeight: 700, color: tokens.navy, lineHeight: 1.25 }}>
+                    Hamra, Beirut
+                  </Typography>
+                  <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mb: '12px' }}>Campaign active</Typography>
+
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {['GPS verified', 'Display confirmed'].map((badge) => (
+                      <Typography
+                        key={badge}
+                        sx={{
+                          fontSize: 10.5,
+                          fontWeight: 700,
+                          letterSpacing: '0.04em',
+                          textTransform: 'uppercase',
+                          color: tokens.navy,
+                          backgroundColor: 'rgba(245,166,35,0.14)',
+                          borderRadius: '999px',
+                          padding: '4px 9px',
+                        }}
+                      >
+                        {badge}
+                      </Typography>
+                    ))}
+                  </Box>
+                </Box>
               </Box>
             </Box>
-
           </Box>
         </Reveal>
+
 
         {/* FOUNDER STATEMENT
             Its own section rather than a card at the foot of About: this is a position, not a
