@@ -4,12 +4,12 @@ import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
 import Slider from '@mui/material/Slider';
 import Link from '@mui/material/Link';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
 import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
@@ -101,29 +101,27 @@ const JOURNEYS = [
  * entry here has a real destination, because a card that leads nowhere is the placeholder these
  * replaced.
  */
+/**
+ * Two routes off this section, not three.
+ *
+ * Drivers and fleets were separate cards making the same offer to the same visitor in different
+ * words — somebody with vehicles either drives one or runs several, and both arrive at the same
+ * conversation. The job here is routing, so it takes exactly as many paths as there are
+ * destinations.
+ */
 const AUDIENCES = [
   {
-    number: '01',
     label: 'Advertisers',
     title: 'Put your brand in motion.',
-    body: 'Launch location-based campaigns across AdzOnRoad’s network and track verified delivery as it happens.',
+    body: 'Build campaigns around ad plays, coverage and campaign periods.',
     cta: 'Explore advertising',
     to: '/signup?role=advertiser',
   },
   {
-    number: '02',
-    label: 'Drivers',
-    title: 'Turn driving time into extra income.',
-    body: 'Earn additional income while driving your normal routes with an AdzOnRoad display installed on your vehicle.',
-    cta: 'Become a driver',
-    to: '/signup?role=driver',
-  },
-  {
-    number: '03',
-    label: 'Taxi & fleet partners',
-    title: 'Turn your fleet into a media network.',
-    body: 'Partner with AdzOnRoad to activate vehicles across your fleet and create a new revenue opportunity.',
-    cta: 'Partner with us',
+    label: 'Drivers & fleets',
+    title: 'Turn everyday movement into opportunity.',
+    body: 'Join individually or connect eligible vehicles from your fleet.',
+    cta: 'Explore partnerships',
     to: '/signup?role=taxiCompany',
   },
 ] as const;
@@ -207,8 +205,8 @@ const CAMPAIGN_STEPS = [
   {
     key: 'displays' as const,
     number: '01',
-    title: 'How many displays?',
-    note: 'Each display is one 15-second play of your creative on a vehicle screen.',
+    title: 'How many ad plays?',
+    note: 'Each ad play is one 15-second playback of your creative on a vehicle screen.',
     options: [
       { label: '25,000', value: 25000 },
       { label: '50,000', value: 50000 },
@@ -297,75 +295,6 @@ const ABOUT_PRINCIPLES = [
 const CONTACT_REASONS = ['Advertising', 'Driver partnership', 'Taxi / fleet partnership', 'Other'];
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-/**
- * The card visuals.
- *
- * Drawn rather than illustrated: each one is the shape of what that audience actually gets — a
- * campaign landing on screens, income accruing over a shift, vehicles joining one network — at a
- * weight that reads as texture until you look at it. All three are decorative and carry no
- * meaning a screen reader would need, so the wrappers mark them hidden.
- */
-function DeliveryVisual() {
-  return (
-    <Box component="svg" viewBox="0 0 300 96" fill="none" sx={{ width: '100%', height: 'auto', display: 'block' }}>
-      {/* The route, and three screens along it — the last one live. */}
-      <path d="M6 78 C 70 78, 96 42, 152 42 S 236 22, 294 22" stroke={tokens.navy} strokeOpacity="0.09" strokeWidth="1.5" strokeLinecap="round" />
-      {[
-        { x: 44, y: 62, on: false },
-        { x: 150, y: 26, on: false },
-        { x: 256, y: 6, on: true },
-      ].map((s) => (
-        <g key={s.x}>
-          <rect x={s.x} y={s.y} width="30" height="19" rx="3" fill={s.on ? tokens.amber : tokens.navy} fillOpacity={s.on ? 0.9 : 0.1} />
-          <path d={`M${s.x + 15} ${s.y + 19} v6`} stroke={tokens.navy} strokeOpacity="0.14" strokeWidth="1.5" />
-        </g>
-      ))}
-    </Box>
-  );
-}
-
-function EarningsVisual() {
-  return (
-    <Box component="svg" viewBox="0 0 200 72" fill="none" sx={{ width: '100%', height: 'auto', display: 'block' }}>
-      {/* A shift's worth of road, and what accrues over it. */}
-      <path d="M4 66 H 196" stroke={tokens.navy} strokeOpacity="0.08" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M4 66 H 22 M34 66 H 52 M64 66 H 82 M94 66 H 112" stroke={tokens.navy} strokeOpacity="0.12" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M8 54 L 56 44 L 104 30 L 152 20 L 192 8" stroke={tokens.amber} strokeOpacity="0.55" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="192" cy="8" r="3.5" fill={tokens.amber} fillOpacity="0.85" />
-    </Box>
-  );
-}
-
-function FleetVisual() {
-  return (
-    <Box component="svg" viewBox="0 0 200 72" fill="none" sx={{ width: '100%', height: 'auto', display: 'block' }}>
-      {/* Separate vehicles resolving into one network. */}
-      <path
-        d="M28 54 L 74 24 M74 24 L 122 48 M122 48 L 170 18 M28 54 L 122 48"
-        stroke={tokens.navy}
-        strokeOpacity="0.1"
-        strokeWidth="1.25"
-        strokeLinecap="round"
-      />
-      {[
-        { x: 28, y: 54, on: false },
-        { x: 74, y: 24, on: false },
-        { x: 122, y: 48, on: true },
-        { x: 170, y: 18, on: false },
-      ].map((n) => (
-        <circle
-          key={n.x}
-          cx={n.x}
-          cy={n.y}
-          r={n.on ? 4.5 : 3.5}
-          fill={n.on ? tokens.amber : tokens.navy}
-          fillOpacity={n.on ? 0.85 : 0.16}
-        />
-      ))}
-    </Box>
-  );
-}
 
 /**
  * Streets, and one route crossing them.
@@ -471,10 +400,6 @@ export default function Homepage() {
     days: number | null;
   }>({ displays: 100000, vehicles: 10, coverage: 'Greater Beirut', days: 30 });
 
-  // The example progress mock tracks the configured target so it stays coherent with the panel
-  // above it. 72% is a picture of a campaign in flight, not a forecast — no campaign has run.
-  const sampleTarget = campaign.displays === null ? '—' : campaign.displays.toLocaleString();
-  const sampleDelivered = campaign.displays === null ? '—' : Math.round(campaign.displays * 0.72).toLocaleString();
 
   const [hours, setHours] = useState(8);
   const [days, setDays] = useState(24);
@@ -500,7 +425,9 @@ export default function Homepage() {
 
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
+  const [contactCompany, setContactCompany] = useState('');
   const [contactPhone, setContactPhone] = useState('');
+  const [contactArea, setContactArea] = useState('');
   const [contactReason, setContactReason] = useState(CONTACT_REASONS[0]);
   const [contactMessage, setContactMessage] = useState('');
   const [contactErrors, setContactErrors] = useState<Record<string, string>>({});
@@ -538,7 +465,9 @@ export default function Homepage() {
   const resetContactForm = () => {
     setContactName('');
     setContactEmail('');
+    setContactCompany('');
     setContactPhone('');
+    setContactArea('');
     setContactReason(CONTACT_REASONS[0]);
     setContactMessage('');
     setContactErrors({});
@@ -580,9 +509,9 @@ export default function Homepage() {
         }}
       >
         <Container
-          maxWidth="lg"
+          maxWidth={false}
           sx={{
-            px: 'clamp(20px,5vw,64px)',
+            maxWidth: 1280, mx: 'auto', px: 'clamp(20px,5vw,64px)',
             height: { xs: 64, md: 76 },
             display: 'flex',
             alignItems: 'center',
@@ -735,9 +664,9 @@ export default function Homepage() {
         }}
       >
         <Container
-          maxWidth="lg"
+          maxWidth={false}
           sx={{
-            px: 'clamp(20px,5vw,64px)',
+            maxWidth: 1280, mx: 'auto', px: 'clamp(20px,5vw,64px)',
             py: { xs: '44px', md: '64px' },
             minHeight: { md: 620 },
             display: 'flex',
@@ -925,7 +854,7 @@ export default function Homepage() {
           <Box
             data-hero-in
             sx={{
-              mt: { xs: '40px', md: '56px' },
+              mt: { xs: '28px', md: '32px' },
               pt: { xs: '26px', md: '30px' },
               borderTop: `1px solid ${tokens.border}`,
               display: 'grid',
@@ -956,7 +885,7 @@ export default function Homepage() {
       </Box>
 
 
-      <Container maxWidth="lg" sx={{ px: 'clamp(20px,5vw,64px)' }}>
+      <Container maxWidth={false} sx={{ maxWidth: 1280, mx: 'auto', px: 'clamp(20px,5vw,64px)' }}>
         {/* HOW IT WORKS
             Two white cards side by side listed two sets of steps and never said the thing that
             makes the model interesting: they are two halves of one network. The journeys converge
@@ -969,7 +898,7 @@ export default function Homepage() {
             verified hours" implied payment follows from a screen existing, when earning depends on
             eligible active driving. See JOURNEYS for the wording that replaced each. */}
         <Reveal>
-          <Box component="section" ref={journeyRef} sx={{ py: { xs: '72px', md: '96px' } }}>
+          <Box component="section" ref={journeyRef} sx={{ py: { xs: '44px', md: '56px' } }}>
             <Typography
               sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '12px' }}
             >
@@ -993,7 +922,7 @@ export default function Homepage() {
                 side by side and the network spans beneath them, which is where they converge. */}
             <Box
               sx={{
-                mt: { xs: '40px', md: '56px' },
+                mt: { xs: '28px', md: '32px' },
                 display: 'grid',
                 gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
                 columnGap: { md: '56px' },
@@ -1024,8 +953,8 @@ export default function Homepage() {
                       sx={{
                         display: 'grid',
                         gridTemplateColumns: '40px 1fr',
-                        pt: i === 0 ? 0 : '20px',
-                        mt: i === 0 ? 0 : '20px',
+                        pt: i === 0 ? 0 : '15px',
+                        mt: i === 0 ? 0 : '15px',
                         borderTop: i === 0 ? 'none' : `1px solid ${tokens.border}`,
                       }}
                     >
@@ -1115,57 +1044,6 @@ export default function Homepage() {
               </Box>
             </Box>
 
-            {/* One outcome rather than two endings. */}
-            <Box sx={{ mt: '24px', pt: { xs: '28px', md: '34px' }, borderTop: `1px solid ${tokens.border}` }}>
-              <Typography
-                sx={{
-                  fontWeight: 800,
-                  fontSize: 'clamp(20px,2.6vw,30px)',
-                  letterSpacing: '-0.028em',
-                  lineHeight: 1.15,
-                  color: tokens.navy,
-                  textTransform: 'uppercase',
-                  mb: '26px',
-                }}
-              >
-                One network.{' '}
-                <Box component="span" sx={{ color: tokens.amber }}>
-                  Value on both sides.
-                </Box>
-              </Typography>
-
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: { xs: '1fr', md: 'repeat(3,1fr)' },
-                  gap: { xs: '22px', md: '40px' },
-                }}
-              >
-                {[
-                  { label: 'Advertisers', body: 'Get measurable campaign delivery.' },
-                  { label: 'Drivers', body: 'Create additional earning opportunities from time already spent on the road.' },
-                  { label: 'AdzOnRoad', body: 'Coordinates the technology, delivery and reporting.' },
-                ].map((item, i) => (
-                  <Box
-                    key={item.label}
-                    sx={{
-                      pl: { md: i === 0 ? 0 : '40px' },
-                      ml: { md: i === 0 ? 0 : '-40px' },
-                      borderLeft: { md: i === 0 ? 'none' : `1px solid ${tokens.border}` },
-                    }}
-                  >
-                    <Typography
-                      sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '7px' }}
-                    >
-                      {item.label}
-                    </Typography>
-                    <Typography sx={{ fontSize: 14.5, color: tokens.navy, lineHeight: 1.6, maxWidth: '32ch' }}>
-                      {item.body}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            </Box>
           </Box>
         </Reveal>
 
@@ -1178,11 +1056,11 @@ export default function Homepage() {
             gone, and nothing here replaces them with a softer version of the same promise — the
             section simply does not make a cost or insurance claim. */}
         <Reveal>
-          <Box component="section" id="taxi-companies" sx={{ py: { xs: '72px', md: '96px' }, scrollMarginTop: '20px' }}>
+          <Box component="section" id="taxi-companies" sx={{ py: { xs: '44px', md: '56px' }, scrollMarginTop: '20px' }}>
             <Typography
               sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '12px' }}
             >
-              For taxi companies
+              For fleet partners
             </Typography>
             <Typography
               sx={{ fontWeight: 700, fontSize: 'clamp(28px,4.8vw,44px)', letterSpacing: '-0.028em', lineHeight: 1.12, color: tokens.navy }}
@@ -1199,7 +1077,7 @@ export default function Homepage() {
 
             <Box
               sx={{
-                mt: { xs: '40px', md: '56px' },
+                mt: { xs: '28px', md: '32px' },
                 display: 'grid',
                 gridTemplateColumns: { xs: '1fr', md: '0.82fr 1fr' },
                 gap: { xs: '44px', md: '64px' },
@@ -1233,15 +1111,15 @@ export default function Homepage() {
                 {/* On a phone the CTA comes before the three points, per the intended stack: a
                     fleet owner who is already convinced should not have to scroll the argument to
                     reach the button. On desktop it reads in the normal order underneath them. */}
-                <Box sx={{ mt: '32px', order: { xs: 2, md: 1 } }}>
+                <Box sx={{ mt: '26px', order: { xs: 2, md: 1 } }}>
                   {FLEET_PROPOSITION.map((item, i) => (
                     <Box
                       key={item.number}
                       sx={{
                         display: 'grid',
                         gridTemplateColumns: '42px 1fr',
-                        pt: i === 0 ? 0 : '20px',
-                        mt: i === 0 ? 0 : '20px',
+                        pt: i === 0 ? 0 : '15px',
+                        mt: i === 0 ? 0 : '15px',
                         borderTop: i === 0 ? 'none' : `1px solid ${tokens.border}`,
                       }}
                     >
@@ -1428,7 +1306,7 @@ export default function Homepage() {
             covered because /api/v1/regions returned regions inside it — drop one server-side and it
             greys out here. Nothing states a screen count, because the platform has none to state. */}
         <Reveal>
-          <Box component="section" id="coverage" sx={{ py: { xs: '72px', md: '96px' }, scrollMarginTop: '20px' }}>
+          <Box component="section" id="coverage" sx={{ py: { xs: '44px', md: '56px' }, scrollMarginTop: '20px' }}>
             <Typography
               sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '12px' }}
             >
@@ -1475,7 +1353,12 @@ export default function Homepage() {
                         p: { xs: '16px', sm: '24px' },
                       }}
                     >
-                      <LebanonMap areas={mapAreas} selected={selectedArea} onSelect={setSelectedArea} />
+                      {/* Capped: at full width the map ran 859px tall and was the tallest thing
+                          on the page by a distance. It is the section's centrepiece, not its
+                          entire height. */}
+                      <Box sx={{ maxWidth: 384, mx: 'auto' }}>
+                        <LebanonMap areas={mapAreas} selected={selectedArea} onSelect={setSelectedArea} />
+                      </Box>
                     </Box>
 
                     <Box sx={{ mt: '16px', display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
@@ -1557,10 +1440,15 @@ export default function Homepage() {
                       Target {selectedAreaDetail.name} &rarr;
                     </Button>
 
-                    {/* The region navigator. Rows rather than cards — six boxes below the map were
-                        what made this a statistics wall instead of a way to answer "can I run my
-                        campaign where my customers are". */}
-                    <Box sx={{ mt: '30px', borderTop: `1px solid ${tokens.border}` }}>
+                    {/* The region navigator, as pills rather than full-width rows. Eight rows at
+                        46px each ran the column 300px past the map beside it; the same eight
+                        targets wrap into three lines and still carry state, status and focus. The
+                        map is the primary selector — this is the keyboard path to the same thing. */}
+                    <Box
+                      role="radiogroup"
+                      aria-label="Coverage area"
+                      sx={{ mt: '26px', pt: '20px', borderTop: `1px solid ${tokens.border}`, display: 'flex', flexWrap: 'wrap', gap: '8px' }}
+                    >
                       {mapAreas.map((area) => {
                         const isSelected = area.name === selectedArea;
                         return (
@@ -1568,48 +1456,45 @@ export default function Homepage() {
                             key={area.name}
                             component="button"
                             type="button"
+                            role="radio"
                             onClick={() => setSelectedArea(area.name)}
-                            aria-pressed={isSelected}
+                            aria-checked={isSelected}
                             data-selected={isSelected ? 'true' : undefined}
                             sx={{
                               fontFamily: 'inherit',
-                              width: '100%',
                               cursor: 'pointer',
-                              display: 'flex',
+                              display: 'inline-flex',
                               alignItems: 'center',
-                              justifyContent: 'space-between',
-                              gap: '16px',
-                              padding: '13px 4px',
-                              background: 'none',
-                              border: 0,
-                              borderBottom: `1px solid ${tokens.border}`,
-                              textAlign: 'left',
-                              transition: 'padding-left .18s ease',
-                              '&:hover': { paddingLeft: '10px' },
-                              '&:focus-visible': { outline: `2px solid ${tokens.amber}`, outlineOffset: '-2px' },
-                              '&[data-selected="true"]': { paddingLeft: '10px' },
+                              gap: '8px',
+                              padding: '8px 13px',
+                              borderRadius: '999px',
+                              fontSize: 13.5,
+                              fontWeight: 600,
+                              color: area.covered ? tokens.navy : tokens.textMuted,
+                              backgroundColor: '#FBFBFD',
+                              border: `1px solid ${tokens.border}`,
+                              transition: 'border-color .18s ease, background-color .18s ease',
+                              '&:hover': { borderColor: tokens.navy },
+                              '&:focus-visible': { outline: `2px solid ${tokens.amber}`, outlineOffset: '2px' },
+                              '&[data-selected="true"]': {
+                                borderColor: tokens.navy,
+                                backgroundColor: '#fff',
+                                fontWeight: 700,
+                              },
                               '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
                             }}
                           >
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                              <Box
-                                sx={{
-                                  width: 7,
-                                  height: 7,
-                                  borderRadius: '50%',
-                                  flexShrink: 0,
-                                  backgroundColor: !area.covered ? tokens.textMuted : isSelected ? tokens.amber : tokens.navy,
-                                }}
-                              />
-                              <Typography
-                                sx={{ fontSize: 14, fontWeight: isSelected ? 700 : 600, color: tokens.navy, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-                              >
-                                {area.name}
-                              </Typography>
-                            </Box>
-                            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', flexShrink: 0 }}>
-                              {area.covered ? 'Available' : 'Expanding'}
-                            </Typography>
+                            <Box
+                              aria-hidden
+                              sx={{
+                                width: 7,
+                                height: 7,
+                                borderRadius: '50%',
+                                flexShrink: 0,
+                                backgroundColor: !area.covered ? tokens.textMuted : isSelected ? tokens.amber : tokens.navy,
+                              }}
+                            />
+                            {area.name}
                           </Box>
                         );
                       })}
@@ -1664,7 +1549,19 @@ export default function Homepage() {
             the rate card, or in the API, and inventing one would put a number on the page that
             nothing charges from. Quoted pricing is also how DOOH is normally bought. */}
         <Reveal>
-          <Box component="section" id="pricing" sx={{ py: { xs: '72px', md: '96px' }, scrollMarginTop: '20px' }}>
+          <Box
+            component="section"
+            id="pricing"
+            sx={{
+              my: { xs: '10px', md: '14px' },
+              px: { xs: '20px', sm: '32px', md: '44px' },
+              py: { xs: '38px', md: '46px' },
+              backgroundColor: tokens.surface,
+              border: `1px solid ${tokens.border}`,
+              borderRadius: { xs: '18px', md: '24px' },
+              scrollMarginTop: '20px',
+            }}
+          >
             <Typography
               sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '12px' }}
             >
@@ -1686,7 +1583,7 @@ export default function Homepage() {
 
             <Box
               sx={{
-                mt: { xs: '40px', md: '56px' },
+                mt: { xs: '28px', md: '32px' },
                 display: 'grid',
                 gridTemplateColumns: { xs: '1fr', md: '1.15fr 0.85fr' },
                 gap: { xs: '40px', md: '64px' },
@@ -1780,7 +1677,7 @@ export default function Homepage() {
                 >
                   {campaign.displays === null ? 'Custom' : campaign.displays.toLocaleString()}
                 </Typography>
-                <Typography sx={{ mt: '6px', fontSize: 13.5, color: 'text.secondary' }}>15-second displays</Typography>
+                <Typography sx={{ mt: '6px', fontSize: 13.5, color: 'text.secondary' }}>15-second ad plays</Typography>
 
                 <Box sx={{ mt: '20px', display: 'grid', gap: '10px' }}>
                   {[
@@ -1823,70 +1720,27 @@ export default function Homepage() {
                   </Button>
                 </Box>
 
-                {/* Sample interface, labelled as one. The figures track the selection above so the
-                    mock stays coherent, but they are a picture of what progress looks like — no
-                    campaign has run. Hidden from assistive technology so none of it is announced
-                    as a real delivery figure. */}
-                <Box sx={{ mt: '24px', pt: '22px', borderTop: `1px solid ${tokens.border}` }}>
-                  <Typography
-                    sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: tokens.navy, mb: '6px' }}
-                  >
-                    Delivery you can see
-                  </Typography>
-                  <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.6, mb: '16px' }}>
-                    Follow campaign progress as your purchased displays are delivered across the
-                    AdzOnRoad network.
-                  </Typography>
-
-                  <Box
-                    aria-hidden
-                    sx={{ p: '14px', borderRadius: '12px', border: `1px dashed ${tokens.border}`, backgroundColor: '#FBFBFD' }}
-                  >
-                    <Typography
-                      sx={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: tokens.textMuted, mb: '10px' }}
-                    >
-                      Example view
-                    </Typography>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: '7px' }}>
-                      <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Campaign delivery</Typography>
-                      <Typography sx={{ fontSize: 12, fontWeight: 700, color: tokens.navy }}>{sampleDelivered} / {sampleTarget}</Typography>
-                    </Box>
-                    <Box sx={{ height: 6, borderRadius: '999px', backgroundColor: 'rgba(15,27,61,0.07)', overflow: 'hidden' }}>
-                      <Box sx={{ width: '72%', height: '100%', borderRadius: '999px', backgroundColor: tokens.amber }} />
-                    </Box>
-                  </Box>
-                </Box>
               </Box>
             </Box>
 
             {/* What the money buys, spelled out — the old cards listed inventory, which is not the
                 same thing and is what made the model easy to misread. */}
-            <Box sx={{ mt: { xs: '48px', md: '64px' }, pt: { xs: '32px', md: '40px' }, borderTop: `1px solid ${tokens.border}` }}>
+            <Box sx={{ mt: { xs: '36px', md: '44px' }, pt: { xs: '26px', md: '30px' }, borderTop: `1px solid ${tokens.border}` }}>
               <Typography
                 sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '18px' }}
               >
                 What you&rsquo;re buying
               </Typography>
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3,1fr)' },
-                  columnGap: '32px',
-                  rowGap: '12px',
-                  mb: '22px',
-                }}
-              >
-                {[
-                  'Defined campaign delivery target',
-                  '15-second advertising displays',
-                  'Selected vehicle network',
-                  'Geographic targeting',
-                  'Campaign delivery reporting',
-                  'GPS/location-linked delivery evidence where available',
-                ].map((item) => (
-                  <Box key={item} sx={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                    <CheckRoundedIcon sx={{ fontSize: 16, color: tokens.amber, mt: '3px', flexShrink: 0 }} />
-                    <Typography sx={{ fontSize: 14, color: tokens.navy, lineHeight: 1.6 }}>{item}</Typography>
+              {/* One line instead of six ticks across three columns. The list said in a grid what
+                  the sentence below it already says better, and it was the last "row of three"
+                  on the page. */}
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px 14px', mb: '18px' }}>
+                {['15-second ad plays', 'Flexible campaign periods', 'Location-linked delivery reporting'].map((item, i) => (
+                  <Box key={item} sx={{ display: 'flex', alignItems: 'center', gap: '10px 14px' }}>
+                    {i > 0 && (
+                      <Box aria-hidden sx={{ width: 3, height: 3, borderRadius: '50%', backgroundColor: tokens.amber }} />
+                    )}
+                    <Typography sx={{ fontSize: 14.5, fontWeight: 600, color: tokens.navy }}>{item}</Typography>
                   </Box>
                 ))}
               </Box>
@@ -1911,7 +1765,7 @@ export default function Homepage() {
             there are no screens deployed. "Most campaigns go live within 48 hours" was an SLA
             nobody has committed to. */}
         <Reveal>
-          <Box component="section" sx={{ py: { xs: '72px', md: '96px' } }}>
+          <Box component="section" sx={{ py: { xs: '44px', md: '56px' } }}>
             <Typography
               sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '12px' }}
             >
@@ -1922,26 +1776,106 @@ export default function Homepage() {
             >
               Outdoor advertising,
               <Box component="span" sx={{ display: 'block' }}>
-                with proof built in.
+                without standing still.
               </Box>
             </Typography>
             <Typography sx={{ mt: '16px', fontSize: 15.5, color: 'text.secondary', maxWidth: '58ch', lineHeight: 1.7 }}>
-              Know where your campaign ran, when it was displayed, and how your media moved across
-              the road network.
+              Your campaign moves through the city instead of staying fixed to one location.
             </Typography>
+
+            {/* The comparison the headline makes, shown rather than asserted: the same campaign
+                period, one pin against a route of them. No figures on either side — the point is
+                the shape of the coverage, and neither number exists to be quoted. Decorative, so
+                it is hidden from assistive technology; the captions carry the meaning in text. */}
+            <Box
+              sx={{
+                mt: { xs: '28px', md: '34px' },
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                gap: { xs: '20px', sm: '0px' },
+              }}
+            >
+              {[
+                {
+                  label: 'A fixed billboard',
+                  caption: 'One location for the whole campaign period.',
+                  muted: true,
+                },
+                {
+                  label: 'An AdzOnRoad screen',
+                  caption: 'Many locations across that same period.',
+                  muted: false,
+                },
+              ].map((col, i) => (
+                <Box
+                  key={col.label}
+                  sx={{
+                    pl: { sm: i === 0 ? 0 : '32px' },
+                    borderLeft: { sm: i === 0 ? 'none' : `1px solid ${tokens.border}` },
+                    pt: { xs: i === 0 ? 0 : '20px', sm: 0 },
+                    borderTop: { xs: i === 0 ? 'none' : `1px solid ${tokens.border}`, sm: 'none' },
+                  }}
+                >
+                  <Box
+                    aria-hidden
+                    component="svg"
+                    viewBox="0 0 240 46"
+                    fill="none"
+                    sx={{ width: '100%', maxWidth: 240, height: 'auto', display: 'block', mb: '12px' }}
+                  >
+                    <path d="M6 38 H234" stroke={tokens.navy} strokeOpacity="0.08" strokeWidth="1.25" strokeLinecap="round" />
+                    {col.muted ? (
+                      <>
+                        <circle cx="120" cy="38" r="11" fill={tokens.textMuted} fillOpacity="0.1" />
+                        <circle cx="120" cy="38" r="4" fill={tokens.textMuted} />
+                        <rect x="108" y="8" width="24" height="16" rx="3" fill={tokens.textMuted} fillOpacity="0.16" stroke={tokens.textMuted} strokeOpacity="0.4" />
+                        <path d="M120 24 V32" stroke={tokens.textMuted} strokeOpacity="0.4" strokeWidth="1.5" />
+                      </>
+                    ) : (
+                      <>
+                        <path d="M6 38 H234" stroke={tokens.amber} strokeOpacity="0.5" strokeWidth="1.75" strokeLinecap="round" strokeDasharray="6 9" />
+                        {[6, 63, 120, 177].map((cx) => (
+                          <circle key={cx} cx={cx} cy="38" r="3.5" fill={tokens.navy} fillOpacity="0.28" />
+                        ))}
+                        <circle cx="234" cy="38" r="11" fill={tokens.amber} fillOpacity="0.14" />
+                        <circle cx="234" cy="38" r="4.5" fill={tokens.amber} />
+                        <rect x="222" y="8" width="24" height="16" rx="3" fill={tokens.amber} fillOpacity="0.18" stroke={tokens.amber} strokeOpacity="0.7" />
+                        <path d="M234 24 V32" stroke={tokens.amber} strokeOpacity="0.7" strokeWidth="1.5" />
+                      </>
+                    )}
+                  </Box>
+                  <Typography
+                    sx={{
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      color: col.muted ? tokens.textMuted : tokens.amber,
+                      mb: '5px',
+                    }}
+                  >
+                    {col.label}
+                  </Typography>
+                  <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.6, maxWidth: '34ch' }}>
+                    {col.caption}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
 
             <Box
               sx={{
-                mt: { xs: '40px', md: '56px' },
+                mt: { xs: '28px', md: '32px' },
                 display: 'grid',
-                gridTemplateColumns: { xs: '1fr', md: '1.35fr 1fr' },
+                gridTemplateColumns: { xs: '1fr', md: '1.3fr 1fr 1fr' },
                 gap: '16px',
               }}
             >
-              {/* VERIFY — the reason the other two matter, so it takes the height of both. */}
+              {/* VERIFY — still the reason the other two matter, so it leads and takes the wider
+                  column. It used to span both rows, which forced the row to the height of two
+                  stacked cards and left the route diagram stretching to fill 300px of nothing. */}
               <Box
                 sx={{
-                  gridRow: { md: 'span 2' },
                   display: 'flex',
                   flexDirection: 'column',
                   p: { xs: '26px', sm: '32px' },
@@ -2161,7 +2095,7 @@ export default function Homepage() {
 
                   <Box sx={{ mt: '16px', display: 'grid', gap: '9px' }}>
                     {[
-                      { label: 'Verified displays', value: '12,480' },
+                      { label: 'Recorded ad plays', value: '12,480' },
                       { label: 'Active vehicles', value: '18' },
                     ].map((row) => (
                       <Box key={row.label} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
@@ -2174,41 +2108,6 @@ export default function Homepage() {
               </Box>
             </Box>
 
-            {/* Who each of the three sides gets something out of it, without another row of cards. */}
-            <Box
-              sx={{
-                mt: { xs: '40px', md: '48px' },
-                pt: { xs: '28px', md: '32px' },
-                borderTop: `1px solid ${tokens.border}`,
-                display: 'grid',
-                gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
-                gap: { xs: '22px', md: '40px' },
-              }}
-            >
-              {[
-                { label: 'For advertisers', body: 'Flexible campaign planning' },
-                { label: 'For drivers', body: 'Additional earning opportunity' },
-                { label: 'For fleets', body: 'New value from vehicles already on the road' },
-              ].map((item, i) => (
-                <Box
-                  key={item.label}
-                  sx={{
-                    pl: { md: i === 0 ? 0 : '40px' },
-                    ml: { md: i === 0 ? 0 : '-40px' },
-                    borderLeft: { md: i === 0 ? 'none' : `1px solid ${tokens.border}` },
-                  }}
-                >
-                  <Typography
-                    sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '7px' }}
-                  >
-                    {item.label}
-                  </Typography>
-                  <Typography sx={{ fontSize: 15, fontWeight: 600, color: tokens.navy, lineHeight: 1.5, maxWidth: '26ch' }}>
-                    {item.body}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
           </Box>
         </Reveal>
 
@@ -2222,7 +2121,17 @@ export default function Homepage() {
             now. Rounding cannot desync the rows from the total, because base and bonus are whole
             dollars and 0.6 * n never lands on a half. */}
         <Reveal>
-          <Box component="section" sx={{ py: { xs: '72px', md: '96px' } }}>
+          <Box
+            component="section"
+            sx={{
+              my: { xs: '10px', md: '14px' },
+              px: { xs: '20px', sm: '32px', md: '44px' },
+              py: { xs: '38px', md: '46px' },
+              backgroundColor: tokens.surface,
+              border: `1px solid ${tokens.border}`,
+              borderRadius: { xs: '18px', md: '24px' },
+            }}
+          >
             <Typography
               sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '12px' }}
             >
@@ -2243,7 +2152,7 @@ export default function Homepage() {
 
             <Box
               sx={{
-                mt: { xs: '40px', md: '56px' },
+                mt: { xs: '28px', md: '32px' },
                 display: 'grid',
                 gridTemplateColumns: { xs: '1fr', md: '1.5fr 1fr' },
                 gap: { xs: '40px', md: '64px' },
@@ -2449,7 +2358,7 @@ export default function Homepage() {
             all. They are gone rather than restated, and nothing has been invented to replace them.
             What the section claims now is what the platform does, which is true today. */}
         <Reveal>
-          <Box component="section" id="about" sx={{ py: { xs: '72px', md: '96px' }, scrollMarginTop: '20px' }}>
+          <Box component="section" id="about" sx={{ py: { xs: '44px', md: '56px' }, scrollMarginTop: '20px' }}>
             <Typography
               sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '12px' }}
             >
@@ -2466,11 +2375,6 @@ export default function Homepage() {
             <Typography sx={{ mt: '18px', fontSize: 'clamp(16px,1.8vw,18px)', fontWeight: 500, color: tokens.text, lineHeight: 1.6, maxWidth: '46ch' }}>
               AdzOnRoad turns vehicles already moving through Lebanon into a measurable digital
               advertising network.
-            </Typography>
-            <Typography sx={{ mt: '14px', fontSize: 15.5, color: 'text.secondary', lineHeight: 1.75, maxWidth: '62ch' }}>
-              Traditional outdoor advertising tells you where a billboard is. AdzOnRoad goes further
-              &mdash; connecting every campaign to real vehicles, real locations and verified display
-              activity, giving advertisers measurable proof of where their campaigns moved.
             </Typography>
 
             <Box
@@ -2517,24 +2421,6 @@ export default function Homepage() {
                     </Box>
                   </Box>
                 ))}
-
-                {/* The argument the three principles make, said once and large. */}
-                <Typography
-                  sx={{
-                    mt: { xs: '44px', md: '56px' },
-                    fontWeight: 800,
-                    fontSize: 'clamp(26px,3.4vw,40px)',
-                    letterSpacing: '-0.03em',
-                    lineHeight: 1.06,
-                    color: tokens.navy,
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Not just seen.
-                  <Box component="span" sx={{ display: 'block', color: tokens.amber }}>
-                    Verified.
-                  </Box>
-                </Typography>
               </Box>
 
               <Box sx={{ position: 'relative' }}>
@@ -2545,7 +2431,7 @@ export default function Homepage() {
                   loading="lazy"
                   sx={{
                     width: '100%',
-                    height: { xs: 320, sm: 400, md: 520 },
+                    height: { xs: 300, sm: 380, md: 470 },
                     objectFit: 'cover',
                     objectPosition: 'center 38%',
                     borderRadius: '16px',
@@ -2627,7 +2513,7 @@ export default function Homepage() {
           <Box
             component="section"
             sx={{
-              py: { xs: '76px', md: '112px' },
+              py: { xs: '64px', md: '88px' },
               display: 'grid',
               gridTemplateColumns: { xs: '1fr', md: 'minmax(0,1fr) 300px' },
               gap: { xs: '52px', md: '48px' },
@@ -2745,10 +2631,10 @@ export default function Homepage() {
             nobody and the boxes named audiences without offering them anything — between them they
             occupied the width of the page and said less than the eyebrow above them.
 
-            Asymmetric on purpose: advertisers are the side that pays, so that card takes the full
-            height of the row and the other two stack beside it. */}
+            A signpost, not a sales section: two routes off the page, because there are two places
+            a visitor can go from here. */}
         <Reveal>
-          <Box component="section" sx={{ pt: '48px', pb: '72px' }}>
+          <Box component="section" sx={{ pt: '44px', pb: '60px' }}>
             <Typography
               sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '12px' }}
             >
@@ -2774,130 +2660,85 @@ export default function Homepage() {
               advertising network.
             </Typography>
 
+            {/* Typography and a rule, not cards. Two destinations do not need containers to be
+                told apart, and the feature card this replaced stood 630px tall to say one
+                sentence. */}
             <Box
               sx={{
                 mt: { xs: '32px', md: '44px' },
                 display: 'grid',
-                gridTemplateColumns: { xs: '1fr', md: '1.2fr 1fr' },
-                gridTemplateRows: { md: 'auto auto' },
-                gap: '16px',
+                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                gap: { xs: '32px', md: '56px' },
               }}
             >
-              {AUDIENCES.map((a, i) => {
-                const feature = i === 0;
-                return (
-                  <Card
-                    key={a.number}
-                    component="article"
+              {AUDIENCES.map((a, i) => (
+                <Box
+                  key={a.label}
+                  sx={{
+                    pl: { md: i === 0 ? 0 : '56px' },
+                    ml: { md: i === 0 ? 0 : '-56px' },
+                    borderLeft: { md: i === 0 ? 'none' : `1px solid ${tokens.border}` },
+                    pt: { xs: i === 0 ? 0 : '32px', md: 0 },
+                    borderTop: { xs: i === 0 ? 'none' : `1px solid ${tokens.border}`, md: 'none' },
+                  }}
+                >
+                  <Typography
+                    sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '10px' }}
+                  >
+                    {a.label}
+                  </Typography>
+                  <Typography
+                    sx={{ fontSize: 'clamp(20px,2.3vw,26px)', fontWeight: 700, letterSpacing: '-0.02em', color: tokens.navy, mb: '10px', maxWidth: '18ch' }}
+                  >
+                    {a.title}
+                  </Typography>
+                  <Typography sx={{ fontSize: 15, color: 'text.secondary', lineHeight: 1.7, maxWidth: '40ch', mb: '18px' }}>
+                    {a.body}
+                  </Typography>
+                  <Link
+                    component={RouterLink}
+                    to={a.to}
+                    underline="none"
                     sx={{
-                      gridRow: { md: feature ? 'span 2' : 'auto' },
-                      position: 'relative',
-                      overflow: 'hidden',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      p: { xs: '24px', sm: feature ? '32px' : '26px' },
-                      transition: 'transform .22s ease, box-shadow .22s ease',
-                      // The line arrives from the left on hover rather than fading in, so the
-                      // movement echoes the rest of the page instead of just lighting up.
-                      '&::after': {
-                        content: '""',
-                        position: 'absolute',
-                        insetInline: 0,
-                        top: 0,
-                        height: '2px',
-                        backgroundColor: tokens.amber,
-                        transform: 'scaleX(0)',
-                        transformOrigin: 'left',
-                        transition: 'transform .3s ease',
-                      },
-                      '&:hover': {
-                        transform: 'translateY(-3px)',
-                        boxShadow: tokens.shadowMd,
-                        '&::after': { transform: 'scaleX(1)' },
-                      },
-                      '@media (prefers-reduced-motion: reduce)': {
-                        transition: 'none',
-                        '&:hover': { transform: 'none' },
-                        '&::after': { transition: 'none' },
-                      },
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      fontSize: 14.5,
+                      fontWeight: 700,
+                      color: tokens.navy,
+                      '& .arrow': { transition: 'transform .22s ease' },
+                      '&:hover': { color: tokens.amber600 },
+                      '&:hover .arrow': { transform: 'translateX(3px)' },
+                      '&:focus-visible': { outline: `2px solid ${tokens.amber}`, outlineOffset: '4px', borderRadius: '4px' },
+                      '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'baseline', gap: '10px', mb: '18px' }}>
-                      <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: tokens.amber, letterSpacing: '0.04em' }}>
-                        {a.number}
-                      </Typography>
-                      <Box aria-hidden sx={{ width: 14, height: '1px', backgroundColor: tokens.border }} />
-                      <Typography
-                        sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.textMuted }}
-                      >
-                        {a.label}
-                      </Typography>
+                    {a.cta}
+                    <Box component="span" className="arrow" aria-hidden sx={{ fontSize: 16, lineHeight: 1 }}>
+                      &rarr;
                     </Box>
-
-                    <Typography
-                      sx={{
-                        fontWeight: 700,
-                        fontSize: feature ? 'clamp(22px,2.6vw,30px)' : 'clamp(18px,2vw,21px)',
-                        lineHeight: 1.2,
-                        letterSpacing: '-0.02em',
-                        color: tokens.navy,
-                        mb: '10px',
-                      }}
-                    >
-                      {a.title}
-                    </Typography>
-
-                    <Typography sx={{ fontSize: feature ? 15 : 14, color: 'text.secondary', lineHeight: 1.65, maxWidth: '46ch' }}>
-                      {a.body}
-                    </Typography>
-
-                    {/* Pushes the visual and CTA to the foot so the three cards align along the
-                        bottom regardless of how long the copy runs. */}
-                    <Box aria-hidden sx={{ mt: feature ? '32px' : '22px', mb: feature ? '28px' : '20px', flexGrow: feature ? 1 : 0, display: 'flex', alignItems: 'flex-end' }}>
-                      {/* Capped rather than left at full card width. These are accents; allowed to
-                          scale with the card they set its height instead of decorating it, which
-                          is what left the feature card 800px tall with nothing in the middle. */}
-                      <Box sx={{ width: '100%', maxWidth: feature ? 340 : 200 }}>
-                        {feature ? <DeliveryVisual /> : i === 1 ? <EarningsVisual /> : <FleetVisual />}
-                      </Box>
-                    </Box>
-
-                    {/* Stretched link: the whole card is the hit area, but there is still exactly
-                        one thing to tab to and one accessible name. */}
-                    <Link
-                      component={RouterLink}
-                      to={a.to}
-                      underline="none"
-                      sx={{
-                        mt: 'auto',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '7px',
-                        alignSelf: 'flex-start',
-                        fontSize: 14,
-                        fontWeight: 700,
-                        color: tokens.navy,
-                        '&::after': { content: '""', position: 'absolute', inset: 0 },
-                        '& .arrow': { transition: 'transform .22s ease' },
-                        '.MuiCard-root:hover &': { color: tokens.amber600 },
-                        '.MuiCard-root:hover & .arrow': { transform: 'translateX(3px)' },
-                      }}
-                    >
-                      {a.cta}
-                      <Box component="span" className="arrow" aria-hidden sx={{ fontSize: 16, lineHeight: 1 }}>
-                        &rarr;
-                      </Box>
-                    </Link>
-                  </Card>
-                );
-              })}
+                  </Link>
+                </Box>
+              ))}
             </Box>
           </Box>
         </Reveal>
 
         {/* CONTACT */}
         <Reveal>
-          <Box component="section" id="contact" sx={{ py: '64px', scrollMarginTop: '20px' }}>
+          <Box
+            component="section"
+            id="contact"
+            sx={{
+              my: { xs: '10px', md: '14px' },
+              px: { xs: '20px', sm: '32px', md: '44px' },
+              py: { xs: '38px', md: '46px' },
+              backgroundColor: tokens.surface,
+              border: `1px solid ${tokens.border}`,
+              borderRadius: { xs: '18px', md: '24px' },
+              scrollMarginTop: '20px',
+            }}
+          >
             {/* The heading block carries the section on its own. There is no button here on
                 purpose: the form is the next thing on the page, and a button whose only job is to
                 scroll to something already in view is a step that reads as progress and is not. */}
@@ -2924,7 +2765,7 @@ export default function Homepage() {
                 scroll past the thing they came for. */}
             <Box
               sx={{
-                mt: { xs: '40px', md: '56px' },
+                mt: { xs: '28px', md: '32px' },
                 display: 'grid',
                 gridTemplateColumns: { xs: '1fr', md: '0.62fr 1fr' },
                 gap: { xs: '48px', md: '72px' },
@@ -3047,7 +2888,7 @@ export default function Homepage() {
                         sx={fieldSx}
                       />
                       <TextField
-                        label="Email"
+                        label="Work email"
                         type="email"
                         required
                         fullWidth
@@ -3112,14 +2953,40 @@ export default function Homepage() {
                       </Box>
                     </Box>
 
-                    <TextField
-                      label="Phone number (optional)"
-                      type="tel"
-                      fullWidth
-                      value={contactPhone}
-                      onChange={(e) => setContactPhone(e.target.value)}
-                      sx={fieldSx}
-                    />
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: '20px' }}>
+                      <TextField
+                        label="Company (optional)"
+                        fullWidth
+                        value={contactCompany}
+                        onChange={(e) => setContactCompany(e.target.value)}
+                        sx={fieldSx}
+                      />
+                      <TextField
+                        label="Phone number (optional)"
+                        type="tel"
+                        fullWidth
+                        value={contactPhone}
+                        onChange={(e) => setContactPhone(e.target.value)}
+                        sx={fieldSx}
+                      />
+                      {/* The same eight areas the coverage map is built from, so the option list
+                          cannot drift from what the network actually covers. */}
+                      <TextField
+                        select
+                        label="Campaign area (optional)"
+                        fullWidth
+                        value={contactArea}
+                        onChange={(e) => setContactArea(e.target.value)}
+                        sx={fieldSx}
+                      >
+                        <MenuItem value="">Not sure yet</MenuItem>
+                        {COVERAGE_AREAS.map((area) => (
+                          <MenuItem key={area.name} value={area.name}>
+                            {area.name}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    </Box>
 
                     <TextField
                       label="Message"
@@ -3175,9 +3042,9 @@ export default function Homepage() {
             a vehicle. */}
       <Box component="section" sx={{ backgroundColor: tokens.navy }}>
         <Container
-          maxWidth="lg"
+          maxWidth={false}
           sx={{
-            px: 'clamp(20px,5vw,64px)',
+            maxWidth: 1280, mx: 'auto', px: 'clamp(20px,5vw,64px)',
             py: { xs: '44px', md: '44px' },
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', md: '1.45fr 1fr' },
@@ -3310,7 +3177,7 @@ export default function Homepage() {
             link would land on a blank screen — worse than no link, and worse still for the two
             pages a visitor is most entitled to expect to exist. */}
       <Box component="footer" sx={{ backgroundColor: tokens.surface, borderTop: `1px solid ${tokens.border}` }}>
-        <Container maxWidth="lg" sx={{ px: 'clamp(20px,5vw,64px)', pt: { xs: '44px', md: '56px' }, pb: '28px' }}>
+        <Container maxWidth={false} sx={{ maxWidth: 1280, mx: 'auto', px: 'clamp(20px,5vw,64px)', pt: { xs: '44px', md: '56px' }, pb: '28px' }}>
           <Box
             sx={{
               display: 'grid',
