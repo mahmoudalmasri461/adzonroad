@@ -26,8 +26,7 @@ import Reveal from '../components/Reveal';
 import CountUp from '../components/CountUp';
 import { calculateDriverEarnings, DRIVER_PREMIUM_AREA_BONUS_USD } from '../services/earningsService';
 import { useInView } from '../hooks/useInView';
-import { PRICING_TIERS as CAMPAIGN_PRICING_TIERS } from '../services/pricingService';
-import { formatCurrency } from '../utils/format';
+import { useAuth } from '../contexts/AuthProvider';
 import { tokens } from '../theme';
 import heroTaxi from '../assets/hero/hero-taxi.jpg';
 
@@ -103,30 +102,67 @@ const TAXI_COMPANY_BENEFITS = [
   { title: 'Consolidated reporting', body: "Track every vehicle's uptime and earnings from a single dashboard.", icon: DashboardRoundedIcon },
 ];
 
-const PRICING_TIERS = [
+/**
+ * The campaign an advertiser configures, and the only numbers this section states.
+ *
+ * These are delivery quantities, not prices. Nothing here is multiplied by a rate, because no
+ * per-display rate exists — pricing in this codebase is per taxi, per second of creative, on the
+ * 8-hour day this section stopped selling. A "Custom" option carries null so the summary can say
+ * Custom rather than invent a figure for it.
+ */
+const CAMPAIGN_STEPS = [
   {
-    name: '5 Taxis',
-    price: formatCurrency(CAMPAIGN_PRICING_TIERS[0].price),
-    period: '',
-    description: '1 unit, repeating all day',
-    features: ['5 taxis', '1 of 6 ad units (15 sec)', 'Repeats every ~90 sec, 8 hrs/day', 'Standard reporting'],
-    highlighted: false,
+    key: 'displays' as const,
+    number: '01',
+    title: 'How many displays?',
+    note: 'Each display is one 15-second play of your creative on a vehicle screen.',
+    options: [
+      { label: '25,000', value: 25000 },
+      { label: '50,000', value: 50000 },
+      { label: '100,000', value: 100000 },
+      { label: '250,000', value: 250000 },
+      { label: 'Custom', value: null },
+    ],
   },
   {
-    name: '10 Taxis',
-    price: formatCurrency(CAMPAIGN_PRICING_TIERS[1].price),
-    period: '',
-    description: '1 unit, repeating all day',
-    features: ['10 taxis', '1 of 6 ad units (15 sec)', 'Repeats every ~90 sec, 8 hrs/day', 'Standard reporting'],
-    highlighted: false,
+    key: 'vehicles' as const,
+    number: '02',
+    title: 'How many vehicles?',
+    note: 'More vehicles distribute your campaign across a wider moving network and can help deliver the campaign target faster.',
+    options: [
+      { label: '5', value: 5 },
+      { label: '10', value: 10 },
+      { label: '20', value: 20 },
+      { label: '50', value: 50 },
+      { label: 'Custom', value: null },
+    ],
   },
   {
-    name: 'Custom',
-    price: 'Custom',
-    period: '',
-    description: 'Tailored to your campaign.',
-    features: ['Custom taxi count', 'Custom number of units', 'Custom display hours', 'Dedicated account manager'],
-    highlighted: false,
+    key: 'coverage' as const,
+    number: '03',
+    title: 'Where should it run?',
+    // Named from the regions the platform actually seeds — Hamra, Achrafieh, Downtown, Verdun,
+    // Gemmayze and Saifi sit inside Beirut; Mount Lebanon and Jounieh extend it. No claim of
+    // national coverage, because there are no screens deployed anywhere yet.
+    note: 'Beirut covers Hamra, Achrafieh, Downtown, Verdun, Gemmayze and Saifi. Greater Beirut adds Mount Lebanon and Jounieh.',
+    options: [
+      { label: 'Beirut', value: 'Beirut' },
+      { label: 'Greater Beirut', value: 'Greater Beirut' },
+      { label: 'Selected regions', value: 'Selected regions' },
+      { label: 'Custom targeting', value: 'Custom targeting' },
+    ],
+  },
+  {
+    key: 'days' as const,
+    number: '04',
+    title: 'Campaign period',
+    note: null,
+    options: [
+      { label: '7 days', value: 7 },
+      { label: '14 days', value: 14 },
+      { label: '30 days', value: 30 },
+      { label: 'Custom', value: null },
+    ],
   },
 ];
 
@@ -320,6 +356,21 @@ export default function Homepage() {
   // Drives the delivery bar in the Measure panel, so it fills as the section arrives rather than
   // having already finished by the time anyone scrolls to it.
   const [measureRef, measureInView] = useInView<HTMLDivElement>();
+
+  const { isSignedIn } = useAuth();
+
+  /** What the visitor has configured. null on any field means "Custom", which carries no number. */
+  const [campaign, setCampaign] = useState<{
+    displays: number | null;
+    vehicles: number | null;
+    coverage: string;
+    days: number | null;
+  }>({ displays: 100000, vehicles: 10, coverage: 'Greater Beirut', days: 30 });
+
+  // The example progress mock tracks the configured target so it stays coherent with the panel
+  // above it. 72% is a picture of a campaign in flight, not a forecast — no campaign has run.
+  const sampleTarget = campaign.displays === null ? '—' : campaign.displays.toLocaleString();
+  const sampleDelivered = campaign.displays === null ? '—' : Math.round(campaign.displays * 0.72).toLocaleString();
 
   const [hours, setHours] = useState(8);
   const [days, setDays] = useState(24);
@@ -706,77 +757,253 @@ export default function Homepage() {
           </Box>
         </Reveal>
 
-        {/* PRICING */}
+        {/* CAMPAIGN PRICING
+            The old section sold a slot: three taxi-count cards, "1 of 6 ad units", "repeats every
+            ~90 sec, 8 hrs/day". That is the model being replaced — an advertiser buys a delivery
+            target now, not a share of a rotation, and the 8-hour promise was never AdzOnRoad's to
+            make on a driver's behalf.
+
+            No price is shown, and that is deliberate rather than unfinished. Pricing in this
+            codebase is RatePerTaxiPerSecondUsd — per taxi, per second of creative, premised on the
+            8-hour day this section stops selling. There is no per-display rate in the frontend, in
+            the rate card, or in the API, and inventing one would put a number on the page that
+            nothing charges from. Quoted pricing is also how DOOH is normally bought. */}
         <Reveal>
-          <Box component="section" id="pricing" sx={{ py: '64px', scrollMarginTop: '20px' }}>
-            <SectionEyebrow>Pricing</SectionEyebrow>
-            <Typography sx={{ fontWeight: 700, fontSize: 'clamp(24px,5.2vw,30px)', mb: '10px', letterSpacing: '-0.01em' }}>Simple, transparent rates</Typography>
-            <Typography sx={{ fontSize: 15.5, color: 'text.secondary', maxWidth: '60ch', mb: '10px' }}>
-              Choose a plan based on region coverage and taxi count. No hidden fees.
+          <Box component="section" id="pricing" sx={{ py: { xs: '72px', md: '96px' }, scrollMarginTop: '20px' }}>
+            <Typography
+              sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '12px' }}
+            >
+              Campaign pricing
             </Typography>
-            <Typography sx={{ fontSize: 13.5, color: 'text.secondary', maxWidth: '60ch', mb: '28px' }}>
-              Each screen rotates up to <strong>6 ad units</strong> of 15 seconds each (a 90-second full cycle), repeating
-              continuously across an 8-hour display day — not one continuous 8-hour slot. Buy as many units as you need.
+            <Typography
+              sx={{ fontWeight: 700, fontSize: 'clamp(28px,4.8vw,44px)', letterSpacing: '-0.028em', lineHeight: 1.12, color: tokens.navy }}
+            >
+              Pay for delivery.
+              <Box component="span" sx={{ display: 'block' }}>
+                Not idle screen time.
+              </Box>
             </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3,1fr)' }, gap: '20px' }}>
-              {PRICING_TIERS.map((tier) => (
-                <Card
-                  key={`${tier.name}-${tier.price}`}
-                  sx={{
-                    p: '28px',
-                    position: 'relative',
-                    border: tier.highlighted ? `2px solid ${tokens.amber}` : `1px solid ${tokens.border}`,
-                    transition: 'transform 0.25s ease, box-shadow 0.25s ease',
-                    '&:hover': { transform: 'translateY(-6px)', boxShadow: tokens.shadowMd },
-                  }}
-                >
-                  {tier.highlighted && (
-                    <Chip
-                      label="Most popular"
-                      size="small"
-                      sx={{
-                        position: 'absolute',
-                        top: -12,
-                        right: 24,
-                        backgroundColor: tokens.amber,
-                        color: tokens.navy,
-                        fontWeight: 700,
-                        fontSize: 11,
-                      }}
-                    />
-                  )}
-                  <Typography sx={{ fontWeight: 700, fontSize: 18, color: tokens.navy }}>{tier.name}</Typography>
-                  <Typography sx={{ fontSize: 13.5, color: 'text.secondary', mt: '4px', mb: '18px' }}>{tier.description}</Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'baseline', gap: '4px', mb: '20px' }}>
-                    <Typography sx={{ fontWeight: 800, fontSize: 36, letterSpacing: '-0.01em' }}>{tier.price}</Typography>
-                    <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>{tier.period}</Typography>
-                  </Box>
-                  <Box sx={{ display: 'grid', gap: '10px', mb: '24px' }}>
-                    {tier.features.map((feature) => (
-                      <Box key={feature} sx={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 14 }}>
-                        <CheckRoundedIcon sx={{ fontSize: 18, color: tokens.green }} />
-                        {feature}
+            <Typography sx={{ mt: '16px', fontSize: 15.5, color: 'text.secondary', maxWidth: '62ch', lineHeight: 1.7 }}>
+              Choose how many times you want your campaign displayed, where you want it to run, and
+              how many vehicles you want in your network. Every campaign works toward a defined
+              delivery target.
+            </Typography>
+
+            <Box
+              sx={{
+                mt: { xs: '40px', md: '56px' },
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '1.15fr 0.85fr' },
+                gap: { xs: '40px', md: '64px' },
+                alignItems: 'start',
+              }}
+            >
+              <Box>
+                <Typography sx={{ fontSize: 'clamp(19px,2vw,22px)', fontWeight: 700, letterSpacing: '-0.02em', color: tokens.navy, mb: '28px' }}>
+                  Build your campaign
+                </Typography>
+
+                <Box sx={{ display: 'grid', gap: '28px' }}>
+                  {CAMPAIGN_STEPS.map((step) => (
+                    <Box key={step.key}>
+                      <Box sx={{ display: 'flex', alignItems: 'baseline', gap: '10px', mb: '10px' }}>
+                        <Typography sx={{ fontSize: 12, fontWeight: 800, color: tokens.amber, letterSpacing: '0.04em' }}>
+                          {step.number}
+                        </Typography>
+                        <Typography
+                          sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.textMuted }}
+                        >
+                          {step.title}
+                        </Typography>
                       </Box>
-                    ))}
-                  </Box>
-                  <Button
-                    fullWidth
-                    variant={tier.highlighted ? 'contained' : 'outlined'}
-                    color={tier.highlighted ? 'primary' : 'inherit'}
-                    sx={!tier.highlighted ? { borderColor: tokens.border, color: tokens.text } : undefined}
-                    onClick={() =>
-                      tier.name === 'Custom'
-                        ? document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
-                        : navigate('/signup?role=advertiser')
-                    }
+
+                      <Box role="radiogroup" aria-label={step.title} sx={{ display: 'flex', flexWrap: 'wrap', gap: '9px' }}>
+                        {step.options.map((option) => (
+                          <Box
+                            key={option.label}
+                            component="button"
+                            type="button"
+                            role="radio"
+                            aria-checked={campaign[step.key] === option.value}
+                            data-selected={campaign[step.key] === option.value ? 'true' : undefined}
+                            onClick={() => setCampaign((c) => ({ ...c, [step.key]: option.value }))}
+                            sx={{
+                              fontFamily: 'inherit',
+                              fontSize: 13.5,
+                              fontWeight: 600,
+                              lineHeight: 1.4,
+                              cursor: 'pointer',
+                              padding: '9px 16px',
+                              borderRadius: '999px',
+                              color: tokens.textMuted,
+                              backgroundColor: '#FBFBFD',
+                              border: `1px solid ${tokens.border}`,
+                              transition: 'background-color .2s ease, border-color .2s ease, color .2s ease',
+                              '&:hover': { borderColor: '#D3D8E2' },
+                              '&:focus-visible': { outline: `2px solid ${tokens.amber}`, outlineOffset: '2px' },
+                              '&[data-selected="true"]': {
+                                color: tokens.navy,
+                                backgroundColor: 'rgba(245,166,35,0.12)',
+                                borderColor: tokens.amber,
+                              },
+                              '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
+                            }}
+                          >
+                            {option.label}
+                          </Box>
+                        ))}
+                      </Box>
+
+                      {step.note && (
+                        <Typography sx={{ mt: '10px', fontSize: 12.5, color: 'text.secondary', lineHeight: 1.6, maxWidth: '52ch' }}>
+                          {step.note}
+                        </Typography>
+                      )}
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+
+              <Box
+                sx={{
+                  position: { md: 'sticky' },
+                  top: { md: '24px' },
+                  p: { xs: '26px', sm: '30px' },
+                  borderRadius: '16px',
+                  border: `1px solid ${tokens.border}`,
+                  backgroundColor: tokens.surface,
+                }}
+              >
+                <Typography
+                  sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: tokens.textMuted }}
+                >
+                  Your campaign
+                </Typography>
+
+                <Typography
+                  sx={{ mt: '10px', fontWeight: 800, fontSize: 'clamp(38px,5vw,52px)', lineHeight: 1, letterSpacing: '-0.035em', color: tokens.navy }}
+                >
+                  {campaign.displays === null ? 'Custom' : campaign.displays.toLocaleString()}
+                </Typography>
+                <Typography sx={{ mt: '6px', fontSize: 13.5, color: 'text.secondary' }}>15-second displays</Typography>
+
+                <Box sx={{ mt: '20px', display: 'grid', gap: '10px' }}>
+                  {[
+                    campaign.vehicles === null ? 'Custom vehicle count' : `${campaign.vehicles} vehicles`,
+                    campaign.coverage,
+                    campaign.days === null ? 'Custom campaign period' : `${campaign.days}-day campaign`,
+                  ].map((line) => (
+                    <Typography key={line} sx={{ fontSize: 14.5, fontWeight: 600, color: tokens.navy }}>
+                      {line}
+                    </Typography>
+                  ))}
+                </Box>
+
+                <Box sx={{ mt: '24px', pt: '22px', borderTop: `1px solid ${tokens.border}` }}>
+                  <Typography
+                    sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: tokens.textMuted, mb: '8px' }}
                   >
-                    {tier.name === 'Custom' ? 'Contact Sales' : 'Get Started'}
+                    Estimated campaign price
+                  </Typography>
+                  <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.65, mb: '16px' }}>
+                    Priced per campaign against your delivery target, network size and regions.
+                    Confirmed with the team before a campaign is approved.
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    size="large"
+                    fullWidth
+                    onClick={() => navigate(isSignedIn ? '/advertiser/campaigns' : '/signup?role=advertiser')}
+                    sx={{
+                      '& .arrow': { transition: 'transform .22s ease' },
+                      '&:hover .arrow': { transform: 'translateX(3px)' },
+                      '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
+                    }}
+                  >
+                    {isSignedIn ? 'Continue to campaign setup' : 'Build your campaign'}
+                    <Box component="span" className="arrow" aria-hidden sx={{ ml: '8px', fontSize: 16, lineHeight: 1 }}>
+                      &rarr;
+                    </Box>
                   </Button>
-                </Card>
-              ))}
+                </Box>
+
+                {/* Sample interface, labelled as one. The figures track the selection above so the
+                    mock stays coherent, but they are a picture of what progress looks like — no
+                    campaign has run. Hidden from assistive technology so none of it is announced
+                    as a real delivery figure. */}
+                <Box sx={{ mt: '24px', pt: '22px', borderTop: `1px solid ${tokens.border}` }}>
+                  <Typography
+                    sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: tokens.navy, mb: '6px' }}
+                  >
+                    Delivery you can see
+                  </Typography>
+                  <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.6, mb: '16px' }}>
+                    Follow campaign progress as your purchased displays are delivered across the
+                    AdzOnRoad network.
+                  </Typography>
+
+                  <Box
+                    aria-hidden
+                    sx={{ p: '14px', borderRadius: '12px', border: `1px dashed ${tokens.border}`, backgroundColor: '#FBFBFD' }}
+                  >
+                    <Typography
+                      sx={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: tokens.textMuted, mb: '10px' }}
+                    >
+                      Example view
+                    </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: '7px' }}>
+                      <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Campaign delivery</Typography>
+                      <Typography sx={{ fontSize: 12, fontWeight: 700, color: tokens.navy }}>{sampleDelivered} / {sampleTarget}</Typography>
+                    </Box>
+                    <Box sx={{ height: 6, borderRadius: '999px', backgroundColor: 'rgba(15,27,61,0.07)', overflow: 'hidden' }}>
+                      <Box sx={{ width: '72%', height: '100%', borderRadius: '999px', backgroundColor: tokens.amber }} />
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+
+            {/* What the money buys, spelled out — the old cards listed inventory, which is not the
+                same thing and is what made the model easy to misread. */}
+            <Box sx={{ mt: { xs: '48px', md: '64px' }, pt: { xs: '32px', md: '40px' }, borderTop: `1px solid ${tokens.border}` }}>
+              <Typography
+                sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '18px' }}
+              >
+                What you&rsquo;re buying
+              </Typography>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3,1fr)' },
+                  columnGap: '32px',
+                  rowGap: '12px',
+                  mb: '22px',
+                }}
+              >
+                {[
+                  'Defined campaign delivery target',
+                  '15-second advertising displays',
+                  'Selected vehicle network',
+                  'Geographic targeting',
+                  'Campaign delivery reporting',
+                  'GPS/location-linked delivery evidence where available',
+                ].map((item) => (
+                  <Box key={item} sx={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                    <CheckRoundedIcon sx={{ fontSize: 16, color: tokens.amber, mt: '3px', flexShrink: 0 }} />
+                    <Typography sx={{ fontSize: 14, color: tokens.navy, lineHeight: 1.6 }}>{item}</Typography>
+                  </Box>
+                ))}
+              </Box>
+              <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.75, maxWidth: '76ch' }}>
+                Your campaign is measured against its purchased delivery target. If individual
+                vehicles operate fewer hours on a given day, delivery can continue across the
+                campaign period and eligible vehicle network.
+              </Typography>
             </Box>
           </Box>
         </Reveal>
+
 
         {/* WHY ADZONROAD
             Eight equal cards gave eight equal weights, so nothing led and the differentiator —
