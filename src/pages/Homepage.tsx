@@ -1586,8 +1586,12 @@ export default function Homepage() {
       <Box sx={{ background: `linear-gradient(135deg, ${tokens.navy} 0%, ${tokens.navy600} 100%)`, padding: '64px clamp(20px,5vw,64px)' }}>
         <Container maxWidth="lg" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px', flexWrap: 'wrap' }}>
           <Box>
+            {/* Deliberately not "Ready to put your brand on the road?" any more — that is the
+                contact heading immediately above, and running the same sentence twice a screen
+                apart made the band read as a repeat rather than an alternative. It has its own
+                job: the form is for talking to somebody, this is for skipping that. */}
             <Typography sx={{ fontWeight: 700, fontSize: 'clamp(26px,3vw,36px)', mb: '8px', maxWidth: '20ch', color: '#fff' }}>
-              Ready to put your brand on the road?
+              Rather just get started?
             </Typography>
             <Typography sx={{ fontSize: 15.5, color: 'rgba(255,255,255,0.7)' }}>Launch a campaign or register your taxi — both take minutes.</Typography>
           </Box>
