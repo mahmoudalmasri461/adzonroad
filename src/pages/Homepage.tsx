@@ -639,21 +639,27 @@ export default function Homepage() {
       </Drawer>
 
       {/* HERO
-            The old one put the photograph behind everything and covered it with navy at 94%
-            opacity, which is why the whole thing read blue rather than AdzOnRoad. The page is
-            light now and the photograph sits in its own half, shown rather than tinted.
+            The photograph is the hero now, not an illustration sitting beside it. The old layout
+            was a text column next to a rounded image card with a floating "72% delivered" panel on
+            top of it — the shape every SaaS landing page has, which made a moving-media company
+            look like it sold software. The card, its rounded corners and the example figures are
+            all gone.
 
-            The statistics bar is gone: 1,248 active screens, 42.6K ads shown today, 3,180 verified
-            hours. None of it came from anywhere — the production database holds no screens — and
-            it is replaced by three things the product actually does rather than by other numbers.
+            The image is full-bleed and the type sits inside it. A gradient carries the left side
+            for legibility and releases before it reaches the vehicle, so the Beirut daylight and
+            the rooftop screen stay as they were photographed rather than being tinted navy.
 
-            "real-time GPS tracking" went with it. Playback carries GPS and timestamp evidence;
-            it is not a live tracker, and the copy says location-linked reporting instead. */}
+            No annotation is pinned to the screen. With object-fit: cover the crop shifts with the
+            viewport, so anything positioned over the vehicle drifts off it at other window sizes —
+            and a label sliding onto the car reads worse than no label at all. */}
       <Box
         component="section"
         sx={{
-          backgroundColor: tokens.bg,
-          borderBottom: `1px solid ${tokens.border}`,
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: { xs: 620, sm: 660, md: 'clamp(680px, 78vh, 820px)' },
+          backgroundColor: tokens.navy,
           '@keyframes adzHeroIn': {
             from: { opacity: 0, transform: 'translateY(12px)' },
             to: { opacity: 1, transform: 'none' },
@@ -663,221 +669,271 @@ export default function Homepage() {
           },
         }}
       >
+        {/* object-position is tuned per breakpoint rather than left at center. The rooftop screen
+            sits in the upper middle of the frame, and on a wide window cover crops vertically —
+            centering it pushes the screen off the top edge. */}
+        <Box
+          component="img"
+          src={heroTaxiDaylight}
+          alt="A black Mercedes on the Beirut corniche carrying an AdzOnRoad digital advertising screen mounted along its roof"
+          fetchPriority="high"
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: { xs: '62% 50%', sm: '60% 50%', md: 'center 45%' },
+            display: 'block',
+            zIndex: 0,
+          }}
+        />
+
+        {/* Left-weighted on desktop so the vehicle keeps its daylight, top-weighted on a phone
+            where the type sits above the car rather than beside it. The second layer is a short
+            scrim at the very bottom, which is the only thing holding the proof strip up. */}
+        <Box
+          aria-hidden
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 1,
+            backgroundImage: {
+              xs: `linear-gradient(180deg, rgba(15,27,61,0.90) 0%, rgba(15,27,61,0.74) 38%, rgba(15,27,61,0.34) 66%, rgba(15,27,61,0.62) 100%)`,
+              md: `linear-gradient(90deg, rgba(15,27,61,0.88) 0%, rgba(15,27,61,0.74) 28%, rgba(15,27,61,0.42) 46%, rgba(15,27,61,0.10) 66%, rgba(15,27,61,0) 82%),
+                   linear-gradient(0deg, rgba(15,27,61,0.58) 0%, rgba(15,27,61,0) 24%)`,
+            },
+          }}
+        />
+
         <Container
           maxWidth={false}
           sx={{
-            maxWidth: 1280, mx: 'auto', px: 'clamp(20px,5vw,64px)',
-            py: { xs: '44px', md: '64px' },
-            minHeight: { md: 620 },
+            position: 'relative',
+            zIndex: 2,
+            maxWidth: 1280,
+            mx: 'auto',
+            px: 'clamp(20px,5vw,64px)',
+            flex: 1,
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
+            pt: { xs: '52px', md: '64px' },
+            pb: { xs: '28px', md: '40px' },
+          }}
+        >
+          {/* The rooftop screen's enclosure starts at 44.3% of the photograph and the AdzOnRoad
+              branding on it at 47.5%, so the type has to stay left of 44% of the rendered width.
+              With the container centred at 1280 that caps the headline at about 62px rather than
+              the 70 it would otherwise take — the photograph's composition sets the type size
+              here, because the vehicle is centred in frame rather than sitting in the right half. */}
+          <Box sx={{ maxWidth: { xs: '100%', md: 540 } }}>
+            <Typography
+              data-hero-in
+              sx={{
+                fontSize: { xs: 11.5, md: 12.5 },
+                fontWeight: 700,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                color: tokens.amber,
+                mb: { xs: '14px', md: '18px' },
+                animation: 'adzHeroIn .5s ease-out both',
+              }}
+            >
+              Lebanon&rsquo;s moving media network
+            </Typography>
+
+            <Typography
+              data-hero-in
+              component="h1"
+              sx={{
+                m: 0,
+                fontWeight: 800,
+                fontSize: 'clamp(44px, 4.9vw, 60px)',
+                lineHeight: 0.98,
+                letterSpacing: '-0.045em',
+                textTransform: 'uppercase',
+                color: '#fff',
+                textWrap: 'balance',
+                textShadow: '0 2px 28px rgba(6,12,30,0.42)',
+                animation: 'adzHeroIn .55s ease-out .06s both',
+              }}
+            >
+              Make the city
+              <Box component="span" sx={{ display: 'block', color: tokens.amber }}>
+                your billboard.
+              </Box>
+            </Typography>
+
+            <Typography
+              data-hero-in
+              sx={{
+                mt: { xs: '18px', md: '24px' },
+                fontSize: { xs: 16, md: 18 },
+                lineHeight: 1.62,
+                color: 'rgba(255,255,255,0.86)',
+                maxWidth: 505,
+                textShadow: '0 1px 16px rgba(6,12,30,0.4)',
+                animation: 'adzHeroIn .55s ease-out .12s both',
+              }}
+            >
+              Launch location-targeted campaigns across a network of moving digital screens
+              &mdash; with measurable delivery and GPS-linked reporting.
+            </Typography>
+
+            {/* One button, then a link. Two filled buttons side by side made exploring the network
+                as loud as launching a campaign, and only one of those is the conversion. */}
+            <Box
+              data-hero-in
+              sx={{
+                mt: { xs: '26px', md: '34px' },
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: { xs: '14px', md: '24px' },
+                animation: 'adzHeroIn .55s ease-out .18s both',
+              }}
+            >
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                onClick={() => navigate('/signup?role=advertiser')}
+                sx={{
+                  fontSize: { xs: 15, md: 16 },
+                  px: { xs: '24px', md: '30px' },
+                  py: { md: '13px' },
+                  boxShadow: '0 10px 30px rgba(6,12,30,0.34)',
+                  '& .arrow': { transition: 'transform .2s ease' },
+                  '&:hover .arrow': { transform: 'translateX(3px)' },
+                  '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
+                }}
+              >
+                Launch a campaign
+                <Box component="span" className="arrow" aria-hidden sx={{ ml: '9px', fontSize: 17, lineHeight: 1 }}>
+                  &rarr;
+                </Box>
+              </Button>
+
+              <Link
+                href="#coverage"
+                underline="none"
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '9px',
+                  fontSize: 15.5,
+                  fontWeight: 600,
+                  color: 'rgba(255,255,255,0.92)',
+                  '& .arrow': { transition: 'transform .2s ease' },
+                  '&:hover': { color: '#fff' },
+                  '&:hover .arrow': { transform: 'translateX(3px)' },
+                  '&:focus-visible': { outline: `2px solid ${tokens.amber}`, outlineOffset: '4px', borderRadius: '4px' },
+                  '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
+                }}
+              >
+                Explore the network
+                <Box component="span" className="arrow" aria-hidden sx={{ fontSize: 16, lineHeight: 1 }}>
+                  &rarr;
+                </Box>
+              </Link>
+            </Box>
+
+            <Typography
+              data-hero-in
+              sx={{
+                mt: { xs: '20px', md: '26px' },
+                fontSize: 13.5,
+                color: 'rgba(255,255,255,0.62)',
+                animation: 'adzHeroIn .55s ease-out .24s both',
+              }}
+            >
+              Drive with AdzOnRoad?{' '}
+              <Link
+                component={RouterLink}
+                to="/signup?role=driver"
+                underline="hover"
+                sx={{ fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}
+              >
+                Become a driver partner &rarr;
+              </Link>
+            </Typography>
+          </Box>
+        </Container>
+
+        {/* The proof strip rides inside the bottom of the photograph rather than sitting in a band
+            under it, so the image runs to the edge of the section. Rules between items, not cards.
+            On a phone the sentences drop and the three labels stay — at that width the full strip
+            was four stacked rows of text competing with the headline. */}
+        <Container
+          maxWidth={false}
+          data-hero-in
+          sx={{
+            position: 'relative',
+            zIndex: 2,
+            maxWidth: 1280,
+            mx: 'auto',
+            px: 'clamp(20px,5vw,64px)',
+            pb: { xs: '26px', md: '34px' },
+            animation: 'adzHeroIn .6s ease-out .3s both',
           }}
         >
           <Box
             sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-              gap: { xs: '36px', md: '56px' },
-              alignItems: 'center',
-            }}
-          >
-            <Box>
-              <Typography
-                data-hero-in
-                sx={{
-                  fontSize: 12.5,
-                  fontWeight: 700,
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                  color: tokens.amber,
-                  mb: '18px',
-                  animation: 'adzHeroIn .5s ease-out both',
-                }}
-              >
-                Lebanon&rsquo;s moving media network
-              </Typography>
-
-              <Typography
-                data-hero-in
-                component="h1"
-                sx={{
-                  m: 0,
-                  fontWeight: 800,
-                  fontSize: 'clamp(38px,4.6vw,56px)',
-                  lineHeight: 1.02,
-                  letterSpacing: '-0.04em',
-                  textTransform: 'uppercase',
-                  color: tokens.navy,
-                  animation: 'adzHeroIn .55s ease-out .06s both',
-                }}
-              >
-                Make the city
-                <Box component="span" sx={{ display: 'block', color: tokens.amber }}>
-                  your billboard.
-                </Box>
-              </Typography>
-
-              <Typography
-                data-hero-in
-                sx={{
-                  mt: '22px',
-                  fontSize: { xs: 16.5, md: 18.5 },
-                  lineHeight: 1.65,
-                  color: 'text.secondary',
-                  maxWidth: 560,
-                  animation: 'adzHeroIn .55s ease-out .12s both',
-                }}
-              >
-                Launch location-targeted campaigns across a network of moving digital screens
-                &mdash; with measurable delivery and GPS-linked reporting.
-              </Typography>
-
-              <Box
-                data-hero-in
-                sx={{ mt: '32px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '18px', animation: 'adzHeroIn .55s ease-out .18s both' }}
-              >
-                <Button
-                  variant="contained"
-                  color="primary"
-                  size="large"
-                  onClick={() => navigate('/signup?role=advertiser')}
-                  sx={{
-                    fontSize: 15.5,
-                    px: '26px',
-                    '& .arrow': { transition: 'transform .2s ease' },
-                    '&:hover .arrow': { transform: 'translateX(3px)' },
-                    '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
-                  }}
-                >
-                  Launch a campaign
-                  <Box component="span" className="arrow" aria-hidden sx={{ ml: '9px', fontSize: 17, lineHeight: 1 }}>
-                    &rarr;
-                  </Box>
-                </Button>
-
-                <Link
-                  href="#coverage"
-                  underline="none"
-                  sx={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    fontSize: 15,
-                    fontWeight: 600,
-                    color: tokens.navy,
-                    '& .arrow': { transition: 'transform .2s ease' },
-                    '&:hover .arrow': { transform: 'translateX(3px)' },
-                    '&:focus-visible': { outline: `2px solid ${tokens.amber}`, outlineOffset: '4px', borderRadius: '4px' },
-                    '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
-                  }}
-                >
-                  Explore the network
-                  <Box component="span" className="arrow" aria-hidden sx={{ fontSize: 16, lineHeight: 1 }}>
-                    &rarr;
-                  </Box>
-                </Link>
-              </Box>
-
-              <Typography
-                data-hero-in
-                sx={{ mt: '26px', fontSize: 13.5, color: tokens.textMuted, animation: 'adzHeroIn .55s ease-out .24s both' }}
-              >
-                Drive with AdzOnRoad?{' '}
-                <Link
-                  component={RouterLink}
-                  to="/signup?role=driver"
-                  underline="hover"
-                  sx={{ fontWeight: 600, color: tokens.navy }}
-                >
-                  Become a driver partner &rarr;
-                </Link>
-              </Typography>
-            </Box>
-
-            <Box data-hero-in sx={{ position: 'relative', animation: 'adzHeroIn .7s ease-out .2s both' }}>
-              <Box
-                component="img"
-                src={heroTaxiDaylight}
-                alt="A car on the Beirut corniche carrying an AdzOnRoad digital advertising screen on its roof"
-                sx={{
-                  width: '100%',
-                  height: { xs: 260, sm: 340, md: 440 },
-                  objectFit: 'cover',
-                  objectPosition: 'center 34%',
-                  borderRadius: '18px',
-                  display: 'block',
-                }}
-              />
-
-              {/* One preview, not a dashboard. Labelled as an example because no campaign has run:
-                  the figures are a picture of what an advertiser follows, not AdzOnRoad's numbers.
-                  Hidden from assistive technology so none of it is announced as real delivery. */}
-              <Box
-                aria-hidden
-                sx={{
-                  position: 'absolute',
-                  left: { xs: '12px', sm: '18px' },
-                  bottom: { xs: '12px', sm: '18px' },
-                  width: { xs: 'calc(100% - 24px)', sm: 244 },
-                  p: '14px',
-                  borderRadius: '12px',
-                  backgroundColor: 'rgba(255,255,255,0.96)',
-                  border: `1px solid ${tokens.border}`,
-                  boxShadow: tokens.shadowMd,
-                }}
-              >
-                <Typography
-                  sx={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: tokens.textMuted, mb: '10px' }}
-                >
-                  Example campaign
-                </Typography>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: '7px' }}>
-                  <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Campaign delivery</Typography>
-                  <Typography sx={{ fontSize: 15, fontWeight: 800, color: tokens.navy, letterSpacing: '-0.02em' }}>72%</Typography>
-                </Box>
-                <Box sx={{ height: 6, borderRadius: '999px', backgroundColor: 'rgba(15,27,61,0.08)', overflow: 'hidden' }}>
-                  <Box sx={{ width: '72%', height: '100%', borderRadius: '999px', backgroundColor: tokens.amber }} />
-                </Box>
-                <Box sx={{ mt: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
-                  <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>72,000 / 100,000 plays</Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: tokens.green }} />
-                    <Typography sx={{ fontSize: 11.5, fontWeight: 600, color: tokens.navy }}>On track</Typography>
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
-          </Box>
-
-          {/* What the product does, where four invented numbers used to be. */}
-          <Box
-            data-hero-in
-            sx={{
-              mt: { xs: '28px', md: '32px' },
-              pt: { xs: '26px', md: '30px' },
-              borderTop: `1px solid ${tokens.border}`,
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', sm: 'repeat(3,1fr)' },
-              gap: { xs: '20px', sm: '36px' },
-              animation: 'adzHeroIn .6s ease-out .3s both',
+              pt: { xs: '18px', md: '24px' },
+              borderTop: '1px solid rgba(255,255,255,0.22)',
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: { xs: 'center', sm: 'flex-start' },
+              gap: { xs: '10px 18px', sm: '20px 44px' },
             }}
           >
             {HERO_PROOF.map((item, i) => (
               <Box
                 key={item.label}
                 sx={{
-                  pl: { sm: i === 0 ? 0 : '36px' },
-                  ml: { sm: i === 0 ? 0 : '-36px' },
-                  borderLeft: { sm: i === 0 ? 'none' : `1px solid ${tokens.border}` },
+                  display: 'flex',
+                  alignItems: { xs: 'center', sm: 'flex-start' },
+                  gap: { xs: '18px', sm: '44px' },
+                  flex: { sm: '1 1 200px' },
                 }}
               >
-                <Typography
-                  sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '6px' }}
-                >
-                  {item.label}
-                </Typography>
-                <Typography sx={{ fontSize: 14.5, color: tokens.navy, lineHeight: 1.55, maxWidth: '30ch' }}>{item.body}</Typography>
+                {i > 0 && (
+                  <Box
+                    aria-hidden
+                    sx={{
+                      width: '1px',
+                      alignSelf: 'stretch',
+                      minHeight: { xs: 12, sm: 30 },
+                      backgroundColor: 'rgba(255,255,255,0.24)',
+                    }}
+                  />
+                )}
+                <Box>
+                  <Typography
+                    sx={{
+                      fontSize: { xs: 10.5, md: 11.5 },
+                      fontWeight: 700,
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                      color: tokens.amber,
+                    }}
+                  >
+                    {item.label}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      display: { xs: 'none', sm: 'block' },
+                      mt: '6px',
+                      fontSize: 13.5,
+                      lineHeight: 1.5,
+                      color: 'rgba(255,255,255,0.78)',
+                      maxWidth: '28ch',
+                    }}
+                  >
+                    {item.body}
+                  </Typography>
+                </Box>
               </Box>
             ))}
           </Box>
