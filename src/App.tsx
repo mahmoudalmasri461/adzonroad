@@ -10,7 +10,10 @@ export default function App() {
       <AuthProvider>
         <ToastProvider>
           <AppRoutes />
-          <DevSwitcher />
+          {/* A development convenience, not part of the product. It was rendering on every page
+              in production, including the public homepage, where a floating bar offering Admin
+              and Driver views is both confusing and an invitation. Dev builds keep it. */}
+          {import.meta.env.DEV && <DevSwitcher />}
         </ToastProvider>
       </AuthProvider>
     </BrowserRouter>

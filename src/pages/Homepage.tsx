@@ -3165,109 +3165,272 @@ export default function Homepage() {
         </Reveal>
       </Container>
 
-      {/* FINAL CTA */}
-      <Box sx={{ background: `linear-gradient(135deg, ${tokens.navy} 0%, ${tokens.navy600} 100%)`, padding: '64px clamp(20px,5vw,64px)' }}>
-        <Container maxWidth="lg" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px', flexWrap: 'wrap' }}>
+      {/* FINAL CTA
+            "Rather just get started?" with Launch a Campaign and Register a Taxi side by side gave
+            two actions equal weight and asked a slightly awkward question to introduce them. The
+            close targets advertisers now — they are the side that pays — with coverage second and
+            drivers as a line of text rather than a third button.
+
+            "Register a Taxi" is gone as wording too: somebody signs up as a driver partner, not as
+            a vehicle. */}
+      <Box component="section" sx={{ backgroundColor: tokens.navy }}>
+        <Container
+          maxWidth="lg"
+          sx={{
+            px: 'clamp(20px,5vw,64px)',
+            py: { xs: '44px', md: '44px' },
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '1.45fr 1fr' },
+            gap: { xs: '32px', md: '56px' },
+            alignItems: 'center',
+          }}
+        >
           <Box>
-            {/* Deliberately not "Ready to put your brand on the road?" any more — that is the
-                contact heading immediately above, and running the same sentence twice a screen
-                apart made the band read as a repeat rather than an alternative. It has its own
-                job: the form is for talking to somebody, this is for skipping that. */}
-            <Typography sx={{ fontWeight: 700, fontSize: 'clamp(26px,3vw,36px)', mb: '8px', maxWidth: '20ch', color: '#fff' }}>
-              Rather just get started?
-            </Typography>
-            <Typography sx={{ fontSize: 15.5, color: 'rgba(255,255,255,0.7)' }}>Launch a campaign or register your taxi — both take minutes.</Typography>
-          </Box>
-          <Box sx={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <Button variant="contained" color="primary" size="large" onClick={() => navigate('/signup?role=advertiser')}>
-              Launch a Campaign
-            </Button>
-            <Button
-              variant="outlined"
-              size="large"
-              sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.35)' }}
-              onClick={() => navigate('/signup?role=driver')}
+            <Typography
+              sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: tokens.amber, mb: '10px' }}
             >
-              Register a Taxi
-            </Button>
+              Ready to move?
+            </Typography>
+            <Typography
+              sx={{ fontWeight: 700, fontSize: 'clamp(28px,3.4vw,44px)', lineHeight: 1.08, letterSpacing: '-0.03em', color: '#fff' }}
+            >
+              Put your next campaign
+              <Box component="span" sx={{ display: 'block' }}>
+                on the road.
+              </Box>
+            </Typography>
+            <Typography sx={{ mt: '16px', fontSize: 15.5, lineHeight: 1.7, color: 'rgba(255,255,255,0.72)', maxWidth: '52ch' }}>
+              Launch your campaign across AdzOnRoad&rsquo;s moving screen network and track delivery
+              as it happens.
+            </Typography>
+
+            <Box sx={{ mt: '24px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '16px' }}>
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                onClick={() => navigate('/signup?role=advertiser')}
+                sx={{
+                  '& .arrow': { transition: 'transform .2s ease' },
+                  '&:hover .arrow': { transform: 'translateX(3px)' },
+                  '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
+                }}
+              >
+                Launch a campaign
+                <Box component="span" className="arrow" aria-hidden sx={{ ml: '8px', fontSize: 16, lineHeight: 1 }}>
+                  &rarr;
+                </Box>
+              </Button>
+              <Button
+                variant="outlined"
+                size="large"
+                href="#coverage"
+                sx={{
+                  color: '#fff',
+                  borderColor: 'rgba(255,255,255,0.32)',
+                  '&:hover': { borderColor: 'rgba(255,255,255,0.65)', backgroundColor: 'rgba(255,255,255,0.04)' },
+                  '& .arrow': { transition: 'transform .2s ease' },
+                  '&:hover .arrow': { transform: 'translateX(3px)' },
+                  '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
+                }}
+              >
+                Explore coverage
+                <Box component="span" className="arrow" aria-hidden sx={{ ml: '8px', fontSize: 16, lineHeight: 1 }}>
+                  &rarr;
+                </Box>
+              </Button>
+            </Box>
+
+            <Typography sx={{ mt: '18px', fontSize: 13.5, color: 'rgba(255,255,255,0.55)' }}>
+              Want to drive with us?{' '}
+              <Link
+                component={RouterLink}
+                to="/signup?role=driver"
+                underline="hover"
+                sx={{ fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}
+              >
+                Become a driver partner &rarr;
+              </Link>
+            </Typography>
+          </Box>
+
+          {/* A route with campaigns on it. Not a map and not a dashboard — it sits behind the
+              message rather than beside it, and drops out on a phone where it would only push the
+              buttons down the page. */}
+          <Box aria-hidden sx={{ display: { xs: 'none', md: 'block' } }}>
+            <Box component="svg" viewBox="0 0 380 210" fill="none" sx={{ width: '100%', height: 'auto', display: 'block' }}>
+              <path
+                d="M14 186 C 92 178, 118 128, 176 118 S 268 84, 366 34"
+                stroke="#fff"
+                strokeOpacity="0.1"
+                strokeWidth="8"
+                strokeLinecap="round"
+              />
+              <path
+                d="M14 186 C 92 178, 118 128, 176 118 S 268 84, 366 34"
+                stroke={tokens.amber}
+                strokeOpacity="0.55"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeDasharray="7 11"
+              />
+              {[
+                [92, 172],
+                [176, 118],
+              ].map(([cx, cy]) => (
+                <circle key={cx} cx={cx} cy={cy} r="3.5" fill="#fff" fillOpacity="0.35" />
+              ))}
+
+              {/* the vehicle, as a screen on the move */}
+              <g transform="translate(330,18)">
+                <rect x="0" y="0" width="42" height="26" rx="5" fill={tokens.amber} fillOpacity="0.16" stroke={tokens.amber} strokeOpacity="0.7" />
+                <rect x="7" y="7" width="28" height="12" rx="2" fill={tokens.amber} fillOpacity="0.85" />
+              </g>
+              <circle cx="366" cy="34" r="14" fill={tokens.amber} fillOpacity="0.1" />
+
+              <g transform="translate(150,150)">
+                <rect x="0" y="0" width="132" height="30" rx="8" fill="#fff" fillOpacity="0.06" stroke="#fff" strokeOpacity="0.14" />
+                <circle cx="16" cy="15" r="3.5" fill={tokens.green} />
+                <text x="28" y="19" fill="rgba(255,255,255,0.75)" fontSize="11" fontFamily="inherit" fontWeight="600">
+                  Campaign active
+                </text>
+              </g>
+            </Box>
           </Box>
         </Container>
       </Box>
 
-      {/* FOOTER */}
-      <Box component="footer" sx={{ padding: '48px clamp(20px,5vw,64px) 32px', backgroundColor: 'background.paper' }}>
-        <Container maxWidth="lg">
+      {/* FOOTER
+            Navigation, not a second closing pitch. The old one repeated the CTA as two stacked
+            buttons directly beneath the CTA that had just made the same offer, and put Admin Login
+            in the Company column beside About and Contact as though it were a public page. One
+            compact button here, two text links, and the admin entrance moved to the utility row.
+
+            Privacy and Terms are not linked. There are no routes for them and no catch-all, so a
+            link would land on a blank screen — worse than no link, and worse still for the two
+            pages a visitor is most entitled to expect to exist. */}
+      <Box component="footer" sx={{ backgroundColor: tokens.surface, borderTop: `1px solid ${tokens.border}` }}>
+        <Container maxWidth="lg" sx={{ px: 'clamp(20px,5vw,64px)', pt: { xs: '44px', md: '56px' }, pb: '28px' }}>
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: { xs: '1fr', sm: '1.3fr repeat(3,1fr)' },
-              gap: '32px',
-              pb: '32px',
-              borderBottom: `1px solid ${tokens.border}`,
+              gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1.5fr 1fr 1fr 1.2fr' },
+              gap: { xs: '34px', md: '40px' },
+              pb: { xs: '32px', md: '40px' },
             }}
           >
             <Box>
-              <Box sx={{ mb: '10px' }}>
+              <Box sx={{ mb: '14px' }}>
                 <Logo size="md" />
               </Box>
-              <Typography sx={{ fontSize: 13.5, color: 'text.secondary', maxWidth: '32ch' }}>
-                Digital out-of-home advertising on Lebanon's taxis, verified by GPS.
+              <Typography sx={{ fontSize: 14, color: tokens.navy, lineHeight: 1.6, maxWidth: '26ch', fontWeight: 500 }}>
+                Moving digital advertising, built for Lebanon&rsquo;s roads.
               </Typography>
+              <Typography sx={{ mt: '10px', fontSize: 13, color: tokens.textMuted }}>Beirut, Lebanon</Typography>
             </Box>
+
             <Box>
-              <Typography sx={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'text.secondary', mb: '12px' }}>
+              <Typography
+                sx={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: tokens.textMuted, mb: '14px' }}
+              >
                 Platform
               </Typography>
-              <Box sx={{ display: 'grid', gap: '8px', fontSize: 14 }}>
-                {['Advertisers', 'Drivers', 'Taxi Companies', 'Coverage', 'Pricing'].map((l) => (
-                  <Link key={l} href={`#${l.toLowerCase().replace(/ /g, '-')}`} underline="hover">
-                    {l}
+              {/* The same list the header uses, so a rename cannot leave the two disagreeing —
+                  which is exactly how the footer ended up still saying "Taxi Companies". */}
+              <Box sx={{ display: 'grid', gap: '10px' }}>
+                {NAV_LINKS.map((link) => (
+                  <Link key={link.label} href={link.href} underline="hover" sx={{ fontSize: 14, color: tokens.navy }}>
+                    {link.label}
                   </Link>
                 ))}
               </Box>
             </Box>
+
             <Box>
-              <Typography sx={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'text.secondary', mb: '12px' }}>
+              <Typography
+                sx={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: tokens.textMuted, mb: '14px' }}
+              >
                 Company
               </Typography>
-              <Box sx={{ display: 'grid', gap: '8px', fontSize: 14 }}>
-                <Link href="#about" underline="hover">
+              <Box sx={{ display: 'grid', gap: '10px' }}>
+                <Link href="#about" underline="hover" sx={{ fontSize: 14, color: tokens.navy }}>
                   About
                 </Link>
-                <Link href="#contact" underline="hover">
+                <Link href="#contact" underline="hover" sx={{ fontSize: 14, color: tokens.navy }}>
                   Contact
-                </Link>
-                <Link component={RouterLink} to="/login?role=admin" underline="hover">
-                  Admin Login
                 </Link>
               </Box>
             </Box>
+
             <Box>
-              <Typography sx={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'text.secondary', mb: '12px' }}>
+              <Typography
+                sx={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: tokens.textMuted, mb: '14px' }}
+              >
                 Get started
               </Typography>
-              <Box sx={{ display: 'grid', gap: '10px' }}>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  sx={{ backgroundColor: tokens.navy, color: '#fff', '&:hover': { backgroundColor: tokens.navy700 } }}
-                  onClick={() => navigate('/signup?role=advertiser')}
+              <Typography sx={{ fontSize: 14, fontWeight: 600, color: tokens.navy, mb: '12px' }}>Ready to launch?</Typography>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => navigate('/signup?role=advertiser')}
+                sx={{
+                  mb: '14px',
+                  '& .arrow': { transition: 'transform .2s ease' },
+                  '&:hover .arrow': { transform: 'translateX(3px)' },
+                  '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
+                }}
+              >
+                Launch a campaign
+                <Box component="span" className="arrow" aria-hidden sx={{ ml: '7px', fontSize: 15, lineHeight: 1 }}>
+                  &rarr;
+                </Box>
+              </Button>
+              <Box sx={{ display: 'grid', gap: '9px' }}>
+                <Link
+                  component={RouterLink}
+                  to="/signup?role=driver"
+                  underline="hover"
+                  sx={{ fontSize: 13.5, color: tokens.navy, fontWeight: 500 }}
                 >
-                  Launch a Campaign
-                </Button>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  color="inherit"
-                  sx={{ borderColor: tokens.border, color: tokens.text }}
-                  onClick={() => navigate('/signup?role=driver')}
+                  Become a driver partner &rarr;
+                </Link>
+                <Link
+                  component={RouterLink}
+                  to="/signup?role=taxiCompany"
+                  underline="hover"
+                  sx={{ fontSize: 13.5, color: tokens.navy, fontWeight: 500 }}
                 >
-                  Become a Driver Partner
-                </Button>
+                  Partner your fleet &rarr;
+                </Link>
               </Box>
             </Box>
           </Box>
-          <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: '20px' }}>© 2026 AdzOnRoad. Beirut, Lebanon.</Typography>
+
+          <Box
+            sx={{
+              pt: '22px',
+              borderTop: `1px solid ${tokens.border}`,
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+            }}
+          >
+            <Typography sx={{ fontSize: 12.5, color: tokens.textMuted }}>
+              &copy; 2026 AdzOnRoad &middot; Beirut, Lebanon
+            </Typography>
+            {/* The way in for the people who run the platform, kept plain and unhighlighted —
+                it is a staff entrance, not a page anyone browsing the site is looking for. */}
+            <Link
+              component={RouterLink}
+              to="/login?role=admin"
+              underline="hover"
+              sx={{ fontSize: 12.5, color: tokens.textMuted, '&:hover': { color: tokens.navy } }}
+            >
+              Admin login
+            </Link>
+          </Box>
         </Container>
       </Box>
     </Box>
