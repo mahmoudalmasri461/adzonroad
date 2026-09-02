@@ -36,16 +36,37 @@ const HERO_STATS = [
   { value: '3,180', label: 'Verified hours' },
 ];
 
-const ADVERTISER_STEPS = [
-  { title: 'Create a campaign', body: 'Set objectives, upload creative, define budget.' },
-  { title: 'Select regions and taxis', body: 'Target by city, radius, or high-traffic zone.' },
-  { title: 'Track results in real time', body: 'GPS-verified impressions and display hours.' },
-];
-
-const DRIVER_STEPS = [
-  { title: 'Register your vehicle', body: 'Quick onboarding for drivers and fleets.' },
-  { title: 'Install the screen', body: 'Free rooftop install, fully insured.' },
-  { title: 'Drive and earn', body: 'Paid for coverage, uptime and verified hours.' },
+/**
+ * The two halves of the network, and the steps each side takes to join it.
+ *
+ * Three claims did not survive the rewrite. "GPS-verified impressions" names a unit the platform
+ * no longer sells — campaigns are bought as ad plays against a delivery target. "Free rooftop
+ * install, fully insured" asserted a cost policy and an insurance position as settled fact, the
+ * same claim removed from the taxi-company section; the step now says what AdzOnRoad does rather
+ * than what it charges for it. "Paid for coverage, uptime and verified hours" implied payment
+ * follows from a screen existing, when earning depends on eligible active driving.
+ */
+const JOURNEYS = [
+  {
+    id: 'advertisers',
+    label: 'For advertisers',
+    accent: tokens.blue,
+    steps: [
+      { number: '01', title: 'Build your campaign', body: 'Choose your ad-play target, campaign period and creative.' },
+      { number: '02', title: 'Choose your coverage', body: 'Select your target regions and vehicle network.' },
+      { number: '03', title: 'Launch & follow delivery', body: 'Track campaign progress as your purchased ad plays are delivered.' },
+    ],
+  },
+  {
+    id: 'drivers',
+    label: 'For drivers',
+    accent: tokens.amber600,
+    steps: [
+      { number: '01', title: 'Join the network', body: 'Register yourself and your eligible vehicle.' },
+      { number: '02', title: 'Get equipped', body: 'AdzOnRoad installs and connects the advertising screen.' },
+      { number: '03', title: 'Drive & earn', body: 'Drive normally and earn additional income from eligible active driving.' },
+    ],
+  },
 ];
 
 /**
@@ -253,46 +274,6 @@ const CONTACT_REASONS = ['Advertising', 'Driver partnership', 'Taxi / fleet part
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function StepCard({ title, steps, badgeBg, badgeColor }: { title: string; steps: typeof ADVERTISER_STEPS; badgeBg: string; badgeColor: string }) {
-  return (
-    <Card
-      sx={{
-        p: '22px',
-        transition: 'transform 0.25s ease, box-shadow 0.25s ease',
-        '&:hover': { transform: 'translateY(-4px)', boxShadow: tokens.shadowMd },
-      }}
-    >
-      <Typography sx={{ fontWeight: 700, fontSize: 18, mb: '18px', color: tokens.navy }}>{title}</Typography>
-      <Box sx={{ display: 'grid', gap: '16px' }}>
-        {steps.map((step, i) => (
-          <Box key={step.title} sx={{ display: 'grid', gridTemplateColumns: '36px 1fr', gap: '14px' }}>
-            <Box
-              sx={{
-                width: 36,
-                height: 36,
-                borderRadius: '10px',
-                backgroundColor: badgeBg,
-                color: badgeColor,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 700,
-                fontSize: 14,
-              }}
-            >
-              {i + 1}
-            </Box>
-            <Box>
-              <Typography sx={{ fontWeight: 600 }}>{step.title}</Typography>
-              <Typography sx={{ mt: '4px', fontSize: 14, color: 'text.secondary' }}>{step.body}</Typography>
-            </Box>
-          </Box>
-        ))}
-      </Box>
-    </Card>
-  );
-}
-
 /**
  * The card visuals.
  *
@@ -390,20 +371,16 @@ function StreetVisual() {
   );
 }
 
-function SectionEyebrow({ children }: { children: string }) {
-  return (
-    <Typography sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: tokens.blue, mb: '10px' }}>
-      {children}
-    </Typography>
-  );
-}
-
 export default function Homepage() {
   const navigate = useNavigate();
   const [navOpen, setNavOpen] = useState(false);
   // Drives the delivery bar in the Measure panel, so it fills as the section arrives rather than
   // having already finished by the time anyone scrolls to it.
   const [measureRef, measureInView] = useInView<HTMLDivElement>();
+
+  // Draws the two journeys together as the section arrives, rather than on page load where the
+  // movement would be over before anyone reached it.
+  const [journeyRef, journeyInView] = useInView<HTMLDivElement>(0.2);
 
   const { isSignedIn } = useAuth();
 
@@ -724,21 +701,218 @@ export default function Homepage() {
       </Box>
 
       <Container maxWidth="lg" sx={{ px: 'clamp(20px,5vw,64px)' }}>
-        {/* HOW IT WORKS */}
+        {/* HOW IT WORKS
+            Two white cards side by side listed two sets of steps and never said the thing that
+            makes the model interesting: they are two halves of one network. The journeys converge
+            on the platform now, and end on a single shared outcome instead of stopping separately.
+
+            Three claims went in the rewrite. "GPS-verified impressions" describes a unit the
+            platform does not sell any more — campaigns are bought as ad plays. "Free rooftop
+            install, fully insured" stated a cost policy and an insurance position as settled fact,
+            the same claim removed from the taxi-company section. "Paid for coverage, uptime and
+            verified hours" implied payment follows from a screen existing, when earning depends on
+            eligible active driving. See JOURNEYS for the wording that replaced each. */}
         <Reveal>
-          <Box component="section" sx={{ py: '64px' }}>
-            <SectionEyebrow>How it works</SectionEyebrow>
-            <Typography sx={{ fontWeight: 700, fontSize: 'clamp(24px,5.2vw,30px)', mb: '32px', letterSpacing: '-0.01em' }}>Two journeys, one platform</Typography>
-            <Box sx={{ display: 'grid', gap: '24px' }}>
-              <Box id="advertisers" sx={{ scrollMarginTop: '20px' }}>
-                <StepCard title="For advertisers" steps={ADVERTISER_STEPS} badgeBg="#EAF0FF" badgeColor={tokens.blue} />
+          <Box component="section" ref={journeyRef} sx={{ py: { xs: '72px', md: '96px' } }}>
+            <Typography
+              sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '12px' }}
+            >
+              How it works
+            </Typography>
+            <Typography
+              sx={{ fontWeight: 700, fontSize: 'clamp(28px,4.8vw,44px)', letterSpacing: '-0.028em', lineHeight: 1.12, color: tokens.navy }}
+            >
+              Two sides.
+              <Box component="span" sx={{ display: 'block' }}>
+                One moving network.
               </Box>
-              <Box id="drivers" sx={{ scrollMarginTop: '20px' }}>
-                <StepCard title="For drivers" steps={DRIVER_STEPS} badgeBg="#FEF3E2" badgeColor={tokens.amber600} />
+            </Typography>
+            <Typography sx={{ mt: '16px', fontSize: 15.5, color: 'text.secondary', maxWidth: '52ch', lineHeight: 1.75 }}>
+              Advertisers launch measurable campaigns. Drivers keep the network moving. AdzOnRoad
+              connects the two.
+            </Typography>
+
+            {/* Grid rather than two columns of cards: on a phone the network sits between the two
+                journeys, which is the order the relationship reads in. On desktop the journeys sit
+                side by side and the network spans beneath them, which is where they converge. */}
+            <Box
+              sx={{
+                mt: { xs: '40px', md: '56px' },
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                columnGap: { md: '56px' },
+                rowGap: { xs: '36px', md: '0px' },
+              }}
+            >
+              {JOURNEYS.map((journey) => (
+                <Box
+                  key={journey.id}
+                  id={journey.id}
+                  sx={{
+                    scrollMarginTop: '20px',
+                    order: { xs: journey.id === 'advertisers' ? 1 : 3, md: journey.id === 'advertisers' ? 1 : 2 },
+                    pl: { md: journey.id === 'drivers' ? '56px' : 0 },
+                    ml: { md: journey.id === 'drivers' ? '-56px' : 0 },
+                    borderLeft: { md: journey.id === 'drivers' ? `1px solid ${tokens.border}` : 'none' },
+                  }}
+                >
+                  <Typography
+                    sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: journey.accent, mb: '20px' }}
+                  >
+                    {journey.label}
+                  </Typography>
+
+                  {journey.steps.map((step, i) => (
+                    <Box
+                      key={step.number}
+                      sx={{
+                        display: 'grid',
+                        gridTemplateColumns: '40px 1fr',
+                        pt: i === 0 ? 0 : '20px',
+                        mt: i === 0 ? 0 : '20px',
+                        borderTop: i === 0 ? 'none' : `1px solid ${tokens.border}`,
+                      }}
+                    >
+                      <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: journey.accent, letterSpacing: '0.04em', pt: '2px' }}>
+                        {step.number}
+                      </Typography>
+                      <Box>
+                        <Typography
+                          sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: tokens.navy, mb: '5px' }}
+                        >
+                          {step.title}
+                        </Typography>
+                        <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.65, maxWidth: '42ch' }}>
+                          {step.body}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
+              ))}
+
+              <Box
+                sx={{
+                  order: { xs: 2, md: 3 },
+                  gridColumn: { md: '1 / -1' },
+                  mt: { md: '48px' },
+                }}
+              >
+                {/* Both journeys arriving at the same place. Desktop only: on a phone the two
+                    columns are already stacked, so there is nothing to converge. */}
+                <Box aria-hidden sx={{ display: { xs: 'none', md: 'block' } }}>
+                  <Box component="svg" viewBox="0 0 800 56" fill="none" sx={{ width: '100%', height: 'auto', display: 'block' }}>
+                    <path
+                      d="M180 2 C 180 34, 400 20, 400 52 M620 2 C 620 34, 400 20, 400 52"
+                      stroke={tokens.amber}
+                      strokeWidth="1.5"
+                      strokeOpacity="0.5"
+                      strokeLinecap="round"
+                      strokeDasharray="480"
+                      strokeDashoffset={journeyInView ? 0 : 480}
+                      style={{ transition: 'stroke-dashoffset 1.1s ease-out' }}
+                    />
+                  </Box>
+                </Box>
+
+                <Box
+                  sx={{
+                    mt: { xs: 0, md: '-2px' },
+                    textAlign: 'center',
+                    borderTop: { xs: `1px solid ${tokens.border}`, md: 'none' },
+                    pt: { xs: '32px', md: 0 },
+                  }}
+                >
+                  <Typography
+                    sx={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: tokens.navy, mb: '14px' }}
+                  >
+                    The AdzOnRoad network
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: '10px 14px' }}>
+                    {['Campaigns', 'Vehicles', 'Location data', 'Playback evidence'].map((part, i) => (
+                      <Box key={part} sx={{ display: 'flex', alignItems: 'center', gap: '10px 14px' }}>
+                        {i > 0 && (
+                          <Box aria-hidden sx={{ fontSize: 13, color: tokens.amber, fontWeight: 700 }}>
+                            +
+                          </Box>
+                        )}
+                        <Typography sx={{ fontSize: 14.5, fontWeight: 600, color: tokens.navy }}>{part}</Typography>
+                      </Box>
+                    ))}
+                  </Box>
+
+                  {/* And out the other side. */}
+                  <Box aria-hidden sx={{ display: 'flex', justifyContent: 'center', mt: '20px' }}>
+                    <Box
+                      sx={{
+                        width: '1px',
+                        height: 28,
+                        backgroundColor: tokens.amber,
+                        opacity: 0.5,
+                        transformOrigin: 'top',
+                        transform: journeyInView ? 'scaleY(1)' : 'scaleY(0)',
+                        transition: 'transform .6s ease-out .9s',
+                      }}
+                    />
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+
+            {/* One outcome rather than two endings. */}
+            <Box sx={{ mt: '24px', pt: { xs: '28px', md: '34px' }, borderTop: `1px solid ${tokens.border}` }}>
+              <Typography
+                sx={{
+                  fontWeight: 800,
+                  fontSize: 'clamp(20px,2.6vw,30px)',
+                  letterSpacing: '-0.028em',
+                  lineHeight: 1.15,
+                  color: tokens.navy,
+                  textTransform: 'uppercase',
+                  mb: '26px',
+                }}
+              >
+                One network.{' '}
+                <Box component="span" sx={{ color: tokens.amber }}>
+                  Value on both sides.
+                </Box>
+              </Typography>
+
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', md: 'repeat(3,1fr)' },
+                  gap: { xs: '22px', md: '40px' },
+                }}
+              >
+                {[
+                  { label: 'Advertisers', body: 'Get measurable campaign delivery.' },
+                  { label: 'Drivers', body: 'Create additional earning opportunities from time already spent on the road.' },
+                  { label: 'AdzOnRoad', body: 'Coordinates the technology, delivery and reporting.' },
+                ].map((item, i) => (
+                  <Box
+                    key={item.label}
+                    sx={{
+                      pl: { md: i === 0 ? 0 : '40px' },
+                      ml: { md: i === 0 ? 0 : '-40px' },
+                      borderLeft: { md: i === 0 ? 'none' : `1px solid ${tokens.border}` },
+                    }}
+                  >
+                    <Typography
+                      sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '7px' }}
+                    >
+                      {item.label}
+                    </Typography>
+                    <Typography sx={{ fontSize: 14.5, color: tokens.navy, lineHeight: 1.6, maxWidth: '32ch' }}>
+                      {item.body}
+                    </Typography>
+                  </Box>
+                ))}
               </Box>
             </Box>
           </Box>
         </Reveal>
+
 
         {/* FOR TAXI COMPANIES
             Four equal cards made a partnership proposition read like a feature list, and two of
