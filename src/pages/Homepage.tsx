@@ -24,7 +24,6 @@ import { fetchRegions, type RegionOption } from '../services/registration';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 import { tokens } from '../theme';
-import heroTaxi from '../assets/hero/hero-taxi.jpg';
 import heroTaxiDaylight from '../assets/hero/hero-taxi-daylight.jpg';
 
 /**
@@ -265,24 +264,29 @@ const CAMPAIGN_STEPS = [
  * the worst possible place to put an invented measurement. Numbers belong here only once something
  * real produces them.
  */
+/**
+ * The three things this section argues, after the fourth was removed.
+ *
+ * "Verified delivery / Not estimated" is gone: GPS and a timestamp evidence that a screen played
+ * something somewhere, which is not the same as a person having seen it, and the platform should
+ * not word it as though it were. "Drivers benefit too" is gone as well — the earnings calculator
+ * further up makes that case with the actual formula, and this section is addressed to advertisers.
+ */
 const ABOUT_PRINCIPLES = [
   {
     number: '01',
-    label: 'Verified delivery',
-    headline: 'Not estimated.',
-    body: 'Campaign activity is connected to location and playback evidence so advertisers can understand where their ads actually ran.',
+    label: 'Location-linked',
+    body: 'Know where campaign activity occurred.',
   },
   {
     number: '02',
-    label: 'Built for the road',
-    headline: 'Designed around Lebanon.',
-    body: 'Regions, routes, traffic patterns and fleet operations are designed around the local market rather than copied from another country.',
+    label: 'Moving coverage',
+    body: 'Campaign delivery moves through the city with participating vehicles.',
   },
   {
     number: '03',
-    label: 'Drivers benefit too',
-    headline: 'New income from existing routes.',
-    body: 'Drivers continue their normal work while AdzOnRoad creates an additional earning opportunity from the vehicle.',
+    label: 'Recorded delivery',
+    body: 'Ad plays contribute toward a measurable campaign delivery target.',
   },
 ];
 
@@ -2410,151 +2414,289 @@ export default function Homepage() {
 
         {/* ABOUT
             The traction figures that used to sit here — 142 advertisers, 2,610 drivers — described
-            a network that does not exist yet: the production database currently holds no screens at
-            all. They are gone rather than restated, and nothing has been invented to replace them.
-            What the section claims now is what the platform does, which is true today. */}
+            a network that does not exist yet, and they are gone rather than restated.
+
+            The photograph went too. It was the night taxi, which fought the daylight hero and the
+            light page around it, and it carried a floating "Live delivery / Hamra, Beirut" card
+            with GPS VERIFIED and DISPLAY CONFIRMED badges on it. Nothing behind that card was
+            live: no campaign has run, so it was a mock of a status the platform cannot currently
+            report, and "verified" claimed more than GPS can support — a recorded ad play is
+            evidence a screen showed something, not that a person saw it.
+
+            Nothing replaced it, because there is no other photograph and inventing one would put
+            a fake vehicle on the page. The argument is made in drawing instead: a route through
+            the city, which is the one thing this product has that a billboard does not.
+
+            The third principle used to be "Drivers benefit too". The earnings calculator two
+            sections up already makes that case with the real formula, so it was saying the same
+            thing again in a section aimed at advertisers. */}
         <Reveal>
-          <Box component="section" id="about" sx={{ py: { xs: '44px', md: '56px' }, scrollMarginTop: '20px' }}>
+          <Box
+            component="section"
+            id="about"
+            sx={{
+              my: { xs: '10px', md: '14px' },
+              px: { xs: '20px', sm: '32px', md: '48px' },
+              py: { xs: '40px', md: '58px' },
+              // Warm rather than the page's cool grey, and only just off it — enough to separate
+              // the section without reading as a coloured block.
+              backgroundColor: '#FAF7F2',
+              border: '1px solid #EFE9DF',
+              borderRadius: { xs: '18px', md: '24px' },
+              scrollMarginTop: '20px',
+            }}
+          >
             <Typography
               sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '12px' }}
             >
               Built for Lebanon
             </Typography>
+
             <Typography
-              sx={{ fontWeight: 700, fontSize: 'clamp(30px,5.2vw,48px)', letterSpacing: '-0.03em', lineHeight: 1.1, color: tokens.navy }}
+              sx={{
+                fontWeight: 700,
+                fontSize: 'clamp(30px,4.6vw,46px)',
+                letterSpacing: '-0.03em',
+                lineHeight: 1.08,
+                color: tokens.navy,
+                maxWidth: '18ch',
+              }}
             >
               Advertising that moves
               <Box component="span" sx={{ display: 'block' }}>
                 with the city.
               </Box>
             </Typography>
-            <Typography sx={{ mt: '18px', fontSize: 'clamp(16px,1.8vw,18px)', fontWeight: 500, color: tokens.text, lineHeight: 1.6, maxWidth: '46ch' }}>
-              AdzOnRoad turns vehicles already moving through Lebanon into a measurable digital
-              advertising network.
+
+            <Typography sx={{ mt: '16px', fontSize: 16, color: 'text.secondary', lineHeight: 1.7, maxWidth: '56ch' }}>
+              AdzOnRoad turns everyday vehicle movement into a new channel for digital outdoor
+              advertising.
             </Typography>
 
+            {/* THE MOVEMENT VISUAL
+                The statement sits beside the route rather than on top of it — text over the lines
+                would need a scrim, and a scrim over a drawing this light turns it grey. */}
             <Box
               sx={{
-                mt: { xs: '48px', md: '68px' },
+                mt: { xs: '34px', md: '52px' },
                 display: 'grid',
-                gridTemplateColumns: { xs: '1fr', md: '1.1fr 0.9fr' },
-                gap: { xs: '48px', md: '64px' },
-                alignItems: 'start',
+                gridTemplateColumns: { xs: '1fr', md: '0.78fr 1.32fr' },
+                gap: { xs: '30px', md: '52px' },
+                alignItems: 'center',
               }}
             >
               <Box>
-                {ABOUT_PRINCIPLES.map((p, i) => (
-                  <Box
-                    key={p.number}
-                    sx={{
-                      display: 'grid',
-                      gridTemplateColumns: '46px 1fr',
-                      gap: '4px',
-                      pt: i === 0 ? 0 : '26px',
-                      mt: i === 0 ? 0 : '26px',
-                      // A hairline between principles rather than three boxes. The rule is the
-                      // separator; nothing needs a container.
-                      borderTop: i === 0 ? 'none' : `1px solid ${tokens.border}`,
-                    }}
-                  >
-                    <Typography sx={{ fontSize: 13, fontWeight: 800, color: tokens.amber, letterSpacing: '0.04em', pt: '2px' }}>
-                      {p.number}
-                    </Typography>
-                    <Box>
-                      <Typography
-                        sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.textMuted, mb: '6px' }}
+                <Typography
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: 'clamp(22px,2.6vw,30px)',
+                    lineHeight: 1.1,
+                    letterSpacing: '-0.028em',
+                    textTransform: 'uppercase',
+                    color: tokens.navy,
+                  }}
+                >
+                  One campaign.
+                  <Box component="span" sx={{ display: 'block', color: tokens.amber }}>
+                    Multiple places.
+                  </Box>
+                </Typography>
+                <Typography sx={{ mt: '14px', fontSize: 14.5, color: 'text.secondary', lineHeight: 1.7, maxWidth: '34ch' }}>
+                  Your campaign moves with participating vehicles instead of remaining fixed to one
+                  location.
+                </Typography>
+              </Box>
+
+              {/* Desktop: one route drawn through the city. The labels are places the network can
+                  target, and carry nothing else — no counts, no uptime, no vehicles per area,
+                  because none of those numbers exist to put on them. */}
+              <Box
+                aria-hidden
+                sx={{
+                  display: { xs: 'none', md: 'block' },
+                  '@keyframes adzRouteTravel': { to: { strokeDashoffset: -1000 } },
+                  // Declared here rather than as an inline style on the path: an inline style
+                  // outranks a stylesheet rule, so the reduced-motion override below would have
+                  // been silently ignored and the route would have kept moving.
+                  '& .adz-travel': { animation: 'adzRouteTravel 7s linear infinite' },
+                  '@media (prefers-reduced-motion: reduce)': {
+                    '& .adz-travel': { animation: 'none' },
+                  },
+                }}
+              >
+                <Box component="svg" viewBox="0 0 620 340" fill="none" sx={{ width: '100%', height: 'auto', display: 'block' }}>
+                  <defs>
+                    <marker
+                      id="adzChevron"
+                      markerWidth="10"
+                      markerHeight="10"
+                      refX="5"
+                      refY="5"
+                      orient="auto"
+                      markerUnits="userSpaceOnUse"
+                    >
+                      <path d="M3 2 L6.5 5 L3 8" fill="none" stroke={tokens.amber} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </marker>
+                  </defs>
+
+                  {/* the rest of the city, kept faint */}
+                  <path
+                    d="M10 196 C 110 224, 196 292, 320 296 C 440 300, 528 276, 612 246"
+                    stroke={tokens.navy}
+                    strokeOpacity="0.07"
+                    strokeWidth="1.25"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M96 24 C 190 52, 250 30, 342 62 C 430 92, 512 66, 612 38"
+                    stroke={tokens.navy}
+                    strokeOpacity="0.07"
+                    strokeWidth="1.25"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M246 168 C 214 196, 190 230, 150 258"
+                    stroke={tokens.navy}
+                    strokeOpacity="0.12"
+                    strokeWidth="1.25"
+                    strokeLinecap="round"
+                    strokeDasharray="4 6"
+                  />
+
+                  {/* the campaign's own route */}
+                  <path
+                    d="M48 74 C 130 74, 158 156, 246 168 C 330 180, 356 232, 432 214 C 508 196, 540 140, 578 118"
+                    stroke={tokens.amber}
+                    strokeOpacity="0.34"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    markerMid="url(#adzChevron)"
+                  />
+                  {/* a short segment travelling it, which is the whole idea of the section */}
+                  <path
+                    className="adz-travel"
+                    d="M48 74 C 130 74, 158 156, 246 168 C 330 180, 356 232, 432 214 C 508 196, 540 140, 578 118"
+                    stroke={tokens.amber}
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    pathLength={1000}
+                    strokeDasharray="46 954"
+                  />
+
+                  {([
+                    { x: 48, y: 74, name: 'Beirut', lx: 62, ly: 66, anchor: 'start', on: true },
+                    { x: 246, y: 168, name: 'Hamra', lx: 258, ly: 159, anchor: 'start', on: true },
+                    { x: 150, y: 258, name: 'Verdun', lx: 150, ly: 282, anchor: 'middle', on: false },
+                    { x: 432, y: 214, name: 'Downtown', lx: 444, ly: 234, anchor: 'start', on: true },
+                    { x: 578, y: 118, name: 'Achrafieh', lx: 570, ly: 100, anchor: 'end', on: true },
+                  ] as const).map((n) => (
+                    <g key={n.name}>
+                      {n.on && <circle cx={n.x} cy={n.y} r="9" fill={tokens.amber} fillOpacity="0.13" />}
+                      <circle
+                        cx={n.x}
+                        cy={n.y}
+                        r={n.on ? 4 : 3.25}
+                        fill={n.on ? tokens.amber : '#fff'}
+                        stroke={n.on ? 'none' : tokens.navy}
+                        strokeOpacity={n.on ? undefined : 0.28}
+                        strokeWidth={n.on ? undefined : 1.25}
+                      />
+                      <text
+                        x={n.lx}
+                        y={n.ly}
+                        textAnchor={n.anchor}
+                        fill={tokens.navy}
+                        fillOpacity={n.on ? 0.82 : 0.45}
+                        fontSize="11.5"
+                        fontFamily="inherit"
+                        fontWeight="600"
+                        letterSpacing="0.02em"
                       >
-                        {p.label}
-                      </Typography>
-                      <Typography
-                        sx={{ fontSize: 'clamp(18px,2vw,21px)', fontWeight: 700, letterSpacing: '-0.02em', color: tokens.navy, mb: '8px' }}
-                      >
-                        {p.headline}
-                      </Typography>
-                      <Typography sx={{ fontSize: 14.5, color: 'text.secondary', lineHeight: 1.7, maxWidth: '48ch' }}>
-                        {p.body}
-                      </Typography>
+                        {n.name}
+                      </text>
+                    </g>
+                  ))}
+                </Box>
+              </Box>
+
+              {/* Mobile: the same idea told vertically, because the horizontal route shrunk to
+                  320px is a squiggle nobody can read. */}
+              <Box aria-hidden sx={{ display: { xs: 'block', md: 'none' } }}>
+                {['Beirut', 'Hamra', 'Verdun', 'Downtown', 'Achrafieh'].map((name, i, all) => (
+                  <Box key={name} sx={{ display: 'flex', alignItems: 'stretch', gap: '14px' }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 12 }}>
+                      <Box
+                        sx={{
+                          width: i === 2 ? 7 : 9,
+                          height: i === 2 ? 7 : 9,
+                          borderRadius: '50%',
+                          flexShrink: 0,
+                          mt: '5px',
+                          backgroundColor: i === 2 ? '#fff' : tokens.amber,
+                          border: i === 2 ? `1.25px solid rgba(15,27,61,0.28)` : 'none',
+                        }}
+                      />
+                      {i < all.length - 1 && (
+                        <Box
+                          sx={{
+                            width: '1.5px',
+                            flex: 1,
+                            minHeight: 26,
+                            mt: '4px',
+                            backgroundColor: i === 1 ? 'rgba(15,27,61,0.12)' : 'rgba(245,166,35,0.34)',
+                          }}
+                        />
+                      )}
                     </Box>
+                    <Typography
+                      sx={{
+                        pb: i < all.length - 1 ? '14px' : 0,
+                        fontSize: 13.5,
+                        fontWeight: 600,
+                        color: tokens.navy,
+                        opacity: i === 2 ? 0.5 : 0.85,
+                      }}
+                    >
+                      {name}
+                    </Typography>
                   </Box>
                 ))}
               </Box>
+            </Box>
 
-              <Box sx={{ position: 'relative' }}>
+            {/* Three columns, separated by rules rather than boxed into cards. */}
+            <Box
+              sx={{
+                mt: { xs: '36px', md: '54px' },
+                pt: { xs: '28px', md: '34px' },
+                borderTop: '1px solid #EAE3D8',
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+                gap: { xs: '26px', sm: '40px' },
+              }}
+            >
+              {ABOUT_PRINCIPLES.map((p, i) => (
                 <Box
-                  component="img"
-                  src={heroTaxi}
-                  alt="An AdzOnRoad screen mounted on a taxi roof in Beirut, lit above the street"
-                  loading="lazy"
+                  key={p.number}
                   sx={{
-                    width: '100%',
-                    height: { xs: 300, sm: 380, md: 470 },
-                    objectFit: 'cover',
-                    objectPosition: 'center 38%',
-                    borderRadius: '16px',
-                    display: 'block',
-                  }}
-                />
-
-                {/* Illustrative, not live: a picture of what the platform records, so the section
-                    reads as a connected system rather than a screen bolted to a roof. Marked hidden
-                    because a screen reader announcing "campaign active" would be stating it as fact.
-                    Deliberately carries no impression or audience figures — there are none to show. */}
-                <Box
-                  aria-hidden
-                  sx={{
-                    position: 'absolute',
-                    left: { xs: '12px', sm: '18px' },
-                    bottom: { xs: '12px', sm: '18px' },
-                    width: { xs: 'calc(100% - 24px)', sm: 236 },
-                    backgroundColor: 'rgba(255,255,255,0.96)',
-                    backdropFilter: 'blur(6px)',
-                    borderRadius: '12px',
-                    border: `1px solid ${tokens.border}`,
-                    boxShadow: tokens.shadowMd,
-                    p: '14px',
+                    pl: { sm: i === 0 ? 0 : '40px' },
+                    ml: { sm: i === 0 ? 0 : '-40px' },
+                    borderLeft: { sm: i === 0 ? 'none' : '1px solid #EAE3D8' },
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '7px', mb: '10px' }}>
-                    <Box
-                      sx={{
-                        width: 7,
-                        height: 7,
-                        borderRadius: '50%',
-                        backgroundColor: tokens.green,
-                        boxShadow: `0 0 0 3px ${tokens.green}22`,
-                      }}
-                    />
-                    <Typography sx={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.textMuted }}>
-                      Live delivery
-                    </Typography>
-                  </Box>
-
-                  <Typography sx={{ fontSize: 14.5, fontWeight: 700, color: tokens.navy, lineHeight: 1.25 }}>
-                    Hamra, Beirut
+                  <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: tokens.amber, letterSpacing: '0.04em', mb: '10px' }}>
+                    {p.number}
                   </Typography>
-                  <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mb: '12px' }}>Campaign active</Typography>
-
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                    {['GPS verified', 'Display confirmed'].map((badge) => (
-                      <Typography
-                        key={badge}
-                        sx={{
-                          fontSize: 10.5,
-                          fontWeight: 700,
-                          letterSpacing: '0.04em',
-                          textTransform: 'uppercase',
-                          color: tokens.navy,
-                          backgroundColor: 'rgba(245,166,35,0.14)',
-                          borderRadius: '999px',
-                          padding: '4px 9px',
-                        }}
-                      >
-                        {badge}
-                      </Typography>
-                    ))}
-                  </Box>
+                  <Typography
+                    sx={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.navy, mb: '8px' }}
+                  >
+                    {p.label}
+                  </Typography>
+                  <Typography sx={{ fontSize: 14.5, color: 'text.secondary', lineHeight: 1.65, maxWidth: '30ch' }}>
+                    {p.body}
+                  </Typography>
                 </Box>
-              </Box>
+              ))}
             </Box>
           </Box>
         </Reveal>
