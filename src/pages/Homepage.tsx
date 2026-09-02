@@ -8,14 +8,6 @@ import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Slider from '@mui/material/Slider';
 import Link from '@mui/material/Link';
-import GpsFixedRoundedIcon from '@mui/icons-material/GpsFixedRounded';
-import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
-import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
-import PaidRoundedIcon from '@mui/icons-material/PaidRounded';
-import ScheduleRoundedIcon from '@mui/icons-material/ScheduleRounded';
-import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
-import MapRoundedIcon from '@mui/icons-material/MapRounded';
-import RocketLaunchRoundedIcon from '@mui/icons-material/RocketLaunchRounded';
 import Fleet from '@mui/icons-material/LocalShipping';
 import HandshakeRoundedIcon from '@mui/icons-material/HandshakeRounded';
 import BuildRoundedIcon from '@mui/icons-material/BuildRounded';
@@ -33,6 +25,7 @@ import LebanonMap from '../components/LebanonMap';
 import Reveal from '../components/Reveal';
 import CountUp from '../components/CountUp';
 import { calculateDriverEarnings, DRIVER_PREMIUM_AREA_BONUS_USD } from '../services/earningsService';
+import { useInView } from '../hooks/useInView';
 import { PRICING_TIERS as CAMPAIGN_PRICING_TIERS } from '../services/pricingService';
 import { formatCurrency } from '../utils/format';
 import { tokens } from '../theme';
@@ -66,17 +59,6 @@ const REGIONS = [
   { name: 'Tripoli', screens: 5, status: 'active' },
   { name: 'Byblos', screens: 3, status: 'active' },
   { name: 'Saida', screens: 3, status: 'active' },
-];
-
-const BENEFITS = [
-  { title: 'GPS-verified advertising', body: 'Every impression is backed by a verified location and timestamp.', icon: GpsFixedRoundedIcon },
-  { title: 'Real-time campaign tracking', body: 'Watch display hours, routes and reach as they happen.', icon: InsightsRoundedIcon },
-  { title: 'Flexible regional targeting', body: 'Cities, radii, or high-traffic corridors — your choice.', icon: PlaceRoundedIcon },
-  { title: 'Transparent pricing', body: 'Clear rates by region, duration and taxi count.', icon: PaidRoundedIcon },
-  { title: 'Measurable display hours', body: 'Every hour on-screen is logged and reportable.', icon: ScheduleRoundedIcon },
-  { title: 'Additional income for drivers', body: 'Steady earnings layered on top of regular fares.', icon: TrendingUpRoundedIcon },
-  { title: 'Wide coverage across Lebanon', body: 'From Tripoli to Tyre, on the roads people already use.', icon: MapRoundedIcon },
-  { title: 'Fast campaign launch', body: 'Most campaigns go live within 48 hours of approval.', icon: RocketLaunchRoundedIcon },
 ];
 
 /**
@@ -335,6 +317,10 @@ function SectionEyebrow({ children }: { children: string }) {
 export default function Homepage() {
   const navigate = useNavigate();
   const [navOpen, setNavOpen] = useState(false);
+  // Drives the delivery bar in the Measure panel, so it fills as the section arrives rather than
+  // having already finished by the time anyone scrolls to it.
+  const [measureRef, measureInView] = useInView<HTMLDivElement>();
+
   const [hours, setHours] = useState(8);
   const [days, setDays] = useState(24);
   const [drivesPremiumAreas, setDrivesPremiumAreas] = useState(true);
@@ -792,54 +778,318 @@ export default function Homepage() {
           </Box>
         </Reveal>
 
-        {/* WHY ADZONROAD */}
+        {/* WHY ADZONROAD
+            Eight equal cards gave eight equal weights, so nothing led and the differentiator —
+            that delivery can be evidenced — sat in the same box as "transparent pricing". Three
+            reasons now, sized by how much they matter, and each one shown rather than described.
+
+            Three claims went with the cards. "Every impression is backed by a verified location
+            and timestamp" asserted completeness the platform cannot demonstrate; it is now what
+            the system can do. "From Tripoli to Tyre" described coverage that does not exist —
+            there are no screens deployed. "Most campaigns go live within 48 hours" was an SLA
+            nobody has committed to. */}
         <Reveal>
-          <Box component="section" sx={{ py: '64px' }}>
-            <SectionEyebrow>Why AdzOnRoad</SectionEyebrow>
-            <Typography sx={{ fontWeight: 700, fontSize: 'clamp(24px,5.2vw,30px)', mb: '28px', letterSpacing: '-0.01em' }}>Built for measurable results</Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4,1fr)' }, gap: '16px' }}>
-              {BENEFITS.map((b) => {
-                const Icon = b.icon;
-                return (
-                  <Card
-                    key={b.title}
+          <Box component="section" sx={{ py: { xs: '72px', md: '96px' } }}>
+            <Typography
+              sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '12px' }}
+            >
+              Why AdzOnRoad
+            </Typography>
+            <Typography
+              sx={{ fontWeight: 700, fontSize: 'clamp(28px,4.8vw,44px)', letterSpacing: '-0.028em', lineHeight: 1.12, color: tokens.navy }}
+            >
+              Outdoor advertising,
+              <Box component="span" sx={{ display: 'block' }}>
+                with proof built in.
+              </Box>
+            </Typography>
+            <Typography sx={{ mt: '16px', fontSize: 15.5, color: 'text.secondary', maxWidth: '58ch', lineHeight: 1.7 }}>
+              Know where your campaign ran, when it was displayed, and how your media moved across
+              the road network.
+            </Typography>
+
+            <Box
+              sx={{
+                mt: { xs: '40px', md: '56px' },
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '1.35fr 1fr' },
+                gap: '16px',
+              }}
+            >
+              {/* VERIFY — the reason the other two matter, so it takes the height of both. */}
+              <Box
+                sx={{
+                  gridRow: { md: 'span 2' },
+                  display: 'flex',
+                  flexDirection: 'column',
+                  p: { xs: '26px', sm: '32px' },
+                  borderRadius: '16px',
+                  border: `1px solid ${tokens.border}`,
+                  backgroundColor: tokens.surface,
+                  '@keyframes adzRouteDash': { to: { strokeDashoffset: -140 } },
+                  '&:hover .adz-route': { animation: 'adzRouteDash 3s linear infinite' },
+                  '@media (prefers-reduced-motion: reduce)': {
+                    '&:hover .adz-route': { animation: 'none' },
+                  },
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: '10px', mb: '10px' }}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 800, color: tokens.amber, letterSpacing: '0.04em' }}>01</Typography>
+                  <Typography sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.textMuted }}>
+                    Verify
+                  </Typography>
+                </Box>
+                <Typography sx={{ fontSize: 'clamp(20px,2.4vw,26px)', fontWeight: 700, letterSpacing: '-0.02em', color: tokens.navy, mb: '8px' }}>
+                  Know where your ads ran.
+                </Typography>
+                <Typography sx={{ fontSize: 14.5, color: 'text.secondary', lineHeight: 1.7, maxWidth: '44ch' }}>
+                  Campaign playback is connected with location and timestamp data, creating a
+                  measurable record of delivery.
+                </Typography>
+
+                <Box aria-hidden sx={{ mt: '28px', flexGrow: 1, display: 'flex', alignItems: 'flex-end' }}>
+                  <Box component="svg" viewBox="0 0 460 260" fill="none" sx={{ width: '100%', height: 'auto', display: 'block' }}>
+                    {/* streets */}
+                    <g stroke={tokens.navy} strokeOpacity="0.07" strokeWidth="1.25" strokeLinecap="round">
+                      <path d="M0 66 H460 M0 134 H460 M0 202 H460" />
+                      <path d="M88 0 V260 M196 0 V260 M304 0 V260 M392 0 V260" />
+                    </g>
+
+                    {/* the route taken */}
+                    <path
+                      d="M28 226 L88 226 L88 134 L196 134 L196 66 L392 66"
+                      stroke={tokens.amber}
+                      strokeOpacity="0.28"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      className="adz-route"
+                      d="M28 226 L88 226 L88 134 L196 134 L196 66 L392 66"
+                      stroke={tokens.amber}
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeDasharray="10 14"
+                    />
+
+                    {/* fixes along it */}
+                    {[
+                      [88, 226],
+                      [88, 134],
+                      [196, 134],
+                      [196, 66],
+                    ].map(([x, y]) => (
+                      <circle key={`${x}-${y}`} cx={x} cy={y} r="3.5" fill={tokens.navy} fillOpacity="0.25" />
+                    ))}
+
+                    {/* current position */}
+                    <circle cx="392" cy="66" r="12" fill={tokens.amber} fillOpacity="0.16" />
+                    <circle cx="392" cy="66" r="5" fill={tokens.amber} />
+
+                    {/* two evidenced moments, with the time each was recorded */}
+                    <g>
+                      <rect x="98" y="106" width="98" height="22" rx="6" fill={tokens.surface} stroke={tokens.border} />
+                      <circle cx="110" cy="117" r="3" fill={tokens.green} />
+                      <text x="120" y="121" fill={tokens.textMuted} fontSize="10" fontFamily="inherit" fontWeight="600">
+                        18:04 verified
+                      </text>
+                    </g>
+                    <g>
+                      <rect x="206" y="38" width="98" height="22" rx="6" fill={tokens.surface} stroke={tokens.border} />
+                      <circle cx="218" cy="49" r="3" fill={tokens.green} />
+                      <text x="228" y="53" fill={tokens.textMuted} fontSize="10" fontFamily="inherit" fontWeight="600">
+                        18:21 verified
+                      </text>
+                    </g>
+                  </Box>
+                </Box>
+              </Box>
+
+              {/* TARGET */}
+              <Box
+                sx={{
+                  p: { xs: '26px', sm: '30px' },
+                  borderRadius: '16px',
+                  border: `1px solid ${tokens.border}`,
+                  backgroundColor: tokens.surface,
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: '10px', mb: '10px' }}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 800, color: tokens.amber, letterSpacing: '0.04em' }}>02</Typography>
+                  <Typography sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.textMuted }}>
+                    Target
+                  </Typography>
+                </Box>
+                <Typography sx={{ fontSize: 'clamp(18px,2vw,21px)', fontWeight: 700, letterSpacing: '-0.02em', color: tokens.navy, mb: '8px' }}>
+                  Put campaigns where they matter.
+                </Typography>
+                <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.65 }}>
+                  Choose the regions, vehicles and campaign parameters that match your advertising
+                  strategy.
+                </Typography>
+
+                <Box aria-hidden sx={{ mt: '22px' }}>
+                  <Box
+                    component="svg"
+                    viewBox="0 0 300 118"
+                    fill="none"
                     sx={{
-                      p: '22px',
-                      border: '1px solid transparent',
-                      transition: 'transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease',
-                      '&:hover': {
-                        transform: 'translateY(-6px)',
-                        boxShadow: tokens.shadowMd,
-                        borderColor: 'rgba(245,166,35,0.4)',
-                        '& .benefit-icon': { backgroundColor: tokens.amber, color: '#fff' },
-                      },
+                      width: '100%',
+                      height: 'auto',
+                      display: 'block',
+                      '& .adz-region': { transition: 'fill-opacity .2s ease, stroke-opacity .2s ease' },
+                      '& .adz-region:hover': { fillOpacity: 0.34, strokeOpacity: 1 },
+                      '@media (prefers-reduced-motion: reduce)': { '& .adz-region': { transition: 'none' } },
                     }}
                   >
+                    {[
+                      { x: 6, y: 8, w: 88, h: 46, on: true },
+                      { x: 102, y: 8, w: 88, h: 46, on: true },
+                      { x: 198, y: 8, w: 96, h: 46, on: false },
+                      { x: 6, y: 62, w: 88, h: 46, on: false },
+                      { x: 102, y: 62, w: 88, h: 46, on: true },
+                      { x: 198, y: 62, w: 96, h: 46, on: false },
+                    ].map((r) => (
+                      <rect
+                        key={`${r.x}-${r.y}`}
+                        className="adz-region"
+                        x={r.x}
+                        y={r.y}
+                        width={r.w}
+                        height={r.h}
+                        rx="8"
+                        fill={r.on ? tokens.amber : tokens.navy}
+                        fillOpacity={r.on ? 0.16 : 0.04}
+                        stroke={r.on ? tokens.amber : tokens.border}
+                        strokeOpacity={r.on ? 0.85 : 1}
+                      />
+                    ))}
+                    {[
+                      [50, 31],
+                      [146, 31],
+                      [146, 85],
+                    ].map(([cx, cy]) => (
+                      <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r="3.5" fill={tokens.amber} />
+                    ))}
+                  </Box>
+                </Box>
+              </Box>
+
+              {/* MEASURE */}
+              <Box
+                ref={measureRef}
+                sx={{
+                  p: { xs: '26px', sm: '30px' },
+                  borderRadius: '16px',
+                  border: `1px solid ${tokens.border}`,
+                  backgroundColor: tokens.surface,
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: '10px', mb: '10px' }}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 800, color: tokens.amber, letterSpacing: '0.04em' }}>03</Typography>
+                  <Typography sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.textMuted }}>
+                    Measure
+                  </Typography>
+                </Box>
+                <Typography sx={{ fontSize: 'clamp(18px,2vw,21px)', fontWeight: 700, letterSpacing: '-0.02em', color: tokens.navy, mb: '8px' }}>
+                  See what was delivered.
+                </Typography>
+                <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.65 }}>
+                  Track campaign progress, display activity and verified delivery from one place.
+                </Typography>
+
+                {/* Sample interface, and labelled as one. The figures below are placeholders in a
+                    mock of the advertiser view — they are not AdzOnRoad's numbers, and the platform
+                    has none to show yet. Hidden from assistive technology so it cannot be read out
+                    as fact. */}
+                <Box
+                  aria-hidden
+                  sx={{
+                    mt: '22px',
+                    p: '16px',
+                    borderRadius: '12px',
+                    border: `1px dashed ${tokens.border}`,
+                    backgroundColor: '#FBFBFD',
+                  }}
+                >
+                  <Typography
+                    sx={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: tokens.textMuted, mb: '12px' }}
+                  >
+                    Example view
+                  </Typography>
+
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: '7px' }}>
+                    <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>Campaign delivery</Typography>
+                    <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: tokens.navy }}>78%</Typography>
+                  </Box>
+                  <Box sx={{ height: 7, borderRadius: '999px', backgroundColor: 'rgba(15,27,61,0.07)', overflow: 'hidden' }}>
                     <Box
-                      className="benefit-icon"
                       sx={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: '10px',
-                        backgroundColor: '#EAF0FF',
-                        color: tokens.blue,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        mb: '14px',
-                        transition: 'background-color 0.25s ease, color 0.25s ease',
+                        height: '100%',
+                        borderRadius: '999px',
+                        backgroundColor: tokens.amber,
+                        width: measureInView ? '78%' : '0%',
+                        transition: 'width 1.1s cubic-bezier(.22,.61,.36,1)',
+                        '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
                       }}
-                    >
-                      <Icon sx={{ fontSize: 20 }} />
-                    </Box>
-                    <Typography sx={{ fontWeight: 700, fontSize: 16, mb: '6px', color: tokens.navy }}>{b.title}</Typography>
-                    <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.55 }}>{b.body}</Typography>
-                  </Card>
-                );
-              })}
+                    />
+                  </Box>
+
+                  <Box sx={{ mt: '16px', display: 'grid', gap: '9px' }}>
+                    {[
+                      { label: 'Verified displays', value: '12,480' },
+                      { label: 'Active vehicles', value: '18' },
+                    ].map((row) => (
+                      <Box key={row.label} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                        <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>{row.label}</Typography>
+                        <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: tokens.navy }}>{row.value}</Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+
+            {/* Who each of the three sides gets something out of it, without another row of cards. */}
+            <Box
+              sx={{
+                mt: { xs: '40px', md: '48px' },
+                pt: { xs: '28px', md: '32px' },
+                borderTop: `1px solid ${tokens.border}`,
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
+                gap: { xs: '22px', md: '40px' },
+              }}
+            >
+              {[
+                { label: 'For advertisers', body: 'Flexible campaign planning' },
+                { label: 'For drivers', body: 'Additional earning opportunity' },
+                { label: 'For fleets', body: 'New value from vehicles already on the road' },
+              ].map((item, i) => (
+                <Box
+                  key={item.label}
+                  sx={{
+                    pl: { md: i === 0 ? 0 : '40px' },
+                    ml: { md: i === 0 ? 0 : '-40px' },
+                    borderLeft: { md: i === 0 ? 'none' : `1px solid ${tokens.border}` },
+                  }}
+                >
+                  <Typography
+                    sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '7px' }}
+                  >
+                    {item.label}
+                  </Typography>
+                  <Typography sx={{ fontSize: 15, fontWeight: 600, color: tokens.navy, lineHeight: 1.5, maxWidth: '26ch' }}>
+                    {item.body}
+                  </Typography>
+                </Box>
+              ))}
             </Box>
           </Box>
         </Reveal>
+
 
         {/* DRIVER EARNINGS CALCULATOR
             The formula is untouched — base, hourly rate and premium bonus all still come from
