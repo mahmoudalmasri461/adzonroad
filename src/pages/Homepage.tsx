@@ -5,7 +5,6 @@ import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
-import Chip from '@mui/material/Chip';
 import Slider from '@mui/material/Slider';
 import Link from '@mui/material/Link';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
@@ -26,14 +25,39 @@ import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 import { tokens } from '../theme';
 import heroTaxi from '../assets/hero/hero-taxi.jpg';
+import heroTaxiDaylight from '../assets/hero/hero-taxi-daylight.jpg';
 
-const NAV_LINKS = ['Advertisers', 'Drivers', 'Taxi Companies', 'Coverage', 'Pricing', 'About', 'Contact'];
+/**
+ * Five links, not seven. About and Contact moved to the footer, which already listed them, and
+ * "Taxi Companies" became "Fleet Partners" — AdzOnRoad may end up working with transport and
+ * commercial fleets, not only taxi companies.
+ *
+ * The href is explicit rather than derived from the label: the section is still id="taxi-companies"
+ * and renaming a nav label should not silently break the anchor.
+ */
+const NAV_LINKS = [
+  { label: 'Advertisers', href: '#advertisers' },
+  { label: 'Drivers', href: '#drivers' },
+  { label: 'Fleet Partners', href: '#taxi-companies' },
+  { label: 'Coverage', href: '#coverage' },
+  { label: 'Pricing', href: '#pricing' },
+];
 
-const HERO_STATS = [
-  { value: '1,248', label: 'Active screens' },
-  { value: '42.6K', label: 'Ads shown today' },
-  { value: '6', label: 'Regions covered' },
-  { value: '3,180', label: 'Verified hours' },
+/**
+ * What replaced the hero statistics.
+ *
+ * The bar said 1,248 active screens, 42.6K ads shown today, 6 regions covered, 3,180 verified
+ * hours. None of it came from anywhere — the production database holds no screens at all — and the
+ * map that half-corroborated the first figure carried its own invented counts. Three things the
+ * product does, stated without a number attached to any of them.
+ *
+ * "Ad play" rather than "impression": a screen showing an advertisement is not evidence a person
+ * saw it, and the platform measures the former.
+ */
+const HERO_PROOF = [
+  { label: 'GPS-linked delivery', body: 'Know where campaign activity occurred.' },
+  { label: '15-second ad plays', body: 'Buy measurable campaign delivery.' },
+  { label: 'Flexible coverage', body: 'Choose where your campaign runs.' },
 ];
 
 /**
@@ -382,6 +406,15 @@ export default function Homepage() {
   // movement would be over before anyone reached it.
   const [journeyRef, journeyInView] = useInView<HTMLDivElement>(0.2);
 
+  // The nav has no separator until there is content behind it to separate from.
+  const [navScrolled, setNavScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setNavScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   const { isSignedIn } = useAuth();
 
   /**
@@ -524,181 +557,404 @@ export default function Homepage() {
 
   return (
     <Box sx={{ backgroundColor: 'background.default', minHeight: '100vh' }}>
-      {/* NAV */}
+      {/* NAV
+            Five links instead of seven. About and Contact moved to the footer, which already
+            listed them, and "Taxi Companies" became "Fleet Partners" — the anchor still points at
+            #taxi-companies, so the section id and the nav label are now allowed to differ, which
+            is why the links carry an explicit href rather than deriving one from the label.
+
+            The primary action is orange. It was navy, which made it the same colour as the links
+            beside it and left the bar with no obvious action. */}
       <Box
         component="nav"
         sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '24px',
-          padding: '16px clamp(20px,5vw,64px)',
-          borderBottom: `1px solid ${tokens.border}`,
-          flexWrap: 'wrap',
-          backgroundColor: 'background.default',
+          position: 'sticky',
+          top: 0,
+          zIndex: 1100,
+          backgroundColor: tokens.surface,
+          // Nothing separates the bar at rest; the line arrives once there is content behind it.
+          borderBottom: `1px solid ${navScrolled ? tokens.border : 'transparent'}`,
+          boxShadow: navScrolled ? '0 1px 3px rgba(16,24,40,0.06)' : 'none',
+          transition: 'border-color .2s ease, box-shadow .2s ease',
+          '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
         }}
       >
-        <Logo size="lg" />
+        <Container
+          maxWidth="lg"
+          sx={{
+            px: 'clamp(20px,5vw,64px)',
+            height: { xs: 64, md: 76 },
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '24px',
+          }}
+        >
+          <Logo size="md" />
 
-        {/* Seven links do not fit a phone, and wrapping them turns the bar into a third of the
-            screen — below md they move into the drawer instead. */}
-        <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: '22px', flexWrap: 'wrap' }}>
-          {NAV_LINKS.map((link) => (
-            <Link key={link} href={`#${link.toLowerCase().replace(/ /g, '-')}`} underline="none" sx={{ fontSize: 14, color: 'text.primary', fontWeight: 500 }}>
-              {link}
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: '28px' }}>
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                underline="none"
+                sx={{
+                  fontSize: 14.5,
+                  fontWeight: 500,
+                  color: tokens.textMuted,
+                  transition: 'color .18s ease',
+                  '&:hover': { color: tokens.navy },
+                  '&:focus-visible': { outline: `2px solid ${tokens.amber}`, outlineOffset: '4px', borderRadius: '4px' },
+                  '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
+                }}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </Box>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <Link
+              component="button"
+              type="button"
+              onClick={() => navigate('/login')}
+              underline="none"
+              sx={{
+                display: { xs: 'none', sm: 'inline-flex' },
+                fontFamily: 'inherit',
+                fontSize: 14.5,
+                fontWeight: 600,
+                color: tokens.navy,
+                background: 'none',
+                border: 0,
+                cursor: 'pointer',
+                '&:hover': { color: tokens.amber600 },
+                '&:focus-visible': { outline: `2px solid ${tokens.amber}`, outlineOffset: '4px', borderRadius: '4px' },
+              }}
+            >
+              Sign in
             </Link>
-          ))}
-        </Box>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Button
-            variant="outlined"
-            color="inherit"
-            sx={{ display: { xs: 'none', sm: 'inline-flex' }, borderColor: tokens.border, color: tokens.text }}
-            onClick={() => navigate('/login')}
-          >
-            Sign In
-          </Button>
-          <Button
-            variant="contained"
-            sx={{
-              display: { xs: 'none', sm: 'inline-flex' },
-              backgroundColor: tokens.navy,
-              color: '#fff',
-              '&:hover': { backgroundColor: tokens.navy700 },
-            }}
-            onClick={() => navigate('/signup?role=advertiser')}
-          >
-            Launch Campaign
-          </Button>
-          <IconButton
-            aria-label="Open menu"
-            onClick={() => setNavOpen(true)}
-            sx={{ display: { xs: 'inline-flex', md: 'none' }, color: tokens.navy }}
-          >
-            <MenuRoundedIcon />
-          </IconButton>
-        </Box>
+            <Button
+              variant="contained"
+              color="primary"
+              sx={{
+                display: { xs: 'none', sm: 'inline-flex' },
+                '& .arrow': { transition: 'transform .2s ease' },
+                '&:hover .arrow': { transform: 'translateX(3px)' },
+                '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
+              }}
+              onClick={() => navigate('/signup?role=advertiser')}
+            >
+              Launch a Campaign
+            </Button>
+            <IconButton
+              aria-label="Open menu"
+              onClick={() => setNavOpen(true)}
+              sx={{ display: { xs: 'inline-flex', md: 'none' }, color: tokens.navy }}
+            >
+              <MenuRoundedIcon />
+            </IconButton>
+          </Box>
+        </Container>
       </Box>
 
       <Drawer anchor="right" open={navOpen} onClose={() => setNavOpen(false)}>
-        <Box sx={{ width: 260, p: '16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: '8px' }}>
+        <Box sx={{ width: 272, p: '16px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: '10px' }}>
             <Logo size="md" />
             <IconButton aria-label="Close menu" onClick={() => setNavOpen(false)}>
               <CloseRoundedIcon />
             </IconButton>
           </Box>
-          {NAV_LINKS.map((link) => (
+          {/* The drawer keeps About and Contact: there is room here, and they are the two the
+              desktop bar dropped for space rather than because they stopped mattering. */}
+          {[...NAV_LINKS, { label: 'About', href: '#about' }, { label: 'Contact', href: '#contact' }].map((link) => (
             <Link
-              key={link}
-              href={`#${link.toLowerCase().replace(/ /g, '-')}`}
+              key={link.label}
+              href={link.href}
               underline="none"
               onClick={() => setNavOpen(false)}
-              sx={{ fontSize: 15, fontWeight: 500, color: 'text.primary', py: '10px', px: '8px', borderRadius: '8px', '&:hover': { backgroundColor: tokens.bg } }}
+              sx={{
+                fontSize: 15,
+                fontWeight: 500,
+                color: tokens.navy,
+                py: '11px',
+                px: '8px',
+                borderRadius: '8px',
+                '&:hover': { backgroundColor: tokens.bg },
+              }}
             >
-              {link}
+              {link.label}
             </Link>
           ))}
-          <Box sx={{ display: 'grid', gap: '10px', mt: '16px' }}>
+          <Box sx={{ display: 'grid', gap: '10px', mt: '18px' }}>
             <Button
               fullWidth
               variant="contained"
-              sx={{ backgroundColor: tokens.navy, color: '#fff', '&:hover': { backgroundColor: tokens.navy700 } }}
+              color="primary"
               onClick={() => { setNavOpen(false); navigate('/signup?role=advertiser'); }}
             >
-              Launch Campaign
+              Launch a Campaign
             </Button>
             <Button
               fullWidth
               variant="outlined"
               color="inherit"
-              sx={{ borderColor: tokens.border, color: tokens.text }}
+              sx={{ borderColor: tokens.border, color: tokens.navy }}
               onClick={() => { setNavOpen(false); navigate('/login'); }}
             >
-              Sign In
+              Sign in
             </Button>
           </Box>
         </Box>
       </Drawer>
 
-      {/* HERO */}
+      {/* HERO
+            The old one put the photograph behind everything and covered it with navy at 94%
+            opacity, which is why the whole thing read blue rather than AdzOnRoad. The page is
+            light now and the photograph sits in its own half, shown rather than tinted.
+
+            The statistics bar is gone: 1,248 active screens, 42.6K ads shown today, 3,180 verified
+            hours. None of it came from anywhere — the production database holds no screens — and
+            it is replaced by three things the product actually does rather than by other numbers.
+
+            "real-time GPS tracking" went with it. Playback carries GPS and timestamp evidence;
+            it is not a live tracker, and the copy says location-linked reporting instead. */}
       <Box
+        component="section"
         sx={{
-          backgroundImage: `url(${heroTaxi})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center 28%',
-          padding: '64px clamp(20px,5vw,64px) 72px',
-          position: 'relative',
-          overflow: 'hidden',
+          backgroundColor: tokens.bg,
+          borderBottom: `1px solid ${tokens.border}`,
+          '@keyframes adzHeroIn': {
+            from: { opacity: 0, transform: 'translateY(12px)' },
+            to: { opacity: 1, transform: 'none' },
+          },
+          '@media (prefers-reduced-motion: reduce)': {
+            '& [data-hero-in]': { animation: 'none !important', opacity: 1 },
+          },
         }}
       >
-        <Box
+        <Container
+          maxWidth="lg"
           sx={{
-            position: 'absolute',
-            inset: 0,
-            background: `linear-gradient(160deg, ${tokens.navy}F0 0%, ${tokens.navy600}E0 55%, #24397ACC 100%)`,
+            px: 'clamp(20px,5vw,64px)',
+            py: { xs: '44px', md: '64px' },
+            minHeight: { md: 620 },
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
           }}
-        />
-        <Box sx={{ position: 'absolute', inset: 0, background: 'radial-gradient(700px 500px at 88% 10%, rgba(245,166,35,0.22), transparent 60%)' }} />
-        <Container maxWidth="lg" sx={{ position: 'relative' }}>
-          <Box sx={{ maxWidth: 640 }}>
-            <Chip
-              label="Digital Out-of-Home · Lebanon"
-              sx={{
-                fontSize: 12.5,
-                fontWeight: 600,
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                color: tokens.amber,
-                backgroundColor: 'rgba(245,166,35,0.14)',
-                mb: '22px',
-              }}
-            />
-            <Typography sx={{ fontWeight: 800, fontSize: 'clamp(36px,4.4vw,54px)', lineHeight: 1.1, letterSpacing: '-0.02em', color: '#fff' }}>
-              Turn Every Road Into an Advertising Opportunity
-            </Typography>
-            <Typography sx={{ fontSize: 17, lineHeight: 1.65, color: 'rgba(255,255,255,0.75)', maxWidth: '50ch', mt: '20px' }}>
-              Launch location-based digital campaigns across Lebanon using smart taxi-top screens with real-time GPS tracking.
-            </Typography>
-            <Box sx={{ display: 'flex', gap: '12px', flexWrap: 'wrap', mt: '30px' }}>
-              <Button variant="contained" color="primary" size="large" onClick={() => navigate('/signup?role=advertiser')}>
-                Launch a Campaign
-              </Button>
-              <Button
-                variant="outlined"
-                size="large"
-                sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.35)', '&:hover': { borderColor: 'rgba(255,255,255,0.7)' } }}
-                onClick={() => navigate('/signup?role=driver')}
+        >
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+              gap: { xs: '36px', md: '56px' },
+              alignItems: 'center',
+            }}
+          >
+            <Box>
+              <Typography
+                data-hero-in
+                sx={{
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  color: tokens.amber,
+                  mb: '18px',
+                  animation: 'adzHeroIn .5s ease-out both',
+                }}
               >
-                Become a Driver Partner
-              </Button>
+                Lebanon&rsquo;s moving media network
+              </Typography>
+
+              <Typography
+                data-hero-in
+                component="h1"
+                sx={{
+                  m: 0,
+                  fontWeight: 800,
+                  fontSize: 'clamp(38px,4.6vw,56px)',
+                  lineHeight: 1.02,
+                  letterSpacing: '-0.04em',
+                  textTransform: 'uppercase',
+                  color: tokens.navy,
+                  animation: 'adzHeroIn .55s ease-out .06s both',
+                }}
+              >
+                Make the city
+                <Box component="span" sx={{ display: 'block', color: tokens.amber }}>
+                  your billboard.
+                </Box>
+              </Typography>
+
+              <Typography
+                data-hero-in
+                sx={{
+                  mt: '22px',
+                  fontSize: { xs: 16.5, md: 18.5 },
+                  lineHeight: 1.65,
+                  color: 'text.secondary',
+                  maxWidth: 560,
+                  animation: 'adzHeroIn .55s ease-out .12s both',
+                }}
+              >
+                Launch location-targeted campaigns across a network of moving digital screens
+                &mdash; with measurable delivery and GPS-linked reporting.
+              </Typography>
+
+              <Box
+                data-hero-in
+                sx={{ mt: '32px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '18px', animation: 'adzHeroIn .55s ease-out .18s both' }}
+              >
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  onClick={() => navigate('/signup?role=advertiser')}
+                  sx={{
+                    fontSize: 15.5,
+                    px: '26px',
+                    '& .arrow': { transition: 'transform .2s ease' },
+                    '&:hover .arrow': { transform: 'translateX(3px)' },
+                    '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
+                  }}
+                >
+                  Launch a campaign
+                  <Box component="span" className="arrow" aria-hidden sx={{ ml: '9px', fontSize: 17, lineHeight: 1 }}>
+                    &rarr;
+                  </Box>
+                </Button>
+
+                <Link
+                  href="#coverage"
+                  underline="none"
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: 15,
+                    fontWeight: 600,
+                    color: tokens.navy,
+                    '& .arrow': { transition: 'transform .2s ease' },
+                    '&:hover .arrow': { transform: 'translateX(3px)' },
+                    '&:focus-visible': { outline: `2px solid ${tokens.amber}`, outlineOffset: '4px', borderRadius: '4px' },
+                    '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
+                  }}
+                >
+                  Explore the network
+                  <Box component="span" className="arrow" aria-hidden sx={{ fontSize: 16, lineHeight: 1 }}>
+                    &rarr;
+                  </Box>
+                </Link>
+              </Box>
+
+              <Typography
+                data-hero-in
+                sx={{ mt: '26px', fontSize: 13.5, color: tokens.textMuted, animation: 'adzHeroIn .55s ease-out .24s both' }}
+              >
+                Drive with AdzOnRoad?{' '}
+                <Link
+                  component={RouterLink}
+                  to="/signup?role=driver"
+                  underline="hover"
+                  sx={{ fontWeight: 600, color: tokens.navy }}
+                >
+                  Become a driver partner &rarr;
+                </Link>
+              </Typography>
             </Box>
 
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4,1fr)' },
-                gap: '1px',
-                backgroundColor: 'rgba(255,255,255,0.12)',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                mt: '40px',
-                border: '1px solid rgba(255,255,255,0.12)',
-              }}
-            >
-              {HERO_STATS.map((stat) => (
-                <Box key={stat.label} sx={{ backgroundColor: 'rgba(255,255,255,0.05)', padding: '14px 16px' }}>
-                  <Typography sx={{ fontSize: 22, fontWeight: 700, color: '#fff' }}>{stat.value}</Typography>
-                  <Typography sx={{ mt: '4px', fontSize: 11, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)' }}>
-                    {stat.label}
-                  </Typography>
+            <Box data-hero-in sx={{ position: 'relative', animation: 'adzHeroIn .7s ease-out .2s both' }}>
+              <Box
+                component="img"
+                src={heroTaxiDaylight}
+                alt="A car on the Beirut corniche carrying an AdzOnRoad digital advertising screen on its roof"
+                sx={{
+                  width: '100%',
+                  height: { xs: 260, sm: 340, md: 440 },
+                  objectFit: 'cover',
+                  objectPosition: 'center 34%',
+                  borderRadius: '18px',
+                  display: 'block',
+                }}
+              />
+
+              {/* One preview, not a dashboard. Labelled as an example because no campaign has run:
+                  the figures are a picture of what an advertiser follows, not AdzOnRoad's numbers.
+                  Hidden from assistive technology so none of it is announced as real delivery. */}
+              <Box
+                aria-hidden
+                sx={{
+                  position: 'absolute',
+                  left: { xs: '12px', sm: '18px' },
+                  bottom: { xs: '12px', sm: '18px' },
+                  width: { xs: 'calc(100% - 24px)', sm: 244 },
+                  p: '14px',
+                  borderRadius: '12px',
+                  backgroundColor: 'rgba(255,255,255,0.96)',
+                  border: `1px solid ${tokens.border}`,
+                  boxShadow: tokens.shadowMd,
+                }}
+              >
+                <Typography
+                  sx={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: tokens.textMuted, mb: '10px' }}
+                >
+                  Example campaign
+                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: '7px' }}>
+                  <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Campaign delivery</Typography>
+                  <Typography sx={{ fontSize: 15, fontWeight: 800, color: tokens.navy, letterSpacing: '-0.02em' }}>72%</Typography>
                 </Box>
-              ))}
+                <Box sx={{ height: 6, borderRadius: '999px', backgroundColor: 'rgba(15,27,61,0.08)', overflow: 'hidden' }}>
+                  <Box sx={{ width: '72%', height: '100%', borderRadius: '999px', backgroundColor: tokens.amber }} />
+                </Box>
+                <Box sx={{ mt: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                  <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>72,000 / 100,000 plays</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: tokens.green }} />
+                    <Typography sx={{ fontSize: 11.5, fontWeight: 600, color: tokens.navy }}>On track</Typography>
+                  </Box>
+                </Box>
+              </Box>
             </Box>
+          </Box>
+
+          {/* What the product does, where four invented numbers used to be. */}
+          <Box
+            data-hero-in
+            sx={{
+              mt: { xs: '40px', md: '56px' },
+              pt: { xs: '26px', md: '30px' },
+              borderTop: `1px solid ${tokens.border}`,
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(3,1fr)' },
+              gap: { xs: '20px', sm: '36px' },
+              animation: 'adzHeroIn .6s ease-out .3s both',
+            }}
+          >
+            {HERO_PROOF.map((item, i) => (
+              <Box
+                key={item.label}
+                sx={{
+                  pl: { sm: i === 0 ? 0 : '36px' },
+                  ml: { sm: i === 0 ? 0 : '-36px' },
+                  borderLeft: { sm: i === 0 ? 'none' : `1px solid ${tokens.border}` },
+                }}
+              >
+                <Typography
+                  sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '6px' }}
+                >
+                  {item.label}
+                </Typography>
+                <Typography sx={{ fontSize: 14.5, color: tokens.navy, lineHeight: 1.55, maxWidth: '30ch' }}>{item.body}</Typography>
+              </Box>
+            ))}
           </Box>
         </Container>
       </Box>
+
 
       <Container maxWidth="lg" sx={{ px: 'clamp(20px,5vw,64px)' }}>
         {/* HOW IT WORKS
