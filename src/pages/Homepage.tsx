@@ -989,31 +989,33 @@ export default function Homepage() {
                 where it would only push the statement down the page. */}
             <Box
               aria-hidden
-              sx={{ display: { xs: 'none', md: 'block' }, justifySelf: 'end', width: '100%', maxWidth: 300 }}
+              sx={{ display: { xs: 'none', md: 'block' }, justifySelf: 'end', width: '100%', maxWidth: 260 }}
             >
               <Box component="svg" viewBox="0 0 300 230" fill="none" sx={{ width: '100%', height: 'auto', display: 'block' }}>
                 <defs>
+                  {/* Stays faint even where it is strongest. The dot is the only part meant to be
+                      noticed, and only after the sentence has been read. */}
                   <linearGradient id="adzRouteFade" x1="0" y1="1" x2="1" y2="0">
                     <stop offset="0%" stopColor={tokens.amber} stopOpacity="0" />
-                    <stop offset="55%" stopColor={tokens.amber} stopOpacity="0.5" />
-                    <stop offset="100%" stopColor={tokens.amber} stopOpacity="0.95" />
+                    <stop offset="55%" stopColor={tokens.amber} stopOpacity="0.22" />
+                    <stop offset="100%" stopColor={tokens.amber} stopOpacity="0.5" />
                   </linearGradient>
                 </defs>
                 <path
                   d="M2 218 C 78 206, 112 168, 133 128 S 190 52, 286 26"
                   stroke={tokens.navy}
-                  strokeOpacity="0.07"
-                  strokeWidth="9"
+                  strokeOpacity="0.04"
+                  strokeWidth="7"
                   strokeLinecap="round"
                 />
                 <path
                   d="M2 218 C 78 206, 112 168, 133 128 S 190 52, 286 26"
                   stroke="url(#adzRouteFade)"
-                  strokeWidth="2.5"
+                  strokeWidth="1.75"
                   strokeLinecap="round"
                 />
-                <circle cx="286" cy="26" r="13" fill={tokens.amber} fillOpacity="0.14" />
-                <circle cx="286" cy="26" r="5" fill={tokens.amber} />
+                <circle cx="286" cy="26" r="11" fill={tokens.amber} fillOpacity="0.08" />
+                <circle cx="286" cy="26" r="3.75" fill={tokens.amber} fillOpacity="0.75" />
               </Box>
             </Box>
           </Box>
