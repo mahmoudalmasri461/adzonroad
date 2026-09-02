@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
@@ -23,17 +23,11 @@ import BuildRoundedIcon from '@mui/icons-material/BuildRounded';
 import SupportAgentRoundedIcon from '@mui/icons-material/SupportAgentRounded';
 import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
-import EmailRoundedIcon from '@mui/icons-material/EmailRounded';
-import PhoneRoundedIcon from '@mui/icons-material/PhoneRounded';
-import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined';
 import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded';
-import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
-import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
 import Divider from '@mui/material/Divider';
 import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
@@ -43,7 +37,6 @@ import Logo from '../components/Logo';
 import LebanonMap from '../components/LebanonMap';
 import Reveal from '../components/Reveal';
 import CountUp from '../components/CountUp';
-import { useToast } from '../contexts/ToastProvider';
 import { calculateDriverEarnings } from '../services/earningsService';
 import { PRICING_TIERS as CAMPAIGN_PRICING_TIERS } from '../services/pricingService';
 import { formatCurrency } from '../utils/format';
@@ -191,20 +184,13 @@ const ABOUT_COMMITMENTS = [
   'No long-term lock-in for advertisers',
 ];
 
-const CONTACT_CHANNELS = [
-  { label: 'Email', value: 'Info@adzonroad.com', href: 'mailto:Info@adzonroad.com', icon: EmailRoundedIcon },
-  { label: 'Phone', value: '+961 71 600 011', href: 'tel:+96171600011', icon: PhoneRoundedIcon },
-  { label: 'Office', value: 'Beirut, Lebanon', href: null, icon: PlaceOutlinedIcon },
-  { label: 'Hours', value: 'Mon–Fri, 9:00–18:00', href: null, icon: AccessTimeRoundedIcon },
-];
-
-/** Routing the enquiry at the form rather than in somebody's inbox. */
-const CONTACT_REASONS = [
-  'I want to run a campaign',
-  'I drive a taxi and want a screen',
-  'I run a fleet and want to partner',
-  'Press or something else',
-];
+/**
+ * Routing the enquiry at the form rather than in somebody's inbox.
+ *
+ * Short enough to sit on a pill. The sentences these replaced ("I drive a taxi and want a screen")
+ * only worked inside a dropdown, where there was room to read them one at a time.
+ */
+const CONTACT_REASONS = ['Advertising', 'Driver partnership', 'Taxi / fleet partnership', 'Other'];
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -317,6 +303,34 @@ function FleetVisual() {
   );
 }
 
+/**
+ * Streets, and one route crossing them.
+ *
+ * Stands in for a map without pretending to be one — an actual Beirut street plan at this size
+ * would be unreadable, and a recognisable one would be a claim about coverage the network cannot
+ * yet make. Decorative; the wrapper marks it hidden.
+ */
+function StreetVisual() {
+  return (
+    <Box component="svg" viewBox="0 0 260 120" fill="none" sx={{ width: '100%', height: 'auto', display: 'block' }}>
+      <g stroke={tokens.navy} strokeOpacity="0.08" strokeWidth="1.25" strokeLinecap="round">
+        <path d="M0 34 H260 M0 74 H260" />
+        <path d="M52 0 V120 M126 0 V120 M198 0 V120" />
+      </g>
+      <path
+        d="M8 108 L 52 108 L 52 74 L 126 74 L 126 34 L 216 34"
+        stroke={tokens.amber}
+        strokeOpacity="0.5"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="216" cy="34" r="8" fill={tokens.amber} fillOpacity="0.1" />
+      <circle cx="216" cy="34" r="3" fill={tokens.amber} fillOpacity="0.8" />
+    </Box>
+  );
+}
+
 function SectionEyebrow({ children }: { children: string }) {
   return (
     <Typography sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: tokens.blue, mb: '10px' }}>
@@ -327,27 +341,30 @@ function SectionEyebrow({ children }: { children: string }) {
 
 export default function Homepage() {
   const navigate = useNavigate();
-  const { showToast } = useToast();
   const [navOpen, setNavOpen] = useState(false);
   const [hours, setHours] = useState(8);
   const [days, setDays] = useState(24);
   const [drivesPremiumAreas, setDrivesPremiumAreas] = useState(true);
-  const [contactName, setContactName] = useState('');
-  const contactNameRef = useRef<HTMLInputElement>(null);
-
   /**
-   * Takes "Talk to our team" to the form and puts the cursor in it.
+   * The contact inputs, quieter than the theme's default.
    *
-   * preventScroll on the focus call because focusing would otherwise jump the field to the top of
-   * the viewport and undo the smooth scroll that just ran — the two fight, and the abrupt one wins.
+   * A faint fill instead of a white field on a white card: with the surrounding card gone, an
+   * outlined-only input has nothing to sit against and reads as a floating rectangle. Orange on
+   * focus rather than the palette's blue, because focus is the one moment in this section where
+   * the accent means something.
    */
-  const focusContactForm = () => {
-    const field = contactNameRef.current;
-    if (!field) return;
-    field.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    field.focus({ preventScroll: true });
-  };
+  const fieldSx = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '11px',
+      backgroundColor: '#FBFBFD',
+      '& fieldset': { borderColor: tokens.border },
+      '&:hover fieldset': { borderColor: '#D3D8E2' },
+      '&.Mui-focused fieldset': { borderColor: tokens.amber, borderWidth: '1.5px' },
+    },
+    '& .MuiInputLabel-root.Mui-focused': { color: tokens.amber600 },
+  } as const;
 
+  const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [contactReason, setContactReason] = useState(CONTACT_REASONS[0]);
@@ -378,8 +395,10 @@ export default function Homepage() {
 
     // No mail provider is connected, so nothing is actually delivered. The confirmation says so
     // rather than implying somebody is now reading it.
+    //
+    // No toast: the form is replaced in place by the confirmation, and a popup on top of that is
+    // the same news twice — one of which disappears before it can be read.
     setContactSent(true);
-    showToast('Thanks — your message is ready to send (preview only)');
   };
 
   const resetContactForm = () => {
@@ -1296,127 +1315,119 @@ export default function Homepage() {
         {/* CONTACT */}
         <Reveal>
           <Box component="section" id="contact" sx={{ py: '64px', scrollMarginTop: '20px' }}>
-            {/* Reads as the next step after the three cards rather than a new topic: whichever
-                one someone recognised themselves in, this is where it goes. */}
+            {/* The heading block carries the section on its own. There is no button here on
+                purpose: the form is the next thing on the page, and a button whose only job is to
+                scroll to something already in view is a step that reads as progress and is not. */}
             <Typography
               sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '12px' }}
             >
-              Ready to move?
+              Let&rsquo;s talk
             </Typography>
             <Typography
-              sx={{ fontWeight: 700, fontSize: 'clamp(26px,4.4vw,40px)', mb: '14px', letterSpacing: '-0.025em', lineHeight: 1.15, color: tokens.navy, maxWidth: '20ch' }}
+              sx={{ fontWeight: 700, fontSize: 'clamp(28px,4.8vw,44px)', letterSpacing: '-0.028em', lineHeight: 1.12, color: tokens.navy }}
             >
-              Let&rsquo;s put your next idea on the road.
+              Ready to put your brand
+              <Box component="span" sx={{ display: 'block' }}>
+                on the road?
+              </Box>
             </Typography>
-            <Typography sx={{ fontSize: 15.5, color: 'text.secondary', maxWidth: '62ch', lineHeight: 1.7 }}>
-              Whether you&rsquo;re planning a campaign, bringing vehicles into the network, or
-              exploring a fleet partnership, talk directly to the team that handles it.
+            <Typography sx={{ mt: '16px', fontSize: 15.5, color: 'text.secondary', maxWidth: '58ch', lineHeight: 1.7 }}>
+              Whether you&rsquo;re launching a campaign, bringing vehicles into the network, or
+              exploring a fleet partnership, tell us what you have in mind.
             </Typography>
 
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '14px', mt: '24px', mb: '36px' }}>
-              {/* The form is directly below, so this moves to it and puts the cursor in the first
-                  field — a button that only scrolls would be asking for a second click. */}
-              <Button variant="contained" color="primary" size="large" onClick={focusContactForm}>
-                Talk to our team
-              </Button>
-              <Link
-                href="mailto:Info@adzonroad.com"
-                underline="hover"
-                sx={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: 14.5, fontWeight: 600, color: tokens.navy }}
-              >
-                <EmailRoundedIcon sx={{ fontSize: 17, color: tokens.amber }} />
-                Info@adzonroad.com
-              </Link>
-            </Box>
-
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '0.85fr 1.15fr' }, gap: '20px', alignItems: 'stretch' }}>
-              {/* Details as a dark panel: the form is the busy half, and giving the contact
-                  details their own weight stops them reading as a caption to it. */}
-              <Card
-                sx={{
-                  p: { xs: '24px', sm: '30px' },
-                  border: 'none',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  background: `linear-gradient(160deg, ${tokens.navy} 0%, ${tokens.navy600} 100%)`,
-                }}
-              >
-                <Typography sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '20px' }}>
-                  Reach us directly
+            {/* The form leads on a phone. Someone who has scrolled this far has already decided to
+                get in touch, and making them pass an address and a map line first is asking them to
+                scroll past the thing they came for. */}
+            <Box
+              sx={{
+                mt: { xs: '40px', md: '56px' },
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '0.62fr 1fr' },
+                gap: { xs: '48px', md: '72px' },
+                alignItems: 'start',
+              }}
+            >
+              <Box sx={{ order: { xs: 2, md: 1 } }}>
+                <Typography
+                  sx={{
+                    fontSize: 'clamp(17px,1.7vw,20px)',
+                    fontWeight: 800,
+                    letterSpacing: '0.01em',
+                    lineHeight: 1.35,
+                    color: tokens.navy,
+                    textTransform: 'uppercase',
+                    maxWidth: '18ch',
+                  }}
+                >
+                  Let&rsquo;s build something that moves.
+                </Typography>
+                <Typography sx={{ mt: '14px', fontSize: 14.5, color: 'text.secondary', lineHeight: 1.7, maxWidth: '40ch' }}>
+                  Tell us what you&rsquo;re looking to achieve and we&rsquo;ll connect you with the
+                  right person.
                 </Typography>
 
-                <Box sx={{ display: 'grid', gap: '18px' }}>
-                  {CONTACT_CHANNELS.map((channel) => {
-                    const Icon = channel.icon;
-                    const value = (
-                      <Typography sx={{ fontSize: 14.5, fontWeight: 600, color: '#fff', wordBreak: 'break-word' }}>
-                        {channel.value}
-                      </Typography>
-                    );
+                <Box sx={{ mt: '32px', display: 'grid', gap: '22px' }}>
+                  <Box>
+                    <Typography sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: tokens.textMuted, mb: '6px' }}>
+                      Email
+                    </Typography>
+                    <Link
+                      href="mailto:Info@adzonroad.com"
+                      underline="none"
+                      sx={{
+                        position: 'relative',
+                        display: 'inline-block',
+                        fontSize: 15,
+                        fontWeight: 600,
+                        color: tokens.navy,
+                        '&::after': {
+                          content: '""',
+                          position: 'absolute',
+                          left: 0,
+                          bottom: '-3px',
+                          width: '100%',
+                          height: '1px',
+                          backgroundColor: tokens.amber,
+                          transform: 'scaleX(0)',
+                          transformOrigin: 'left',
+                          transition: 'transform .28s ease',
+                        },
+                        '&:hover::after, &:focus-visible::after': { transform: 'scaleX(1)' },
+                        '@media (prefers-reduced-motion: reduce)': { '&::after': { transition: 'none' } },
+                      }}
+                    >
+                      Info@adzonroad.com
+                    </Link>
+                  </Box>
 
-                    return (
-                      <Box key={channel.label} sx={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
-                        <Box
-                          sx={{
-                            width: 38,
-                            height: 38,
-                            borderRadius: '11px',
-                            flexShrink: 0,
-                            backgroundColor: 'rgba(255,255,255,0.09)',
-                            color: tokens.amber,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <Icon sx={{ fontSize: 19 }} />
-                        </Box>
-                        <Box sx={{ minWidth: 0 }}>
-                          <Typography sx={{ fontSize: 11.5, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', mb: '3px' }}>
-                            {channel.label}
-                          </Typography>
-                          {channel.href ? (
-                            <Link href={channel.href} underline="hover" sx={{ color: '#fff' }}>
-                              {value}
-                            </Link>
-                          ) : value}
-                        </Box>
-                      </Box>
-                    );
-                  })}
+                  <Box>
+                    <Typography sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: tokens.textMuted, mb: '6px' }}>
+                      Location
+                    </Typography>
+                    <Typography sx={{ fontSize: 15, fontWeight: 600, color: tokens.navy }}>Beirut, Lebanon</Typography>
+                  </Box>
                 </Box>
 
-                <Divider sx={{ my: '24px', borderColor: 'rgba(255,255,255,0.14)' }} />
-
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '9px', mb: '20px' }}>
-                  <CheckCircleRoundedIcon sx={{ fontSize: 16, color: tokens.amber, mt: '2px', flexShrink: 0 }} />
-                  <Typography sx={{ fontSize: 13.5, color: 'rgba(255,255,255,0.75)', lineHeight: 1.55 }}>
-                    We reply to every enquiry within one business day.
-                  </Typography>
+                <Box aria-hidden sx={{ mt: '36px', maxWidth: 260 }}>
+                  <StreetVisual />
                 </Box>
 
-                <Box sx={{ mt: 'auto' }}>
-                  <Typography sx={{ fontSize: 12.5, color: 'rgba(255,255,255,0.5)', mb: '10px' }}>
-                    Already with us?
-                  </Typography>
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    onClick={() => navigate('/login')}
-                    sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)', '&:hover': { borderColor: 'rgba(255,255,255,0.65)' } }}
-                  >
-                    Sign in to your account
-                  </Button>
-                </Box>
-              </Card>
+                <Typography sx={{ mt: '32px', fontSize: 13, color: tokens.textMuted }}>
+                  Already part of AdzOnRoad?{' '}
+                  <Link component={RouterLink} to="/login" underline="hover" sx={{ fontWeight: 600, color: tokens.navy }}>
+                    Sign in &rarr;
+                  </Link>
+                </Typography>
+              </Box>
 
-              <Card sx={{ p: { xs: '24px', sm: '30px' }, display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ order: { xs: 1, md: 2 } }}>
                 {contactSent ? (
-                  <Box sx={{ display: 'grid', gap: '14px', justifyItems: 'center', textAlign: 'center', my: 'auto', py: '24px' }}>
+                  <Box sx={{ display: 'grid', gap: '14px', justifyItems: 'start', py: '8px' }}>
                     <Box
                       sx={{
-                        width: 56,
-                        height: 56,
+                        width: 44,
+                        height: 44,
                         borderRadius: '50%',
                         backgroundColor: '#EAF7EF',
                         color: tokens.green,
@@ -1425,33 +1436,32 @@ export default function Homepage() {
                         justifyContent: 'center',
                       }}
                     >
-                      <CheckCircleRoundedIcon sx={{ fontSize: 30 }} />
+                      <CheckCircleRoundedIcon sx={{ fontSize: 24 }} />
                     </Box>
-                    <Typography sx={{ fontWeight: 700, fontSize: 18, color: tokens.navy }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: 'clamp(20px,2.2vw,24px)', letterSpacing: '-0.02em', color: tokens.navy }}>
                       Thanks, {contactName.trim().split(/\s+/)[0]}
                     </Typography>
-                    <Typography sx={{ fontSize: 14.5, color: 'text.secondary', maxWidth: '42ch', lineHeight: 1.6 }}>
+                    <Typography sx={{ fontSize: 14.5, color: 'text.secondary', maxWidth: '46ch', lineHeight: 1.7 }}>
                       This is a preview build with no mail provider connected, so nothing has actually
-                      been sent. On the live site this reaches the team and you would hear back within
-                      one business day &mdash; in the meantime,{' '}
+                      been sent. On the live site this reaches the team &mdash; in the meantime,{' '}
                       <Link href="mailto:Info@adzonroad.com" underline="hover">email us directly</Link>.
                     </Typography>
-                    <Button onClick={resetContactForm} sx={{ mt: '4px', fontWeight: 700 }}>
+                    <Button onClick={resetContactForm} sx={{ mt: '4px', px: 0, fontWeight: 700 }}>
                       Write another message
                     </Button>
                   </Box>
                 ) : (
-                  <Box component="form" onSubmit={handleContactSubmit} noValidate sx={{ display: 'grid', gap: '18px' }}>
-                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: '18px' }}>
+                  <Box component="form" onSubmit={handleContactSubmit} noValidate sx={{ display: 'grid', gap: '20px' }}>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: '20px' }}>
                       <TextField
                         label="Full name"
                         required
                         fullWidth
-                        inputRef={contactNameRef}
                         value={contactName}
                         onChange={(e) => setContactName(e.target.value)}
                         error={Boolean(contactErrors.name)}
                         helperText={contactErrors.name}
+                        sx={fieldSx}
                       />
                       <TextField
                         label="Email"
@@ -1462,31 +1472,71 @@ export default function Homepage() {
                         onChange={(e) => setContactEmail(e.target.value)}
                         error={Boolean(contactErrors.email)}
                         helperText={contactErrors.email}
+                        sx={fieldSx}
                       />
                     </Box>
 
-                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: '18px' }}>
-                      <TextField
-                        select
-                        label="I'm reaching out because"
-                        fullWidth
-                        value={contactReason}
-                        onChange={(e) => setContactReason(e.target.value)}
+                    {/* Pills rather than a select: four options is few enough to show at once, and
+                        seeing them is what tells someone the enquiry gets routed rather than landing
+                        in a general inbox. A radiogroup, because exactly one of them applies. */}
+                    <Box>
+                      <Typography
+                        id="contact-interest-label"
+                        sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: tokens.textMuted, mb: '11px' }}
                       >
+                        I&rsquo;m interested in
+                      </Typography>
+                      <Box role="radiogroup" aria-labelledby="contact-interest-label" sx={{ display: 'flex', flexWrap: 'wrap', gap: '9px' }}>
+                        {/* The selected look hangs off a data attribute rather than a conditional
+                            in sx. Branching inside sx makes emotion mint a class per state, and
+                            here it handed the pills each other's styles — aria-checked moved but
+                            the colour stayed on whichever pill rendered first. One static class and
+                            an attribute selector cannot get that wrong, and all four now share it. */}
                         {CONTACT_REASONS.map((reason) => (
-                          <MenuItem key={reason} value={reason} sx={{ whiteSpace: 'normal' }}>
+                          <Box
+                            key={reason}
+                            component="button"
+                            type="button"
+                            role="radio"
+                            aria-checked={contactReason === reason}
+                            data-selected={contactReason === reason ? 'true' : undefined}
+                            onClick={() => setContactReason(reason)}
+                            sx={{
+                              fontFamily: 'inherit',
+                              fontSize: 13.5,
+                              fontWeight: 600,
+                              lineHeight: 1.4,
+                              cursor: 'pointer',
+                              padding: '9px 16px',
+                              borderRadius: '999px',
+                              color: tokens.textMuted,
+                              backgroundColor: '#FBFBFD',
+                              border: `1px solid ${tokens.border}`,
+                              transition: 'background-color .2s ease, border-color .2s ease, color .2s ease',
+                              '&:hover': { borderColor: '#D3D8E2' },
+                              '&:focus-visible': { outline: `2px solid ${tokens.amber}`, outlineOffset: '2px' },
+                              '&[data-selected="true"]': {
+                                color: tokens.navy,
+                                backgroundColor: 'rgba(245,166,35,0.12)',
+                                borderColor: tokens.amber,
+                              },
+                              '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
+                            }}
+                          >
                             {reason}
-                          </MenuItem>
+                          </Box>
                         ))}
-                      </TextField>
-                      <TextField
-                        label="Phone (optional)"
-                        type="tel"
-                        fullWidth
-                        value={contactPhone}
-                        onChange={(e) => setContactPhone(e.target.value)}
-                      />
+                      </Box>
                     </Box>
+
+                    <TextField
+                      label="Phone number (optional)"
+                      type="tel"
+                      fullWidth
+                      value={contactPhone}
+                      onChange={(e) => setContactPhone(e.target.value)}
+                      sx={fieldSx}
+                    />
 
                     <TextField
                       label="Message"
@@ -1494,30 +1544,39 @@ export default function Homepage() {
                       fullWidth
                       multiline
                       minRows={4}
-                      placeholder="Tell us a little about what you have in mind — regions, timing, fleet size, whatever is relevant."
+                      placeholder="Tell us a little about what you have in mind…"
                       value={contactMessage}
                       onChange={(e) => setContactMessage(e.target.value)}
                       error={Boolean(contactErrors.message)}
                       helperText={contactErrors.message}
+                      sx={fieldSx}
                     />
 
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                    <Box>
                       <Button
                         type="submit"
                         variant="contained"
                         color="primary"
                         size="large"
-                        endIcon={<SendRoundedIcon sx={{ fontSize: 18 }} />}
+                        sx={{
+                          width: { xs: '100%', sm: 'auto' },
+                          '& .arrow': { transition: 'transform .22s ease' },
+                          '&:hover .arrow': { transform: 'translateX(3px)' },
+                          '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
+                        }}
                       >
-                        Send message
+                        Send inquiry
+                        <Box component="span" className="arrow" aria-hidden sx={{ ml: '8px', fontSize: 16, lineHeight: 1 }}>
+                          &rarr;
+                        </Box>
                       </Button>
-                      <Typography sx={{ fontSize: 12.5, color: 'text.secondary', flex: '1 1 220px', lineHeight: 1.5 }}>
-                        We use your details to reply to this enquiry and nothing else.
+                      <Typography sx={{ mt: '12px', fontSize: 12.5, color: tokens.textMuted, lineHeight: 1.55 }}>
+                        We&rsquo;ll only use your details to respond to your inquiry.
                       </Typography>
                     </Box>
                   </Box>
                 )}
-              </Card>
+              </Box>
             </Box>
           </Box>
         </Reveal>
