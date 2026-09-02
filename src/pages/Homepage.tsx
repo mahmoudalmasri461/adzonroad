@@ -8,11 +8,6 @@ import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Slider from '@mui/material/Slider';
 import Link from '@mui/material/Link';
-import Fleet from '@mui/icons-material/LocalShipping';
-import HandshakeRoundedIcon from '@mui/icons-material/HandshakeRounded';
-import BuildRoundedIcon from '@mui/icons-material/BuildRounded';
-import SupportAgentRoundedIcon from '@mui/icons-material/SupportAgentRounded';
-import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import TextField from '@mui/material/TextField';
@@ -88,11 +83,42 @@ const AUDIENCES = [
   },
 ] as const;
 
-const TAXI_COMPANY_BENEFITS = [
-  { title: 'Fleet-wide revenue', body: 'Every vehicle in your fleet earns — paid out monthly per taxi, on top of fare income.', icon: Fleet },
-  { title: 'Zero hardware cost', body: 'Screens are installed and fully insured at no cost to your company.', icon: BuildRoundedIcon },
-  { title: 'Dedicated account manager', body: 'One point of contact for onboarding, support, and reporting.', icon: SupportAgentRoundedIcon },
-  { title: 'Consolidated reporting', body: "Track every vehicle's uptime and earnings from a single dashboard.", icon: DashboardRoundedIcon },
+/**
+ * The fleet proposition, with the two claims nobody has signed off removed.
+ *
+ * "Every vehicle in your fleet earns" is not true of a vehicle that does not qualify or does not
+ * drive, and the eligibility rules are not settled. "Installed and fully insured at no cost"
+ * states a hardware policy and an insurance position as fact. Neither is restated in softer words
+ * here — the section makes no cost or insurance claim at all, which is the only honest position
+ * until those are contractually decided.
+ */
+const FLEET_PROPOSITION = [
+  {
+    number: '01',
+    title: 'New revenue opportunity',
+    body: 'Create additional earning potential from participating vehicles.',
+  },
+  {
+    number: '02',
+    title: 'We handle the technology',
+    body: 'AdzOnRoad manages screen installation, platform connectivity and advertising operations.',
+  },
+  {
+    number: '03',
+    title: 'One fleet view',
+    body: 'Monitor participating vehicles, activity and earnings from one place.',
+  },
+];
+
+/**
+ * Vehicles in the fleet-view mock. Illustrative: real fleet data needs a signed-in taxi company,
+ * so there is nothing public to read, and the identifiers are deliberately anonymous.
+ */
+const FLEET_SAMPLE_VEHICLES = [
+  { id: 'Vehicle 018', active: true },
+  { id: 'Vehicle 024', active: true },
+  { id: 'Vehicle 031', active: false },
+  { id: 'Vehicle 042', active: true },
 ];
 
 /**
@@ -714,59 +740,253 @@ export default function Homepage() {
           </Box>
         </Reveal>
 
-        {/* TAXI COMPANIES */}
+        {/* FOR TAXI COMPANIES
+            Four equal cards made a partnership proposition read like a feature list, and two of
+            them made claims nobody has signed off. "Every vehicle in your fleet earns" is not true
+            of a vehicle that does not qualify or does not drive; "installed and fully insured at
+            no cost" states a hardware policy and an insurance position as settled fact. Both are
+            gone, and nothing here replaces them with a softer version of the same promise — the
+            section simply does not make a cost or insurance claim. */}
         <Reveal>
-          <Box component="section" id="taxi-companies" sx={{ py: '64px', scrollMarginTop: '20px' }}>
-            <SectionEyebrow>For taxi companies</SectionEyebrow>
-            <Typography sx={{ fontWeight: 700, fontSize: 'clamp(24px,5.2vw,30px)', mb: '10px', letterSpacing: '-0.01em' }}>Partner your fleet with AdzOnRoad</Typography>
-            <Typography sx={{ fontSize: 15.5, color: 'text.secondary', maxWidth: '60ch', mb: '28px' }}>
-              Turn your entire fleet into a revenue stream — we handle installation, maintenance, and driver payouts.
+          <Box component="section" id="taxi-companies" sx={{ py: { xs: '72px', md: '96px' }, scrollMarginTop: '20px' }}>
+            <Typography
+              sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '12px' }}
+            >
+              For taxi companies
             </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4,1fr)' }, gap: '16px' }}>
-              {TAXI_COMPANY_BENEFITS.map((b) => {
-                const Icon = b.icon;
-                return (
-                  <Card
-                    key={b.title}
-                    sx={{
-                      p: '22px',
-                      transition: 'transform 0.25s ease, box-shadow 0.25s ease',
-                      '&:hover': { transform: 'translateY(-6px)', boxShadow: tokens.shadowMd },
-                    }}
-                  >
+            <Typography
+              sx={{ fontWeight: 700, fontSize: 'clamp(28px,4.8vw,44px)', letterSpacing: '-0.028em', lineHeight: 1.12, color: tokens.navy }}
+            >
+              Your fleet is already moving.
+              <Box component="span" sx={{ display: 'block' }}>
+                Make it work harder.
+              </Box>
+            </Typography>
+            <Typography sx={{ mt: '16px', fontSize: 15.5, color: 'text.secondary', maxWidth: '58ch', lineHeight: 1.7 }}>
+              Turn eligible vehicles in your fleet into a new advertising revenue channel with
+              AdzOnRoad.
+            </Typography>
+
+            <Box
+              sx={{
+                mt: { xs: '40px', md: '56px' },
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '0.82fr 1fr' },
+                gap: { xs: '44px', md: '64px' },
+                alignItems: 'start',
+              }}
+            >
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography
+                  sx={{
+                    fontSize: 'clamp(20px,2.3vw,26px)',
+                    fontWeight: 800,
+                    letterSpacing: '-0.02em',
+                    lineHeight: 1.2,
+                    color: tokens.navy,
+                    textTransform: 'uppercase',
+                    maxWidth: '16ch',
+                  }}
+                >
+                  Another revenue channel.
+                  <Box component="span" sx={{ display: 'block', color: tokens.amber }}>
+                    Same fleet.
+                  </Box>
+                </Typography>
+
+                <Typography sx={{ mt: '16px', fontSize: 15, color: 'text.secondary', lineHeight: 1.75, maxWidth: '48ch' }}>
+                  AdzOnRoad equips eligible vehicles with digital advertising screens and manages the
+                  advertising network while your fleet continues doing what it already does &mdash;
+                  driving.
+                </Typography>
+
+                {/* On a phone the CTA comes before the three points, per the intended stack: a
+                    fleet owner who is already convinced should not have to scroll the argument to
+                    reach the button. On desktop it reads in the normal order underneath them. */}
+                <Box sx={{ mt: '32px', order: { xs: 2, md: 1 } }}>
+                  {FLEET_PROPOSITION.map((item, i) => (
                     <Box
+                      key={item.number}
                       sx={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: '10px',
-                        backgroundColor: '#FEF3E2',
-                        color: tokens.amber600,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        mb: '14px',
+                        display: 'grid',
+                        gridTemplateColumns: '42px 1fr',
+                        pt: i === 0 ? 0 : '20px',
+                        mt: i === 0 ? 0 : '20px',
+                        borderTop: i === 0 ? 'none' : `1px solid ${tokens.border}`,
                       }}
                     >
-                      <Icon sx={{ fontSize: 20 }} />
+                      <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: tokens.amber, letterSpacing: '0.04em', pt: '2px' }}>
+                        {item.number}
+                      </Typography>
+                      <Box>
+                        <Typography
+                          sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: tokens.navy, mb: '5px' }}
+                        >
+                          {item.title}
+                        </Typography>
+                        <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.65, maxWidth: '44ch' }}>
+                          {item.body}
+                        </Typography>
+                      </Box>
                     </Box>
-                    <Typography sx={{ fontWeight: 700, fontSize: 16, mb: '6px', color: tokens.navy }}>{b.title}</Typography>
-                    <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.55 }}>{b.body}</Typography>
-                  </Card>
-                );
-              })}
+                  ))}
+                </Box>
+
+                <Box sx={{ order: { xs: 1, md: 2 } }}>
+                <Box sx={{ mt: '32px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '18px' }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    size="large"
+                    onClick={() => navigate('/signup?role=taxiCompany')}
+                    sx={{
+                      '& .arrow': { transition: 'transform .22s ease' },
+                      '&:hover .arrow': { transform: 'translateX(3px)' },
+                      '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
+                    }}
+                  >
+                    Partner your fleet
+                    <Box component="span" className="arrow" aria-hidden sx={{ ml: '8px', fontSize: 16, lineHeight: 1 }}>
+                      &rarr;
+                    </Box>
+                  </Button>
+                  <Link
+                    component={RouterLink}
+                    to="/#contact"
+                    underline="hover"
+                    sx={{ fontSize: 14.5, fontWeight: 600, color: tokens.navy }}
+                  >
+                    Talk to our team
+                  </Link>
+                </Box>
+
+                <Typography sx={{ mt: '16px', fontSize: 13, color: tokens.textMuted, lineHeight: 1.6 }}>
+                  Have a large fleet? Contact us for a tailored partnership.
+                </Typography>
+                </Box>
+              </Box>
+
+              {/* A picture of the fleet view a partner would get. Illustrative throughout: fleet
+                  data needs a signed-in taxi company, so there is nothing real to read here, and
+                  earnings sit at an em dash rather than a number nobody has agreed. Hidden from
+                  assistive technology so none of it is announced as this company's fleet. */}
+              <Box
+                aria-hidden
+                sx={{
+                  borderRadius: '16px',
+                  border: `1px solid ${tokens.border}`,
+                  backgroundColor: tokens.surface,
+                  p: { xs: '20px', sm: '26px' },
+                }}
+              >
+                <Typography
+                  sx={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: tokens.textMuted, mb: '16px' }}
+                >
+                  Example view
+                </Typography>
+
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4,1fr)' }, gap: '10px' }}>
+                  {FLEET_SAMPLE_VEHICLES.map((v) => (
+                    <Box
+                      key={v.id}
+                      sx={{
+                        padding: '12px',
+                        borderRadius: '10px',
+                        backgroundColor: '#FBFBFD',
+                        border: `1px solid ${tokens.border}`,
+                      }}
+                    >
+                      <Typography sx={{ fontSize: 12, fontWeight: 700, color: tokens.navy, mb: '6px' }}>{v.id}</Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Box
+                          sx={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: '50%',
+                            backgroundColor: v.active ? tokens.green : tokens.textMuted,
+                          }}
+                        />
+                        <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>{v.active ? 'Active' : 'Offline'}</Typography>
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
+
+                {/* The vehicles feed one view. A single line rather than boxes and arrows — this is
+                    a relationship, not an architecture diagram. */}
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: '14px' }}>
+                  <Box sx={{ width: '1px', height: 26, backgroundColor: tokens.amber, opacity: 0.5 }} />
+                </Box>
+
+                <Box sx={{ p: '18px', borderRadius: '12px', backgroundColor: '#FBFBFD', border: `1px solid ${tokens.border}` }}>
+                  <Typography
+                    sx={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.textMuted, mb: '14px' }}
+                  >
+                    Fleet overview
+                  </Typography>
+
+                  <Box sx={{ display: 'grid', gap: '11px' }}>
+                    {[
+                      { label: 'Participating vehicles', value: '24' },
+                      { label: 'Active today', value: '18' },
+                      { label: 'Verified operating hours', value: '142h' },
+                      { label: 'Fleet earnings', value: '$—' },
+                    ].map((row) => (
+                      <Box key={row.label} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '16px' }}>
+                        <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>{row.label}</Typography>
+                        <Typography sx={{ fontSize: 14.5, fontWeight: 700, color: tokens.navy }}>{row.value}</Typography>
+                      </Box>
+                    ))}
+                  </Box>
+
+                  <Typography sx={{ mt: '16px', fontSize: 12.5, fontWeight: 700, color: tokens.amber600 }}>
+                    View fleet reporting &rarr;
+                  </Typography>
+                </Box>
+              </Box>
             </Box>
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              sx={{ mt: '28px' }}
-              onClick={() => navigate('/signup?role=taxiCompany')}
-              startIcon={<HandshakeRoundedIcon />}
+
+            {/* Who does what, in the fewest words the partnership can be described in. */}
+            <Box
+              sx={{
+                mt: { xs: '44px', md: '56px' },
+                pt: { xs: '30px', md: '36px' },
+                borderTop: `1px solid ${tokens.border}`,
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                gap: { xs: '28px', sm: '48px' },
+              }}
             >
-              Partner Your Fleet
-            </Button>
+              {[
+                { label: 'AdzOnRoad handles', items: ['Screen installation', 'Advertising campaigns', 'Technology', 'Reporting'] },
+                { label: 'Your fleet provides', items: ['Eligible vehicles', 'Drivers', 'Road coverage'] },
+              ].map((col, i) => (
+                <Box
+                  key={col.label}
+                  sx={{
+                    pl: { sm: i === 0 ? 0 : '48px' },
+                    ml: { sm: i === 0 ? 0 : '-48px' },
+                    borderLeft: { sm: i === 0 ? 'none' : `1px solid ${tokens.border}` },
+                  }}
+                >
+                  <Typography
+                    sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '12px' }}
+                  >
+                    {col.label}
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px 22px' }}>
+                    {col.items.map((item) => (
+                      <Typography key={item} sx={{ fontSize: 14.5, fontWeight: 600, color: tokens.navy }}>
+                        {item}
+                      </Typography>
+                    ))}
+                  </Box>
+                </Box>
+              ))}
+            </Box>
           </Box>
         </Reveal>
+
 
         {/* NETWORK COVERAGE
             The eyebrow said "Live network" and the copy said positions were "updated in real
