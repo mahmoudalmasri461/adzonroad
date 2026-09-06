@@ -1,0 +1,249 @@
+{
+  "brand": {
+    "name": "AdzOnRoad"
+  },
+  "language": {
+    "label": "اللغة",
+    "en": "EN",
+    "ar": "العربية",
+    "enFull": "English",
+    "arFull": "العربية",
+    "switchTo": "تغيير اللغة"
+  },
+  "common": {
+    "signIn": "تسجيل الدخول",
+    "signOut": "تسجيل الخروج",
+    "launchCampaign": "أطلق حملتك",
+    "createAccount": "إنشاء حساب",
+    "backToHomepage": "العودة إلى الصفحة الرئيسية",
+    "backToSignIn": "العودة إلى تسجيل الدخول",
+    "contactSupport": "تواصل مع الدعم",
+    "email": "البريد الإلكتروني",
+    "phone": "رقم الهاتف",
+    "password": "كلمة المرور",
+    "optional": "(اختياري)",
+    "loading": "جارٍ التحميل…",
+    "retry": "حاول مرة أخرى",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "close": "إغلاق",
+    "search": "بحث",
+    "menu": "القائمة",
+    "account": "الحساب",
+    "settings": "الإعدادات",
+    "dashboard": "لوحة التحكم",
+    "example": "عرض توضيحي"
+  },
+  "nav": {
+    "advertisers": "المعلنون",
+    "drivers": "السائقون",
+    "fleetPartners": "شركاء الأساطيل",
+    "coverage": "التغطية",
+    "pricing": "الأسعار",
+    "about": "من نحن",
+    "contact": "تواصل معنا",
+    "platform": "المنصة",
+    "company": "الشركة",
+    "getStarted": "ابدأ الآن",
+    "adminLogin": "دخول المشرف",
+    "openMenu": "فتح القائمة",
+    "closeMenu": "إغلاق القائمة"
+  },
+  "roles": {
+    "advertiser": "المعلن",
+    "advertisers": "المعلنون",
+    "driver": "السائق",
+    "drivers": "السائقون",
+    "fleetPartner": "شريك الأسطول",
+    "fleetPartners": "شركاء الأساطيل",
+    "admin": "المشرف"
+  },
+  "status": {
+    "pendingVerification": "قيد المراجعة",
+    "approved": "معتمد",
+    "rejected": "مرفوض",
+    "suspended": "موقوف",
+    "active": "نشطة",
+    "paused": "متوقفة مؤقتاً",
+    "completed": "مكتملة",
+    "draft": "مسودة",
+    "offline": "غير متصل"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "شبكة إعلانية تتحرك في لبنان",
+      "headlineLine1": "حوّل المدينة",
+      "headlineLine2": "إلى مساحتك الإعلانية.",
+      "copy": "أطلق حملات موجّهة جغرافياً عبر شبكة من الشاشات الرقمية المتحركة، مع تنفيذ قابل للقياس وتقارير مرتبطة بالموقع.",
+      "exploreNetwork": "استكشف الشبكة",
+      "driverPrompt": "تقود سيارتك وترغب بالانضمام؟",
+      "driverLink": "انضم كسائق شريك",
+      "imageAlt": "سيارة مرسيدس سوداء على كورنيش بيروت تحمل شاشة إعلانية رقمية من AdzOnRoad مثبّتة على سقفها"
+    },
+    "proof": {
+      "gpsLinked": "تنفيذ مرتبط بالموقع",
+      "gpsLinkedBody": "اعرف أين جرى نشاط حملتك.",
+      "adPlays": "عروض إعلانية من ١٥ ثانية",
+      "adPlaysBody": "اشترِ تنفيذاً قابلاً للقياس لحملتك.",
+      "coverage": "تغطية مرنة",
+      "coverageBody": "اختر أين تُعرض حملتك."
+    },
+    "about": {
+      "eyebrow": "مصمّمة للبنان",
+      "headlineLine1": "إعلانات تتحرك",
+      "headlineLine2": "مع المدينة.",
+      "copy": "تحوّل AdzOnRoad حركة المركبات اليومية إلى قناة جديدة للإعلانات الرقمية الخارجية.",
+      "statementLine1": "حملة واحدة.",
+      "statementLine2": "أماكن متعددة.",
+      "statementCopy": "تتنقل حملتك مع المركبات المشاركة بدلاً من أن تبقى ثابتة في موقع واحد.",
+      "locationLinked": "مرتبط بالموقع",
+      "locationLinkedBody": "اعرف أين جرى نشاط حملتك.",
+      "movingCoverage": "تغطية متحركة",
+      "movingCoverageBody": "يتنقل تنفيذ حملتك في أنحاء المدينة مع المركبات المشاركة.",
+      "recordedDelivery": "تنفيذ مسجّل",
+      "recordedDeliveryBody": "تُحتسب العروض الإعلانية ضمن هدف تنفيذ قابل للقياس لحملتك."
+    },
+    "cta": {
+      "eyebrow": "جاهز للانطلاق؟",
+      "headlineLine1": "ضع حملتك القادمة",
+      "headlineLine2": "على الطريق.",
+      "copy": "أطلق حملتك عبر شبكة الشاشات المتحركة من AdzOnRoad وتابع تنفيذها أولاً بأول.",
+      "exploreCoverage": "استكشف التغطية"
+    },
+    "footer": {
+      "tagline": "إعلانات رقمية متحركة، مصمّمة لطرقات لبنان.",
+      "location": "بيروت، لبنان",
+      "readyToLaunch": "جاهز للإطلاق؟",
+      "becomeDriver": "انضم كسائق شريك",
+      "partnerFleet": "اشترك بأسطولك",
+      "copyright": "© ٢٠٢٦ AdzOnRoad · بيروت، لبنان"
+    }
+  },
+  "auth": {
+    "brand": {
+      "builtForLebanon": "مصمّمة للبنان",
+      "flowCampaign": "الحملة",
+      "flowVehicle": "المركبة",
+      "flowLocation": "الموقع",
+      "flowDelivery": "التنفيذ"
+    },
+    "login": {
+      "eyebrow": "شبكة AdzOnRoad",
+      "brandHeadlineLine1": "مرحباً بعودتك",
+      "brandHeadlineLine2": "إلى الطريق.",
+      "brandCopy": "تابع حملاتك ونشاط مركباتك وعمليات أسطولك وأدوات AdzOnRoad من مكان واحد.",
+      "footerCopy": "إعلانات رقمية متحركة، مصمّمة على إيقاع المدينة.",
+      "title": "مرحباً بعودتك.",
+      "subtitle": "سجّل الدخول إلى حسابك في AdzOnRoad.",
+      "identifier": "البريد الإلكتروني أو رقم الهاتف",
+      "identifierPlaceholder": "name@company.com",
+      "forgotPassword": "هل نسيت كلمة المرور؟",
+      "submit": "تسجيل الدخول",
+      "submitting": "جارٍ تسجيل الدخول…",
+      "oneLogin": "تسجيل دخول واحد لجميع حسابات AdzOnRoad. سننقلك إلى مساحة العمل المناسبة بعد الدخول.",
+      "newHere": "جديد في AdzOnRoad؟",
+      "signedInAs": "تم تسجيل الدخول باسم {{name}}",
+      "genericError": "تعذّر تسجيل الدخول. يرجى المحاولة مرة أخرى.",
+      "accountStatus": "حالة الحساب",
+      "cannotSignInYet": "تعذّر تسجيل الدخول بعد",
+      "notActive": "هذا الحساب غير مفعّل",
+      "useDifferentAccount": "استخدم حساباً آخر",
+      "blocked": {
+        "pendingTitle": "الحساب قيد المراجعة",
+        "pendingLead": "تم استلام طلب حسابك في AdzOnRoad وهو بانتظار التفعيل.",
+        "rejectedTitle": "لم تتم الموافقة على الحساب",
+        "rejectedLead": "تمت مراجعة هذا الحساب ولم تتم الموافقة عليه.",
+        "suspendedTitle": "الحساب موقوف",
+        "suspendedLead": "هذا الحساب موقوف حالياً."
+      }
+    },
+    "signup": {
+      "eyebrow": "انضم إلى الشبكة",
+      "brandHeadlineLine1": "شبكة واحدة.",
+      "brandHeadlineLine2": "طرق متعددة للانضمام.",
+      "brandCopy": "سواء كنت تطلق حملات إعلانية، أو تقود مع AdzOnRoad، أو تدير أسطولاً، ابدأ باختيار طريقة انضمامك.",
+      "footerCopy": "إعلانات رقمية خارجية مصمّمة على إيقاع حركة مدننا.",
+      "title": "أنشئ حسابك",
+      "subtitle": "اختر طريقة انضمامك إلى AdzOnRoad.",
+      "accountType": "نوع الحساب",
+      "roles": {
+        "advertiserDescription": "أطلق حملاتك الإعلانية وأدرها.",
+        "driverDescription": "قُد مع AdzOnRoad واربح من مشاركتك.",
+        "fleetDescription": "اربط مركبات أسطولك المؤهلة وأدرها.",
+        "advertiserCta": "إنشاء حساب معلن",
+        "driverCta": "إنشاء حساب سائق",
+        "fleetCta": "إنشاء حساب شريك أسطول",
+        "advertiserReview": "سنراجع حساب شركتك قبل تفعيل الوصول إلى الحملات.",
+        "driverReview": "سنراجع طلب تسجيلك قبل تفعيل حساب السائق الخاص بك.",
+        "fleetReview": "سنراجع بيانات شركتك قبل تفعيل الوصول إلى الأسطول.",
+        "advertiserSubmitted": "سنعلمك عندما يصبح حساب المعلن جاهزاً.",
+        "driverSubmitted": "سنعلمك عندما يصبح حساب السائق جاهزاً.",
+        "fleetSubmitted": "سنعلمك عندما يصبح حساب الأسطول جاهزاً."
+      },
+      "fields": {
+        "companyName": "اسم الشركة",
+        "companyNamePlaceholder": "أدخل اسم شركتك",
+        "fleetName": "اسم الشركة أو الأسطول",
+        "fleetNamePlaceholder": "أدخل اسم أسطولك",
+        "contactName": "اسم جهة الاتصال",
+        "contactNamePlaceholder": "من نتواصل معه؟",
+        "workEmail": "البريد الإلكتروني للعمل",
+        "workEmailPlaceholder": "name@company.com",
+        "mobile": "رقم الهاتف",
+        "mobilePlaceholder": "+961 …",
+        "firstName": "الاسم الأول",
+        "lastName": "اسم العائلة",
+        "region": "المنطقة",
+        "regionPlaceholder": "بيروت",
+        "plateNumber": "رقم اللوحة",
+        "plateLetter": "الحرف",
+        "carType": "نوع السيارة",
+        "carYear": "سنة الصنع",
+        "carModel": "الطراز",
+        "passwordHint": "استخدم ٨ أحرف على الأقل، بما في ذلك رقم ورمز."
+      },
+      "sections": {
+        "vehicle": "مركبتك",
+        "documents": "المستندات",
+        "documentsHint": "يتم تصغير حجم الصور في متصفحك قبل الرفع، لتعمل على بيانات الهاتف.",
+        "nationalId": "الهوية الوطنية",
+        "licence": "رخصة القيادة",
+        "carPapers": "أوراق السيارة"
+      },
+      "review": "تتم مراجعة الحسابات قبل تفعيلها.",
+      "submitting": "جارٍ الإرسال…",
+      "alreadyHaveAccount": "لديك حساب بالفعل؟",
+      "signInInstead": "سجّل الدخول بدلاً من ذلك",
+      "documentsRequired": "يرجى رفع المستندات الثلاثة كافة ليتسنى مراجعة طلبك.",
+      "genericError": "تعذّر إتمام التسجيل. يرجى المحاولة مرة أخرى.",
+      "submitted": {
+        "eyebrow": "تم إرسال الطلب",
+        "title": "حسابك قيد المراجعة.",
+        "reference": "الرقم المرجعي"
+      }
+    },
+    "forgot": {
+      "eyebrow": "الوصول إلى الحساب",
+      "brandHeadlineLine1": "سنساعدك",
+      "brandHeadlineLine2": "على استعادة حسابك.",
+      "brandCopy": "تتم استعادة الحسابات بأمان من قِبل فريق AdzOnRoad.",
+      "footerCopy": "إعلانات رقمية متحركة، مصمّمة على إيقاع المدينة.",
+      "title": "هل نسيت كلمة المرور؟",
+      "subtitle": "تواصل مع فريقنا وسنساعدك على استعادة الوصول إلى حسابك في AdzOnRoad بأمان.",
+      "secureRecovery": "استعادة الحساب بأمان",
+      "secureRecoveryBody1": "حفاظاً على أمانك، تتم استعادة كلمة المرور حالياً مباشرةً عبر فريق AdzOnRoad.",
+      "secureRecoveryBody2": "بعد التحقق من هويتك، ستحصل على وصول مؤقت وتنشئ كلمة مرور جديدة عند تسجيل الدخول.",
+      "contactSupport": "تواصل مع الدعم",
+      "contactSupportBody": "تواصل مع فريقنا لاستعادة حسابك.",
+      "contactButton": "تواصل مع دعم AdzOnRoad",
+      "mailSubject": "استعادة حساب AdzOnRoad",
+      "neverAsk": "لن يطلب منك AdzOnRoad أبداً إرسال كلمة المرور الحالية عبر البريد الإلكتروني.",
+      "adminNote": "للمشرفين: تتم إعادة تعيين كلمة المرور من قِبل مشرف آخر في مؤسستك، عبر الإعدادات ← المستخدمون.",
+      "returnHome": "العودة إلى الصفحة الرئيسية لـ AdzOnRoad"
+    }
+  },
+  "coverage": {
+    "availableForTargeting": "متاحة للاستهداف",
+    "expanding": "قيد التوسّع"
+  }
+}

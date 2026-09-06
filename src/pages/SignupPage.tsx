@@ -27,7 +27,9 @@ import {
   type RegistrationResult,
   type SignupRole,
 } from '../services/registration';
+import { useTranslation } from 'react-i18next';
 import { tokens } from '../theme';
+import DirArrow from '../components/DirArrow';
 
 function isSignupRole(value: string | null): value is SignupRole {
   return value === 'advertiser' || value === 'driver' || value === 'taxiCompany';
@@ -46,27 +48,27 @@ const YEARS = carYears();
 const ROLES = [
   {
     value: 'advertiser',
-    label: 'Advertiser',
-    description: 'Launch and manage advertising campaigns.',
-    cta: 'Create advertiser account',
-    review: 'We’ll review your business account before campaign access is activated.',
-    submittedNote: 'We’ll let you know when your advertiser account is ready.',
+    labelKey: 'roles.advertiser',
+    descriptionKey: 'auth.signup.roles.advertiserDescription',
+    ctaKey: 'auth.signup.roles.advertiserCta',
+    reviewKey: 'auth.signup.roles.advertiserReview',
+    submittedKey: 'auth.signup.roles.advertiserSubmitted',
   },
   {
     value: 'driver',
-    label: 'Driver',
-    description: 'Drive with AdzOnRoad and earn from participating.',
-    cta: 'Create driver account',
-    review: 'We’ll review your registration before your driver account is activated.',
-    submittedNote: 'We’ll let you know when your driver account is ready.',
+    labelKey: 'roles.driver',
+    descriptionKey: 'auth.signup.roles.driverDescription',
+    ctaKey: 'auth.signup.roles.driverCta',
+    reviewKey: 'auth.signup.roles.driverReview',
+    submittedKey: 'auth.signup.roles.driverSubmitted',
   },
   {
     value: 'taxiCompany',
-    label: 'Fleet Partner',
-    description: 'Connect and manage eligible vehicles in your fleet.',
-    cta: 'Create fleet partner account',
-    review: 'We’ll review your company before fleet access is activated.',
-    submittedNote: 'We’ll let you know when your fleet account is ready.',
+    labelKey: 'roles.fleetPartner',
+    descriptionKey: 'auth.signup.roles.fleetDescription',
+    ctaKey: 'auth.signup.roles.fleetCta',
+    reviewKey: 'auth.signup.roles.fleetReview',
+    submittedKey: 'auth.signup.roles.fleetSubmitted',
   },
 ] as const;
 
@@ -75,6 +77,7 @@ const fieldSx = authFieldSx;
 const Field = AuthField;
 
 export default function SignupPage() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const initialRole = searchParams.get('role');
 
@@ -146,7 +149,7 @@ export default function SignupPage() {
       } else if (e instanceof ImageTooLargeError) {
         setError(e.message);
       } else {
-        setError(e instanceof Error ? e.message : 'Registration failed. Please try again.');
+        setError(e instanceof Error ? e.message : t('auth.signup.genericError'));
       }
     } finally {
       setSubmitting(false);
@@ -177,7 +180,7 @@ export default function SignupPage() {
     if (!idImage || !licenseImage || !carPapersImage) {
       // Required here rather than server-side: the endpoint accepts a registration without
       // documents, and an admin then has nothing to review.
-      throw new Error('Please upload all three documents so your application can be reviewed.');
+      throw new Error(t('auth.signup.documentsRequired'));
     }
 
     // Downscaled before encoding — three untouched phone photos in one JSON body is a
@@ -212,18 +215,18 @@ export default function SignupPage() {
 
   return (
     <AuthShell
-      eyebrow="Join the network"
+      eyebrow={t('auth.signup.eyebrow')}
       headline={
         <>
-          One network.
+          {t('auth.signup.brandHeadlineLine1')}
           <Box component="span" sx={{ display: 'block' }}>
-            Different ways to move.
+            {t('auth.signup.brandHeadlineLine2')}
           </Box>
         </>
       }
-      copy="Whether you’re launching campaigns, driving with AdzOnRoad, or managing a fleet, start by choosing how you want to join."
-      footerTitle="Built for Lebanon"
-      footerCopy="Digital outdoor advertising designed around the way our cities move."
+      copy={t('auth.signup.brandCopy')}
+      footerTitle={t('auth.brand.builtForLebanon')}
+      footerCopy={t('auth.signup.footerCopy')}
       contentMaxWidth={600}
       showBackLink={submitted === null}
     >
@@ -235,15 +238,15 @@ export default function SignupPage() {
                 component="h1"
                 sx={{ fontWeight: 800, fontSize: { xs: 26, md: 32 }, letterSpacing: '-0.03em', color: tokens.navy, lineHeight: 1.1 }}
               >
-                Create your account
+                {t('auth.signup.title')}
               </Typography>
               <Typography sx={{ mt: '8px', fontSize: 15, color: 'text.secondary' }}>
-                Choose how you&rsquo;re joining AdzOnRoad.
+                {t('auth.signup.subtitle')}
               </Typography>
 
               <Box
                 role="radiogroup"
-                aria-label="Account type"
+                aria-label={t('auth.signup.accountType')}
                 sx={{
                   mt: { xs: '22px', md: '28px' },
                   display: 'grid',
@@ -293,7 +296,7 @@ export default function SignupPage() {
                             color: selected ? tokens.navy : tokens.textMuted,
                           }}
                         >
-                          {option.label}
+                          {t(option.labelKey)}
                         </Typography>
                         {/* State carried by a mark as well as by colour. */}
                         <Box
@@ -317,7 +320,7 @@ export default function SignupPage() {
                         </Box>
                       </Box>
                       <Typography component="span" sx={{ display: 'block', fontSize: 12.5, lineHeight: 1.5, color: 'text.secondary' }}>
-                        {option.description}
+                        {t(option.descriptionKey)}
                       </Typography>
                     </Box>
                   );
@@ -332,7 +335,7 @@ export default function SignupPage() {
                       <>
                         {' '}
                         <Link component={RouterLink} to={`/login?role=${role}`} sx={{ fontWeight: 600 }}>
-                          Sign in instead
+                          {t('auth.signup.signInInstead')}
                         </Link>
                       </>
                     )}
@@ -342,68 +345,68 @@ export default function SignupPage() {
                 {role === 'driver' ? (
                   <>
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: '14px' }}>
-                      <Field id="signup-first-name" label="First name" required>
+                      <Field id="signup-first-name" label={t('auth.signup.fields.firstName')} required>
                         <TextField id="signup-first-name" required fullWidth placeholder="Rana" value={firstName} onChange={(e) => setFirstName(e.target.value)} disabled={submitting} sx={fieldSx} />
                       </Field>
-                      <Field id="signup-last-name" label="Last name" required>
+                      <Field id="signup-last-name" label={t('auth.signup.fields.lastName')} required>
                         <TextField id="signup-last-name" required fullWidth placeholder="Khoury" value={lastName} onChange={(e) => setLastName(e.target.value)} disabled={submitting} sx={fieldSx} />
                       </Field>
                     </Box>
-                    <Field id="signup-mobile" label="Mobile number" required>
-                      <TextField id="signup-mobile" type="tel" required fullWidth placeholder="+961 …" value={mobile} onChange={(e) => setMobile(e.target.value)} disabled={submitting} sx={fieldSx} />
+                    <Field id="signup-mobile" label={t('auth.signup.fields.mobile')} required>
+                      <TextField id="signup-mobile" type="tel" required fullWidth placeholder={t('auth.signup.fields.mobilePlaceholder')} value={mobile} onChange={(e) => setMobile(e.target.value)} disabled={submitting} sx={fieldSx} />
                     </Field>
                     <RegionField id="signup-region" regions={regions} value={region} onChange={setRegion} disabled={submitting} />
 
                     {/* The vehicle and the documents stay on this form. There is no separate driver
                         onboarding step to defer them to, and an application that arrives without
                         them gives the reviewing admin nothing to approve. */}
-                    <SectionHeading>Your vehicle</SectionHeading>
+                    <SectionHeading>{t('auth.signup.sections.vehicle')}</SectionHeading>
                     <Box sx={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '14px' }}>
-                      <Field id="signup-plate" label="Plate number" required>
+                      <Field id="signup-plate" label={t('auth.signup.fields.plateNumber')} required>
                         <TextField id="signup-plate" required fullWidth value={plateNumber} onChange={(e) => setPlateNumber(e.target.value)} disabled={submitting} sx={fieldSx} />
                       </Field>
-                      <Field id="signup-plate-letter" label="Letter" required>
+                      <Field id="signup-plate-letter" label={t('auth.signup.fields.plateLetter')} required>
                         <TextField id="signup-plate-letter" select required fullWidth value={plateCharacter} onChange={(e) => setPlateCharacter(e.target.value)} disabled={submitting} sx={fieldSx}>
                           {PLATE_CHARACTERS.map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
                         </TextField>
                       </Field>
                     </Box>
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: '14px' }}>
-                      <Field id="signup-car-type" label="Car type" required>
+                      <Field id="signup-car-type" label={t('auth.signup.fields.carType')} required>
                         <TextField id="signup-car-type" select required fullWidth value={carType} onChange={(e) => setCarType(e.target.value)} disabled={submitting} sx={fieldSx}>
                           {CAR_TYPES.map((t) => <MenuItem key={t} value={t}>{t}</MenuItem>)}
                         </TextField>
                       </Field>
-                      <Field id="signup-car-year" label="Year" required>
+                      <Field id="signup-car-year" label={t('auth.signup.fields.carYear')} required>
                         <TextField id="signup-car-year" select required fullWidth value={carYear} onChange={(e) => setCarYear(Number(e.target.value))} disabled={submitting} sx={fieldSx}>
                           {YEARS.map((y) => <MenuItem key={y} value={y}>{y}</MenuItem>)}
                         </TextField>
                       </Field>
                     </Box>
-                    <Field id="signup-car-model" label="Model" required>
+                    <Field id="signup-car-model" label={t('auth.signup.fields.carModel')} required>
                       <TextField id="signup-car-model" required fullWidth placeholder="Toyota Corolla" value={carModel} onChange={(e) => setCarModel(e.target.value)} disabled={submitting} sx={fieldSx} />
                     </Field>
 
-                    <SectionHeading>Documents</SectionHeading>
+                    <SectionHeading>{t('auth.signup.sections.documents')}</SectionHeading>
                     <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: '-8px' }}>
-                      Photos are resized in your browser before upload, so this works on mobile data.
+                      {t('auth.signup.sections.documentsHint')}
                     </Typography>
-                    <ImageUploadField label="National ID" file={idImage} onChange={setIdImage} />
-                    <ImageUploadField label="Driver's licence" file={licenseImage} onChange={setLicenseImage} />
-                    <ImageUploadField label="Car papers" file={carPapersImage} onChange={setCarPapersImage} />
+                    <ImageUploadField label={t('auth.signup.sections.nationalId')} file={idImage} onChange={setIdImage} />
+                    <ImageUploadField label={t('auth.signup.sections.licence')} file={licenseImage} onChange={setLicenseImage} />
+                    <ImageUploadField label={t('auth.signup.sections.carPapers')} file={carPapersImage} onChange={setCarPapersImage} />
                   </>
                 ) : (
                   <>
                     <Field
                       id="signup-company"
-                      label={role === 'taxiCompany' ? 'Company / fleet name' : 'Company name'}
+                      label={t(role === 'taxiCompany' ? 'auth.signup.fields.fleetName' : 'auth.signup.fields.companyName')}
                       required
                     >
                       <TextField
                         id="signup-company"
                         required
                         fullWidth
-                        placeholder={role === 'taxiCompany' ? 'Enter your fleet name' : 'Enter your company name'}
+                        placeholder={t(role === 'taxiCompany' ? 'auth.signup.fields.fleetNamePlaceholder' : 'auth.signup.fields.companyNamePlaceholder')}
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         disabled={submitting}
@@ -412,18 +415,18 @@ export default function SignupPage() {
                     </Field>
 
                     {role === 'advertiser' && (
-                      <Field id="signup-contact" label="Contact name" required>
-                        <TextField id="signup-contact" required fullWidth placeholder="Who should we speak to?" value={contactName} onChange={(e) => setContactName(e.target.value)} disabled={submitting} sx={fieldSx} />
+                      <Field id="signup-contact" label={t('auth.signup.fields.contactName')} required>
+                        <TextField id="signup-contact" required fullWidth placeholder={t('auth.signup.fields.contactNamePlaceholder')} value={contactName} onChange={(e) => setContactName(e.target.value)} disabled={submitting} sx={fieldSx} />
                       </Field>
                     )}
 
-                    <Field id="signup-email" label="Work email" required>
-                      <TextField id="signup-email" type="email" autoComplete="email" required fullWidth placeholder="name@company.com" value={email} onChange={(e) => setEmail(e.target.value)} disabled={submitting} sx={fieldSx} />
+                    <Field id="signup-email" label={t('auth.signup.fields.workEmail')} required>
+                      <TextField id="signup-email" type="email" autoComplete="email" required fullWidth placeholder={t('auth.signup.fields.workEmailPlaceholder')} value={email} onChange={(e) => setEmail(e.target.value)} disabled={submitting} sx={fieldSx} />
                     </Field>
 
                     <Field
                       id="signup-mobile"
-                      label="Mobile number"
+                      label={t('auth.signup.fields.mobile')}
                       required={role === 'taxiCompany'}
                       optional={role !== 'taxiCompany'}
                     >
@@ -432,7 +435,7 @@ export default function SignupPage() {
                         type="tel"
                         required={role === 'taxiCompany'}
                         fullWidth
-                        placeholder="+961 …"
+                        placeholder={t('auth.signup.fields.mobilePlaceholder')}
                         value={mobile}
                         onChange={(e) => setMobile(e.target.value)}
                         disabled={submitting}
@@ -450,9 +453,9 @@ export default function SignupPage() {
 
                 <Field
                   id="signup-password"
-                  label="Password"
+                  label={t('common.password')}
                   required
-                  hint="Use at least 8 characters, including a number and symbol."
+                  hint={t('auth.signup.fields.passwordHint')}
                 >
                   <PasswordField
                     id="signup-password"
@@ -477,10 +480,10 @@ export default function SignupPage() {
                   sx={{ mt: '4px', minHeight: 52, borderRadius: '11px', fontSize: 15.5 }}
                   startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : undefined}
                 >
-                  {submitting ? 'Submitting…' : activeRole.cta}
+                  {submitting ? t('auth.signup.submitting') : t(activeRole.ctaKey)}
                   {!submitting && (
                     <Box component="span" aria-hidden sx={{ ml: '9px', fontSize: 16, lineHeight: 1 }}>
-                      &rarr;
+                      <DirArrow />
                     </Box>
                   )}
                 </Button>
@@ -500,15 +503,15 @@ export default function SignupPage() {
                     }}
                   />
                   <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.6 }}>
-                    Accounts are reviewed before activation. {activeRole.review}
+                    {t('auth.signup.review')} {t(activeRole.reviewKey)}
                   </Typography>
                 </Box>
               </Box>
 
               <Typography sx={{ mt: '26px', fontSize: 14, color: 'text.secondary' }}>
-                Already have an account?{' '}
+                {t('auth.signup.alreadyHaveAccount')}{' '}
                 <Link component={RouterLink} to={`/login?role=${role}`} underline="hover" sx={{ fontWeight: 700, color: tokens.navy }}>
-                  Log in
+                  {t('common.signIn')}
                 </Link>
               </Typography>
             </>
@@ -532,6 +535,8 @@ function SubmittedPanel({
   role: (typeof ROLES)[number];
   result: RegistrationResult;
 }) {
+  const { t } = useTranslation();
+
   return (
     <Box>
       <CheckCircleRoundedIcon sx={{ fontSize: 44, color: tokens.green, mb: '18px', display: 'block' }} />
@@ -539,18 +544,18 @@ function SubmittedPanel({
       <Typography
         sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: tokens.amber, mb: '10px' }}
       >
-        Account submitted
+        {t('auth.signup.submitted.eyebrow')}
       </Typography>
 
       <Typography
         component="h1"
         sx={{ fontWeight: 800, fontSize: { xs: 26, md: 32 }, letterSpacing: '-0.03em', color: tokens.navy, lineHeight: 1.1 }}
       >
-        Your account is under review.
+        {t('auth.signup.submitted.title')}
       </Typography>
 
       <Typography sx={{ mt: '14px', fontSize: 15, color: 'text.secondary', lineHeight: 1.7, maxWidth: '46ch' }}>
-        {role.submittedNote}
+        {t(role.submittedKey)}
       </Typography>
 
       <Typography sx={{ mt: '14px', fontSize: 14, color: 'text.secondary', lineHeight: 1.7, maxWidth: '52ch' }}>
@@ -559,7 +564,7 @@ function SubmittedPanel({
 
       <Box sx={{ mt: '22px', px: '14px', py: '11px', borderRadius: '11px', border: '1px solid #E4E7EC', backgroundColor: '#fff' }}>
         <Typography sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: tokens.textMuted, mb: '4px' }}>
-          Reference
+          {t('auth.signup.submitted.reference')}
         </Typography>
         <Typography sx={{ fontSize: 13.5, fontWeight: 600, color: tokens.navy, wordBreak: 'break-all' }}>
           {result.id}
@@ -575,7 +580,7 @@ function SubmittedPanel({
           size="large"
           sx={{ minHeight: 50, borderRadius: '11px' }}
         >
-          Back to homepage
+          {t('common.backToHomepage')}
         </Button>
         <Button
           component={RouterLink}
@@ -584,7 +589,7 @@ function SubmittedPanel({
           size="large"
           sx={{ minHeight: 50, borderRadius: '11px', borderColor: '#DFE3EA', color: tokens.navy }}
         >
-          Log in
+          {t('common.signIn')}
         </Button>
       </Box>
     </Box>

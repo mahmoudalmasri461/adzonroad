@@ -6,6 +6,7 @@ import Typography from '@mui/material/Typography';
 import MenuIcon from '@mui/icons-material/Menu';
 import { Link as RouterLink } from 'react-router-dom';
 import Logo from '../components/Logo';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useToast } from '../contexts/ToastProvider';
 import { tokens } from '../theme';
 
@@ -83,9 +84,13 @@ function Sidebar({
           </Box>
         ))}
       </Box>
+      {/* Above the account block, so it is reachable from every authenticated screen without
+          opening a menu. */}
+      <Box sx={{ marginTop: 'auto', px: '12px', pb: '4px' }}>
+        <LanguageSwitcher variant="dark" />
+      </Box>
       <Box
         sx={{
-          marginTop: 'auto',
           display: 'flex',
           alignItems: 'center',
           gap: '10px',

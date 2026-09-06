@@ -1,0 +1,249 @@
+{
+  "brand": {
+    "name": "AdzOnRoad"
+  },
+  "language": {
+    "label": "Language",
+    "en": "EN",
+    "ar": "العربية",
+    "enFull": "English",
+    "arFull": "العربية",
+    "switchTo": "Switch language"
+  },
+  "common": {
+    "signIn": "Sign in",
+    "signOut": "Log out",
+    "launchCampaign": "Launch a campaign",
+    "createAccount": "Create an account",
+    "backToHomepage": "Back to homepage",
+    "backToSignIn": "Back to sign in",
+    "contactSupport": "Contact support",
+    "email": "Email",
+    "phone": "Phone",
+    "password": "Password",
+    "optional": "(optional)",
+    "loading": "Loading…",
+    "retry": "Try again",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "search": "Search",
+    "menu": "Menu",
+    "account": "Account",
+    "settings": "Settings",
+    "dashboard": "Dashboard",
+    "example": "Example view"
+  },
+  "nav": {
+    "advertisers": "Advertisers",
+    "drivers": "Drivers",
+    "fleetPartners": "Fleet Partners",
+    "coverage": "Coverage",
+    "pricing": "Pricing",
+    "about": "About",
+    "contact": "Contact",
+    "platform": "Platform",
+    "company": "Company",
+    "getStarted": "Get started",
+    "adminLogin": "Admin login",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "roles": {
+    "advertiser": "Advertiser",
+    "advertisers": "Advertisers",
+    "driver": "Driver",
+    "drivers": "Drivers",
+    "fleetPartner": "Fleet Partner",
+    "fleetPartners": "Fleet Partners",
+    "admin": "Admin"
+  },
+  "status": {
+    "pendingVerification": "Pending review",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "suspended": "Suspended",
+    "active": "Active",
+    "paused": "Paused",
+    "completed": "Completed",
+    "draft": "Draft",
+    "offline": "Offline"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Lebanon’s moving media network",
+      "headlineLine1": "Make the city",
+      "headlineLine2": "your billboard.",
+      "copy": "Launch location-targeted campaigns across a network of moving digital screens — with measurable delivery and GPS-linked reporting.",
+      "exploreNetwork": "Explore the network",
+      "driverPrompt": "Drive with AdzOnRoad?",
+      "driverLink": "Become a driver partner",
+      "imageAlt": "A black Mercedes on the Beirut corniche carrying an AdzOnRoad digital advertising screen mounted along its roof"
+    },
+    "proof": {
+      "gpsLinked": "GPS-linked delivery",
+      "gpsLinkedBody": "Know where campaign activity occurred.",
+      "adPlays": "15-second ad plays",
+      "adPlaysBody": "Buy measurable campaign delivery.",
+      "coverage": "Flexible coverage",
+      "coverageBody": "Choose where your campaign runs."
+    },
+    "about": {
+      "eyebrow": "Built for Lebanon",
+      "headlineLine1": "Advertising that moves",
+      "headlineLine2": "with the city.",
+      "copy": "AdzOnRoad turns everyday vehicle movement into a new channel for digital outdoor advertising.",
+      "statementLine1": "One campaign.",
+      "statementLine2": "Multiple places.",
+      "statementCopy": "Your campaign moves with participating vehicles instead of remaining fixed to one location.",
+      "locationLinked": "Location-linked",
+      "locationLinkedBody": "Know where campaign activity occurred.",
+      "movingCoverage": "Moving coverage",
+      "movingCoverageBody": "Campaign delivery moves through the city with participating vehicles.",
+      "recordedDelivery": "Recorded delivery",
+      "recordedDeliveryBody": "Ad plays contribute toward a measurable campaign delivery target."
+    },
+    "cta": {
+      "eyebrow": "Ready to move?",
+      "headlineLine1": "Put your next campaign",
+      "headlineLine2": "on the road.",
+      "copy": "Launch your campaign across AdzOnRoad’s moving screen network and track delivery as it happens.",
+      "exploreCoverage": "Explore coverage"
+    },
+    "footer": {
+      "tagline": "Moving digital advertising, built for Lebanon’s roads.",
+      "location": "Beirut, Lebanon",
+      "readyToLaunch": "Ready to launch?",
+      "becomeDriver": "Become a driver partner",
+      "partnerFleet": "Partner your fleet",
+      "copyright": "© 2026 AdzOnRoad · Beirut, Lebanon"
+    }
+  },
+  "auth": {
+    "brand": {
+      "builtForLebanon": "Built for Lebanon",
+      "flowCampaign": "Campaign",
+      "flowVehicle": "Vehicle",
+      "flowLocation": "Location",
+      "flowDelivery": "Delivery"
+    },
+    "login": {
+      "eyebrow": "The AdzOnRoad network",
+      "brandHeadlineLine1": "Welcome back",
+      "brandHeadlineLine2": "to the road.",
+      "brandCopy": "Access your campaigns, vehicle activity, fleet operations and AdzOnRoad tools from one place.",
+      "footerCopy": "Moving digital advertising, designed around the city.",
+      "title": "Welcome back.",
+      "subtitle": "Sign in to your AdzOnRoad account.",
+      "identifier": "Email or mobile number",
+      "identifierPlaceholder": "name@company.com",
+      "forgotPassword": "Forgot password?",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "oneLogin": "One login for every AdzOnRoad account. We’ll take you to the right workspace after you sign in.",
+      "newHere": "New to AdzOnRoad?",
+      "signedInAs": "Signed in as {{name}}",
+      "genericError": "Sign-in failed. Please try again.",
+      "accountStatus": "Account status",
+      "cannotSignInYet": "Cannot sign in yet",
+      "notActive": "This account is not active",
+      "useDifferentAccount": "Use a different account",
+      "blocked": {
+        "pendingTitle": "Account under review",
+        "pendingLead": "Your AdzOnRoad account has been submitted and is still awaiting activation.",
+        "rejectedTitle": "Account not approved",
+        "rejectedLead": "This account was reviewed and not approved.",
+        "suspendedTitle": "Account suspended",
+        "suspendedLead": "This account is currently suspended."
+      }
+    },
+    "signup": {
+      "eyebrow": "Join the network",
+      "brandHeadlineLine1": "One network.",
+      "brandHeadlineLine2": "Different ways to move.",
+      "brandCopy": "Whether you’re launching campaigns, driving with AdzOnRoad, or managing a fleet, start by choosing how you want to join.",
+      "footerCopy": "Digital outdoor advertising designed around the way our cities move.",
+      "title": "Create your account",
+      "subtitle": "Choose how you’re joining AdzOnRoad.",
+      "accountType": "Account type",
+      "roles": {
+        "advertiserDescription": "Launch and manage advertising campaigns.",
+        "driverDescription": "Drive with AdzOnRoad and earn from participating.",
+        "fleetDescription": "Connect and manage eligible vehicles in your fleet.",
+        "advertiserCta": "Create advertiser account",
+        "driverCta": "Create driver account",
+        "fleetCta": "Create fleet partner account",
+        "advertiserReview": "We’ll review your business account before campaign access is activated.",
+        "driverReview": "We’ll review your registration before your driver account is activated.",
+        "fleetReview": "We’ll review your company before fleet access is activated.",
+        "advertiserSubmitted": "We’ll let you know when your advertiser account is ready.",
+        "driverSubmitted": "We’ll let you know when your driver account is ready.",
+        "fleetSubmitted": "We’ll let you know when your fleet account is ready."
+      },
+      "fields": {
+        "companyName": "Company name",
+        "companyNamePlaceholder": "Enter your company name",
+        "fleetName": "Company / fleet name",
+        "fleetNamePlaceholder": "Enter your fleet name",
+        "contactName": "Contact name",
+        "contactNamePlaceholder": "Who should we speak to?",
+        "workEmail": "Work email",
+        "workEmailPlaceholder": "name@company.com",
+        "mobile": "Mobile number",
+        "mobilePlaceholder": "+961 …",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "region": "Region",
+        "regionPlaceholder": "Beirut",
+        "plateNumber": "Plate number",
+        "plateLetter": "Letter",
+        "carType": "Car type",
+        "carYear": "Year",
+        "carModel": "Model",
+        "passwordHint": "Use at least 8 characters, including a number and symbol."
+      },
+      "sections": {
+        "vehicle": "Your vehicle",
+        "documents": "Documents",
+        "documentsHint": "Photos are resized in your browser before upload, so this works on mobile data.",
+        "nationalId": "National ID",
+        "licence": "Driver's licence",
+        "carPapers": "Car papers"
+      },
+      "review": "Accounts are reviewed before activation.",
+      "submitting": "Submitting…",
+      "alreadyHaveAccount": "Already have an account?",
+      "signInInstead": "Sign in instead",
+      "documentsRequired": "Please upload all three documents so your application can be reviewed.",
+      "genericError": "Registration failed. Please try again.",
+      "submitted": {
+        "eyebrow": "Account submitted",
+        "title": "Your account is under review.",
+        "reference": "Reference"
+      }
+    },
+    "forgot": {
+      "eyebrow": "Account access",
+      "brandHeadlineLine1": "We’ll help you",
+      "brandHeadlineLine2": "get back in.",
+      "brandCopy": "Account recovery is handled securely by the AdzOnRoad team.",
+      "footerCopy": "Moving digital advertising, designed around the city.",
+      "title": "Forgot your password?",
+      "subtitle": "Contact our team and we’ll help you securely regain access to your AdzOnRoad account.",
+      "secureRecovery": "Secure account recovery",
+      "secureRecoveryBody1": "For your security, password recovery is currently handled directly by the AdzOnRoad team.",
+      "secureRecoveryBody2": "Once your identity is confirmed, you’ll receive temporary access and create a new password when you sign in.",
+      "contactSupport": "Contact support",
+      "contactSupportBody": "Get in touch with our team to recover your account.",
+      "contactButton": "Contact AdzOnRoad Support",
+      "mailSubject": "AdzOnRoad account recovery",
+      "neverAsk": "AdzOnRoad will never ask you to send your existing password by email.",
+      "adminNote": "Administrators: your password is reset by another administrator in your organisation, from Settings → Users.",
+      "returnHome": "Return to AdzOnRoad homepage"
+    }
+  },
+  "coverage": {
+    "availableForTargeting": "Available for targeting",
+    "expanding": "Expanding"
+  }
+}

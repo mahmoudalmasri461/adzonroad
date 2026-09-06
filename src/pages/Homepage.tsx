@@ -23,8 +23,11 @@ import { useAuth } from '../contexts/AuthProvider';
 import { fetchRegions, type RegionOption } from '../services/registration';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import { tokens } from '../theme';
 import heroTaxiDaylight from '../assets/hero/hero-taxi-daylight.jpg';
+import DirArrow from '../components/DirArrow';
 
 /**
  * Five links, not seven. About and Contact moved to the footer, which already listed them, and
@@ -35,11 +38,11 @@ import heroTaxiDaylight from '../assets/hero/hero-taxi-daylight.jpg';
  * and renaming a nav label should not silently break the anchor.
  */
 const NAV_LINKS = [
-  { label: 'Advertisers', href: '#advertisers' },
-  { label: 'Drivers', href: '#drivers' },
-  { label: 'Fleet Partners', href: '#taxi-companies' },
-  { label: 'Coverage', href: '#coverage' },
-  { label: 'Pricing', href: '#pricing' },
+  { key: 'nav.advertisers', href: '#how-it-works' },
+  { key: 'nav.drivers', href: '#driver-earnings' },
+  { key: 'nav.fleetPartners', href: '#taxi-companies' },
+  { key: 'nav.coverage', href: '#coverage' },
+  { key: 'nav.pricing', href: '#pricing' },
 ];
 
 /**
@@ -54,9 +57,9 @@ const NAV_LINKS = [
  * saw it, and the platform measures the former.
  */
 const HERO_PROOF = [
-  { label: 'GPS-linked delivery', body: 'Know where campaign activity occurred.' },
-  { label: '15-second ad plays', body: 'Buy measurable campaign delivery.' },
-  { label: 'Flexible coverage', body: 'Choose where your campaign runs.' },
+  { labelKey: 'home.proof.gpsLinked', bodyKey: 'home.proof.gpsLinkedBody' },
+  { labelKey: 'home.proof.adPlays', bodyKey: 'home.proof.adPlaysBody' },
+  { labelKey: 'home.proof.coverage', bodyKey: 'home.proof.coverageBody' },
 ];
 
 /**
@@ -329,6 +332,7 @@ function StreetVisual() {
 }
 
 export default function Homepage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [navOpen, setNavOpen] = useState(false);
   // Drives the delivery bar in the Measure panel, so it fills as the section arrives rather than
@@ -528,7 +532,7 @@ export default function Homepage() {
           <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: '28px' }}>
             {NAV_LINKS.map((link) => (
               <Link
-                key={link.label}
+                key={link.key}
                 href={link.href}
                 underline="none"
                 sx={{
@@ -541,12 +545,15 @@ export default function Homepage() {
                   '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
                 }}
               >
-                {link.label}
+                {t(link.key)}
               </Link>
             ))}
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <Box sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
+              <LanguageSwitcher />
+            </Box>
             <Link
               component="button"
               type="button"
@@ -565,7 +572,7 @@ export default function Homepage() {
                 '&:focus-visible': { outline: `2px solid ${tokens.amber}`, outlineOffset: '4px', borderRadius: '4px' },
               }}
             >
-              Sign in
+              {t('common.signIn')}
             </Link>
             <Button
               variant="contained"
@@ -578,10 +585,10 @@ export default function Homepage() {
               }}
               onClick={() => navigate('/signup?role=advertiser')}
             >
-              Launch a Campaign
+              {t('common.launchCampaign')}
             </Button>
             <IconButton
-              aria-label="Open menu"
+              aria-label={t('nav.openMenu')}
               onClick={() => setNavOpen(true)}
               sx={{ display: { xs: 'inline-flex', md: 'none' }, color: tokens.navy }}
             >
@@ -595,15 +602,15 @@ export default function Homepage() {
         <Box sx={{ width: 272, p: '16px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: '10px' }}>
             <Logo size="md" />
-            <IconButton aria-label="Close menu" onClick={() => setNavOpen(false)}>
+            <IconButton aria-label={t('nav.closeMenu')} onClick={() => setNavOpen(false)}>
               <CloseRoundedIcon />
             </IconButton>
           </Box>
           {/* The drawer keeps About and Contact: there is room here, and they are the two the
               desktop bar dropped for space rather than because they stopped mattering. */}
-          {[...NAV_LINKS, { label: 'About', href: '#about' }, { label: 'Contact', href: '#contact' }].map((link) => (
+          {[...NAV_LINKS, { key: 'nav.about', href: '#about' }, { key: 'nav.contact', href: '#contact' }].map((link) => (
             <Link
-              key={link.label}
+              key={link.key}
               href={link.href}
               underline="none"
               onClick={() => setNavOpen(false)}
@@ -617,9 +624,13 @@ export default function Homepage() {
                 '&:hover': { backgroundColor: tokens.bg },
               }}
             >
-              {link.label}
+              {t(link.key)}
             </Link>
           ))}
+          {/* The one place a phone user can reach it: the drawer is the whole navigation. */}
+          <Box sx={{ mt: '14px', px: '8px' }}>
+            <LanguageSwitcher />
+          </Box>
           <Box sx={{ display: 'grid', gap: '10px', mt: '18px' }}>
             <Button
               fullWidth
@@ -627,7 +638,7 @@ export default function Homepage() {
               color="primary"
               onClick={() => { setNavOpen(false); navigate('/signup?role=advertiser'); }}
             >
-              Launch a Campaign
+              {t('common.launchCampaign')}
             </Button>
             <Button
               fullWidth
@@ -679,7 +690,7 @@ export default function Homepage() {
         <Box
           component="img"
           src={heroTaxiDaylight}
-          alt="A black Mercedes on the Beirut corniche carrying an AdzOnRoad digital advertising screen mounted along its roof"
+          alt={t('home.hero.imageAlt')}
           fetchPriority="high"
           sx={{
             position: 'absolute',
@@ -744,7 +755,7 @@ export default function Homepage() {
                 animation: 'adzHeroIn .5s ease-out both',
               }}
             >
-              Lebanon&rsquo;s moving media network
+              {t('home.hero.eyebrow')}
             </Typography>
 
             <Typography
@@ -763,9 +774,9 @@ export default function Homepage() {
                 animation: 'adzHeroIn .55s ease-out .06s both',
               }}
             >
-              Make the city
+              {t('home.hero.headlineLine1')}
               <Box component="span" sx={{ display: 'block', color: tokens.amber }}>
-                your billboard.
+                {t('home.hero.headlineLine2')}
               </Box>
             </Typography>
 
@@ -781,8 +792,7 @@ export default function Homepage() {
                 animation: 'adzHeroIn .55s ease-out .12s both',
               }}
             >
-              Launch location-targeted campaigns across a network of moving digital screens
-              &mdash; with measurable delivery and GPS-linked reporting.
+              {t('home.hero.copy')}
             </Typography>
 
             {/* One button, then a link. Two filled buttons side by side made exploring the network
@@ -813,9 +823,9 @@ export default function Homepage() {
                   '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
                 }}
               >
-                Launch a campaign
+                {t('common.launchCampaign')}
                 <Box component="span" className="arrow" aria-hidden sx={{ ml: '9px', fontSize: 17, lineHeight: 1 }}>
-                  &rarr;
+                  <DirArrow />
                 </Box>
               </Button>
 
@@ -836,9 +846,9 @@ export default function Homepage() {
                   '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
                 }}
               >
-                Explore the network
+                {t('home.hero.exploreNetwork')}
                 <Box component="span" className="arrow" aria-hidden sx={{ fontSize: 16, lineHeight: 1 }}>
-                  &rarr;
+                  <DirArrow />
                 </Box>
               </Link>
             </Box>
@@ -852,14 +862,14 @@ export default function Homepage() {
                 animation: 'adzHeroIn .55s ease-out .24s both',
               }}
             >
-              Drive with AdzOnRoad?{' '}
+              {t('home.hero.driverPrompt')}{' '}
               <Link
                 component={RouterLink}
                 to="/signup?role=driver"
                 underline="hover"
                 sx={{ fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}
               >
-                Become a driver partner &rarr;
+                {t('home.hero.driverLink')} <DirArrow />
               </Link>
             </Typography>
           </Box>
@@ -894,7 +904,7 @@ export default function Homepage() {
           >
             {HERO_PROOF.map((item, i) => (
               <Box
-                key={item.label}
+                key={item.labelKey}
                 sx={{
                   display: 'flex',
                   alignItems: { xs: 'center', sm: 'flex-start' },
@@ -923,7 +933,7 @@ export default function Homepage() {
                       color: tokens.amber,
                     }}
                   >
-                    {item.label}
+                    {t(item.labelKey)}
                   </Typography>
                   <Typography
                     sx={{
@@ -935,7 +945,7 @@ export default function Homepage() {
                       maxWidth: '28ch',
                     }}
                   >
-                    {item.body}
+                    {t(item.bodyKey)}
                   </Typography>
                 </Box>
               </Box>
@@ -1215,7 +1225,7 @@ export default function Homepage() {
                   >
                     Partner your fleet
                     <Box component="span" className="arrow" aria-hidden sx={{ ml: '8px', fontSize: 16, lineHeight: 1 }}>
-                      &rarr;
+                      <DirArrow />
                     </Box>
                   </Button>
                   <Link
@@ -1308,7 +1318,7 @@ export default function Homepage() {
                   </Box>
 
                   <Typography sx={{ mt: '16px', fontSize: 12.5, fontWeight: 700, color: tokens.amber600 }}>
-                    View fleet reporting &rarr;
+                    View fleet reporting <DirArrow />
                   </Typography>
                 </Box>
               </Box>
@@ -1423,12 +1433,12 @@ export default function Homepage() {
 
                     <Box sx={{ mt: '16px', display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
                       {[
-                        { label: 'Available for targeting', colour: tokens.navy },
-                        { label: 'Expanding', colour: tokens.textMuted },
+                        { labelKey: 'coverage.availableForTargeting', colour: tokens.navy },
+                        { labelKey: 'coverage.expanding', colour: tokens.textMuted },
                       ].map((item) => (
-                        <Box key={item.label} sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Box key={item.labelKey} sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: item.colour }} />
-                          <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>{item.label}</Typography>
+                          <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>{t(item.labelKey)}</Typography>
                         </Box>
                       ))}
                     </Box>
@@ -1497,7 +1507,7 @@ export default function Homepage() {
                       onClick={() => navigate('/signup?role=advertiser')}
                       sx={{ mt: '26px' }}
                     >
-                      Target {selectedAreaDetail.name} &rarr;
+                      Target {selectedAreaDetail.name} <DirArrow />
                     </Button>
 
                     {/* The region navigator, as pills rather than full-width rows. Eight rows at
@@ -1588,7 +1598,7 @@ export default function Homepage() {
                     onClick={() => navigate('/#contact')}
                     sx={{ borderColor: tokens.border, color: tokens.navy, flexShrink: 0 }}
                   >
-                    Talk to our team &rarr;
+                    Talk to our team <DirArrow />
                   </Button>
                 </Box>
               </>
@@ -1775,7 +1785,7 @@ export default function Homepage() {
                   >
                     {isSignedIn ? 'Continue to campaign setup' : 'Build your campaign'}
                     <Box component="span" className="arrow" aria-hidden sx={{ ml: '8px', fontSize: 16, lineHeight: 1 }}>
-                      &rarr;
+                      <DirArrow />
                     </Box>
                   </Button>
                 </Box>
@@ -2913,7 +2923,7 @@ export default function Homepage() {
                   >
                     {a.cta}
                     <Box component="span" className="arrow" aria-hidden sx={{ fontSize: 16, lineHeight: 1 }}>
-                      &rarr;
+                      <DirArrow />
                     </Box>
                   </Link>
                 </Box>
@@ -3027,7 +3037,7 @@ export default function Homepage() {
                     <Typography sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: tokens.textMuted, mb: '6px' }}>
                       Location
                     </Typography>
-                    <Typography sx={{ fontSize: 15, fontWeight: 600, color: tokens.navy }}>Beirut, Lebanon</Typography>
+                    <Typography sx={{ fontSize: 15, fontWeight: 600, color: tokens.navy }}>{t('home.footer.location')}</Typography>
                   </Box>
                 </Box>
 
@@ -3038,7 +3048,7 @@ export default function Homepage() {
                 <Typography sx={{ mt: '32px', fontSize: 13, color: tokens.textMuted }}>
                   Already part of AdzOnRoad?{' '}
                   <Link component={RouterLink} to="/login" underline="hover" sx={{ fontWeight: 600, color: tokens.navy }}>
-                    Sign in &rarr;
+                    Sign in <DirArrow />
                   </Link>
                 </Typography>
               </Box>
@@ -3215,7 +3225,7 @@ export default function Homepage() {
                       >
                         Send inquiry
                         <Box component="span" className="arrow" aria-hidden sx={{ ml: '8px', fontSize: 16, lineHeight: 1 }}>
-                          &rarr;
+                          <DirArrow />
                         </Box>
                       </Button>
                       <Typography sx={{ mt: '12px', fontSize: 12.5, color: tokens.textMuted, lineHeight: 1.55 }}>
@@ -3254,19 +3264,18 @@ export default function Homepage() {
             <Typography
               sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: tokens.amber, mb: '10px' }}
             >
-              Ready to move?
+              {t('home.cta.eyebrow')}
             </Typography>
             <Typography
               sx={{ fontWeight: 700, fontSize: 'clamp(28px,3.4vw,44px)', lineHeight: 1.08, letterSpacing: '-0.03em', color: '#fff' }}
             >
-              Put your next campaign
+              {t('home.cta.headlineLine1')}
               <Box component="span" sx={{ display: 'block' }}>
-                on the road.
+                {t('home.cta.headlineLine2')}
               </Box>
             </Typography>
             <Typography sx={{ mt: '16px', fontSize: 15.5, lineHeight: 1.7, color: 'rgba(255,255,255,0.72)', maxWidth: '52ch' }}>
-              Launch your campaign across AdzOnRoad&rsquo;s moving screen network and track delivery
-              as it happens.
+              {t('home.cta.copy')}
             </Typography>
 
             <Box sx={{ mt: '24px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '16px' }}>
@@ -3281,9 +3290,9 @@ export default function Homepage() {
                   '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
                 }}
               >
-                Launch a campaign
+                {t('common.launchCampaign')}
                 <Box component="span" className="arrow" aria-hidden sx={{ ml: '8px', fontSize: 16, lineHeight: 1 }}>
-                  &rarr;
+                  <DirArrow />
                 </Box>
               </Button>
               <Button
@@ -3299,22 +3308,22 @@ export default function Homepage() {
                   '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
                 }}
               >
-                Explore coverage
+                {t('home.cta.exploreCoverage')}
                 <Box component="span" className="arrow" aria-hidden sx={{ ml: '8px', fontSize: 16, lineHeight: 1 }}>
-                  &rarr;
+                  <DirArrow />
                 </Box>
               </Button>
             </Box>
 
             <Typography sx={{ mt: '18px', fontSize: 13.5, color: 'rgba(255,255,255,0.55)' }}>
-              Want to drive with us?{' '}
+              {t('home.hero.driverPrompt')}{' '}
               <Link
                 component={RouterLink}
                 to="/signup?role=driver"
                 underline="hover"
                 sx={{ fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}
               >
-                Become a driver partner &rarr;
+                {t('home.hero.driverLink')} <DirArrow />
               </Link>
             </Typography>
           </Box>
@@ -3389,23 +3398,23 @@ export default function Homepage() {
                 <Logo size="md" />
               </Box>
               <Typography sx={{ fontSize: 14, color: tokens.navy, lineHeight: 1.6, maxWidth: '26ch', fontWeight: 500 }}>
-                Moving digital advertising, built for Lebanon&rsquo;s roads.
+                {t('home.footer.tagline')}
               </Typography>
-              <Typography sx={{ mt: '10px', fontSize: 13, color: tokens.textMuted }}>Beirut, Lebanon</Typography>
+              <Typography sx={{ mt: '10px', fontSize: 13, color: tokens.textMuted }}>{t('home.footer.location')}</Typography>
             </Box>
 
             <Box>
               <Typography
                 sx={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: tokens.textMuted, mb: '14px' }}
               >
-                Platform
+                {t('nav.platform')}
               </Typography>
               {/* The same list the header uses, so a rename cannot leave the two disagreeing —
                   which is exactly how the footer ended up still saying "Taxi Companies". */}
               <Box sx={{ display: 'grid', gap: '10px' }}>
                 {NAV_LINKS.map((link) => (
-                  <Link key={link.label} href={link.href} underline="hover" sx={{ fontSize: 14, color: tokens.navy }}>
-                    {link.label}
+                  <Link key={link.key} href={link.href} underline="hover" sx={{ fontSize: 14, color: tokens.navy }}>
+                    {t(link.key)}
                   </Link>
                 ))}
               </Box>
@@ -3415,14 +3424,14 @@ export default function Homepage() {
               <Typography
                 sx={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: tokens.textMuted, mb: '14px' }}
               >
-                Company
+                {t('nav.company')}
               </Typography>
               <Box sx={{ display: 'grid', gap: '10px' }}>
                 <Link href="#about" underline="hover" sx={{ fontSize: 14, color: tokens.navy }}>
-                  About
+                  {t('nav.about')}
                 </Link>
                 <Link href="#contact" underline="hover" sx={{ fontSize: 14, color: tokens.navy }}>
-                  Contact
+                  {t('nav.contact')}
                 </Link>
               </Box>
             </Box>
@@ -3431,9 +3440,9 @@ export default function Homepage() {
               <Typography
                 sx={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: tokens.textMuted, mb: '14px' }}
               >
-                Get started
+                {t('nav.getStarted')}
               </Typography>
-              <Typography sx={{ fontSize: 14, fontWeight: 600, color: tokens.navy, mb: '12px' }}>Ready to launch?</Typography>
+              <Typography sx={{ fontSize: 14, fontWeight: 600, color: tokens.navy, mb: '12px' }}>{t('home.footer.readyToLaunch')}</Typography>
               <Button
                 variant="contained"
                 color="primary"
@@ -3445,9 +3454,9 @@ export default function Homepage() {
                   '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
                 }}
               >
-                Launch a campaign
+                {t('common.launchCampaign')}
                 <Box component="span" className="arrow" aria-hidden sx={{ ml: '7px', fontSize: 15, lineHeight: 1 }}>
-                  &rarr;
+                  <DirArrow />
                 </Box>
               </Button>
               <Box sx={{ display: 'grid', gap: '9px' }}>
@@ -3457,7 +3466,7 @@ export default function Homepage() {
                   underline="hover"
                   sx={{ fontSize: 13.5, color: tokens.navy, fontWeight: 500 }}
                 >
-                  Become a driver partner &rarr;
+                  {t('home.footer.becomeDriver')} <DirArrow />
                 </Link>
                 <Link
                   component={RouterLink}
@@ -3465,7 +3474,7 @@ export default function Homepage() {
                   underline="hover"
                   sx={{ fontSize: 13.5, color: tokens.navy, fontWeight: 500 }}
                 >
-                  Partner your fleet &rarr;
+                  {t('home.footer.partnerFleet')} <DirArrow />
                 </Link>
               </Box>
             </Box>
@@ -3483,7 +3492,7 @@ export default function Homepage() {
             }}
           >
             <Typography sx={{ fontSize: 12.5, color: tokens.textMuted }}>
-              &copy; 2026 AdzOnRoad &middot; Beirut, Lebanon
+              {t('home.footer.copyright')}
             </Typography>
             {/* The way in for the people who run the platform, kept plain and unhighlighted —
                 it is a staff entrance, not a page anyone browsing the site is looking for. */}
@@ -3493,7 +3502,7 @@ export default function Homepage() {
               underline="hover"
               sx={{ fontSize: 12.5, color: tokens.textMuted, '&:hover': { color: tokens.navy } }}
             >
-              Admin login
+              {t('nav.adminLogin')}
             </Link>
           </Box>
         </Container>

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import Box from '@mui/material/Box';
 import Logo from '../components/Logo';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import { tokens } from '../theme';
 
 type MobileShellProps = {
@@ -33,9 +34,12 @@ export default function MobileShell({ avatarInitials, children }: MobileShellPro
         }}
       >
         <Logo size="sm" onDark />
-        <Box
-          sx={{
-            width: 32,
+        {/* The driver shell has no menu, so the header is the only place it can live. */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <LanguageSwitcher variant="dark" />
+          <Box
+            sx={{
+              width: 32,
             height: 32,
             borderRadius: '50%',
             backgroundColor: tokens.amber,
@@ -47,7 +51,8 @@ export default function MobileShell({ avatarInitials, children }: MobileShellPro
             color: tokens.navy,
           }}
         >
-          {avatarInitials}
+            {avatarInitials}
+          </Box>
         </Box>
       </Box>
 

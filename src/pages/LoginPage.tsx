@@ -11,8 +11,10 @@ import AuthShell, { AuthField, authFieldSx } from '../layouts/AuthShell';
 import PasswordField from '../components/PasswordField';
 import { useToast } from '../contexts/ToastProvider';
 import { useAuth } from '../contexts/AuthProvider';
+import { useTranslation } from 'react-i18next';
 import { canReach, landingFor, SignInError } from '../services/auth';
 import { tokens } from '../theme';
+import DirArrow from '../components/DirArrow';
 
 /**
  * What a 403 means, in the platform's own words.
@@ -22,22 +24,23 @@ import { tokens } from '../theme';
  * server's own message is always shown underneath: it is the authority on why, and it is what an
  * administrator would have to change to let the person in.
  */
-const BLOCKED_ACCOUNT_STATES: Record<string, { title: string; lead: string }> = {
+const BLOCKED_ACCOUNT_STATES: Record<string, { titleKey: string; leadKey: string }> = {
   PendingVerification: {
-    title: 'Account under review',
-    lead: 'Your AdzOnRoad account has been submitted and is still awaiting activation.',
+    titleKey: 'auth.login.blocked.pendingTitle',
+    leadKey: 'auth.login.blocked.pendingLead',
   },
   Rejected: {
-    title: 'Account not approved',
-    lead: 'This account was reviewed and not approved.',
+    titleKey: 'auth.login.blocked.rejectedTitle',
+    leadKey: 'auth.login.blocked.rejectedLead',
   },
   Suspended: {
-    title: 'Account suspended',
-    lead: 'This account is currently suspended.',
+    titleKey: 'auth.login.blocked.suspendedTitle',
+    leadKey: 'auth.login.blocked.suspendedLead',
   },
 };
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { showToast } = useToast();
   const { signInWithEmail, signInWithMobile } = useAuth();
@@ -74,7 +77,7 @@ export default function LoginPage() {
           ? decodeURIComponent(next)
           : landingFor(session.roles);
 
-      showToast(`Signed in as ${session.displayName}`);
+      showToast(t('auth.login.signedInAs', { name: session.displayName }));
       navigate(destination, { replace: true });
     } catch (e: unknown) {
       if (e instanceof SignInError && e.isAwaitingReview) {
@@ -82,7 +85,7 @@ export default function LoginPage() {
         // reset loop that cannot possibly help.
         setBlocked(e);
       } else {
-        setError(e instanceof Error ? e.message : 'Sign-in failed. Please try again.');
+        setError(e instanceof Error ? e.message : t('auth.login.genericError'));
       }
     } finally {
       setSubmitting(false);
@@ -94,18 +97,18 @@ export default function LoginPage() {
 
   return (
     <AuthShell
-      eyebrow="The AdzOnRoad network"
+      eyebrow={t('auth.login.eyebrow')}
       headline={
         <>
-          Welcome back
+          {t('auth.login.brandHeadlineLine1')}
           <Box component="span" sx={{ display: 'block' }}>
-            to the road.
+            {t('auth.login.brandHeadlineLine2')}
           </Box>
         </>
       }
-      copy="Access your campaigns, vehicle activity, fleet operations and AdzOnRoad tools from one place."
-      footerTitle="Built for Lebanon"
-      footerCopy="Moving digital advertising, designed around the city."
+      copy={t('auth.login.brandCopy')}
+      footerTitle={t('auth.brand.builtForLebanon')}
+      footerCopy={t('auth.login.footerCopy')}
       align="center"
       contentMaxWidth={480}
       showBackLink={blocked === null}
@@ -115,19 +118,19 @@ export default function LoginPage() {
           <Typography
             sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: tokens.amber, mb: '10px' }}
           >
-            {blockedState ? 'Account status' : 'Cannot sign in yet'}
+            {t(blockedState ? 'auth.login.accountStatus' : 'auth.login.cannotSignInYet')}
           </Typography>
 
           <Typography
             component="h1"
             sx={{ fontWeight: 800, fontSize: { xs: 26, md: 31 }, letterSpacing: '-0.03em', color: tokens.navy, lineHeight: 1.12 }}
           >
-            {blockedState?.title ?? 'This account is not active'}
+            {blockedState ? t(blockedState.titleKey) : t('auth.login.notActive')}
           </Typography>
 
           {blockedState && (
             <Typography sx={{ mt: '14px', fontSize: 15, color: 'text.secondary', lineHeight: 1.7 }}>
-              {blockedState.lead}
+              {t(blockedState.leadKey)}
             </Typography>
           )}
 
@@ -145,7 +148,7 @@ export default function LoginPage() {
               size="large"
               sx={{ minHeight: 50, borderRadius: '11px' }}
             >
-              Back to homepage
+              {t('common.backToHomepage')}
             </Button>
             <Button
               variant="outlined"
@@ -156,7 +159,7 @@ export default function LoginPage() {
               }}
               sx={{ minHeight: 50, borderRadius: '11px', borderColor: '#DFE3EA', color: tokens.navy }}
             >
-              Use a different account
+              {t('auth.login.useDifferentAccount')}
             </Button>
           </Box>
         </Box>
@@ -166,10 +169,10 @@ export default function LoginPage() {
             component="h1"
             sx={{ fontWeight: 800, fontSize: { xs: 28, md: 34 }, letterSpacing: '-0.03em', color: tokens.navy, lineHeight: 1.1 }}
           >
-            Welcome back.
+            {t('auth.login.title')}
           </Typography>
           <Typography sx={{ mt: '8px', fontSize: 15, color: 'text.secondary' }}>
-            Sign in to your AdzOnRoad account.
+            {t('auth.login.subtitle')}
           </Typography>
 
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: '28px', display: 'grid', gap: '16px' }}>
@@ -182,13 +185,13 @@ export default function LoginPage() {
             {/* One field for both endpoints. Drivers sign in with the mobile number they registered
                 with, everyone else with their email, and the label says so rather than making the
                 distinction a thing to choose up front. */}
-            <AuthField id="login-identifier" label="Email or mobile number" required>
+            <AuthField id="login-identifier" label={t('auth.login.identifier')} required>
               <TextField
                 id="login-identifier"
                 autoComplete="username"
                 required
                 fullWidth
-                placeholder="name@company.com"
+                placeholder={t('auth.login.identifierPlaceholder')}
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 disabled={submitting}
@@ -198,7 +201,7 @@ export default function LoginPage() {
 
             <AuthField
               id="login-password"
-              label="Password"
+              label={t('common.password')}
               required
               /* Recovery differs by role — that page names who restores each kind of account —
                  so the one role signal available here is forwarded. A mobile number in the
@@ -216,7 +219,7 @@ export default function LoginPage() {
                     '&:focus-visible': { outline: `2px solid ${tokens.amber}`, outlineOffset: '3px', borderRadius: '4px' },
                   }}
                 >
-                  Forgot password?
+                  {t('auth.login.forgotPassword')}
                 </Link>
               }
             >
@@ -243,10 +246,10 @@ export default function LoginPage() {
               sx={{ mt: '4px', minHeight: 52, borderRadius: '11px', fontSize: 15.5 }}
               startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : undefined}
             >
-              {submitting ? 'Signing in…' : 'Sign in'}
+              {submitting ? t('auth.login.submitting') : t('auth.login.submit')}
               {!submitting && (
                 <Box component="span" aria-hidden sx={{ ml: '9px', fontSize: 16, lineHeight: 1 }}>
-                  &rarr;
+                  <DirArrow />
                 </Box>
               )}
             </Button>
@@ -254,20 +257,19 @@ export default function LoginPage() {
 
           {/* Says why nobody is asked to pick an account type any more. */}
           <Typography sx={{ mt: '20px', fontSize: 13, color: tokens.textMuted, lineHeight: 1.6 }}>
-            One login for every AdzOnRoad account. We&rsquo;ll take you to the right workspace after
-            you sign in.
+            {t('auth.login.oneLogin')}
           </Typography>
 
           <Box sx={{ mt: '26px', pt: '22px', borderTop: '1px solid #E9E3D9' }}>
             <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>
-              New to AdzOnRoad?{' '}
+              {t('auth.login.newHere')}{' '}
               <Link
                 component={RouterLink}
                 to="/signup"
                 underline="hover"
                 sx={{ fontWeight: 700, color: tokens.navy }}
               >
-                Create an account &rarr;
+                {t('common.createAccount')} <DirArrow />
               </Link>
             </Typography>
           </Box>

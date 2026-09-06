@@ -3,8 +3,11 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Link from '@mui/material/Link';
 import { Link as RouterLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Logo from '../components/Logo';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import { tokens } from '../theme';
+import DirArrow from '../components/DirArrow';
 
 /**
  * The frame both authentication pages sit in.
@@ -18,8 +21,8 @@ import { tokens } from '../theme';
  * product, including the one still labelled "Taxi Company".
  */
 
-/** The chain the brand panel draws. Four words, no figures attached to any of them. */
-const NETWORK_FLOW = ['Campaign', 'Vehicle', 'Location', 'Delivery'] as const;
+/** The chain the brand panel draws. Keys, not words — four figures-free labels. */
+const NETWORK_FLOW = ['flowCampaign', 'flowVehicle', 'flowLocation', 'flowDelivery'] as const;
 
 export const AUTH_PANEL_BG = '#FAF8F4';
 
@@ -109,7 +112,8 @@ type AuthShellProps = {
   /** Hidden on the confirmation screens, which offer the same destination as a button. */
   showBackLink?: boolean;
   /** Recovery goes back to sign-in rather than to the homepage. */
-  backLabel?: string;
+  /** A translation key, resolved here so callers do not each have to call useTranslation. */
+  backLabelKey?: string;
   backTo?: string;
   children: ReactNode;
 };
@@ -123,10 +127,12 @@ export default function AuthShell({
   align = 'start',
   contentMaxWidth = 600,
   showBackLink = true,
-  backLabel = 'Back to homepage',
+  backLabelKey = 'common.backToHomepage',
   backTo = '/',
   children,
 }: AuthShellProps) {
+  const { t } = useTranslation();
+
   return (
     <Box
       sx={{
@@ -167,9 +173,9 @@ export default function AuthShell({
             }}
           >
             <Box component="span" aria-hidden>
-              &larr;
+              <DirArrow back />
             </Box>
-            {backLabel}
+            {t(backLabelKey)}
           </Link>
 
           {children}
@@ -198,6 +204,8 @@ function BrandPanel({
   footerTitle: string;
   footerCopy: string;
 }) {
+  const { t } = useTranslation();
+
   return (
     <Box
       sx={{
@@ -210,13 +218,18 @@ function BrandPanel({
     >
       {/* The full logo is black type with an orange car, so it disappears on navy. Rendered as a
           mono-white version of the real mark rather than swapped for the icon on its own. */}
-      <Box sx={{ filter: 'brightness(0) invert(1)', width: 'fit-content' }}>
-        <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-          <Logo size="md" />
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+        <Box sx={{ filter: 'brightness(0) invert(1)', width: 'fit-content' }}>
+          <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+            <Logo size="md" />
+          </Box>
+          <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+            <Logo size="lg" />
+          </Box>
         </Box>
-        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-          <Logo size="lg" />
-        </Box>
+        {/* Reachable before signing in, which is the one place somebody cannot open a settings
+            menu to find it. */}
+        <LanguageSwitcher variant="dark" />
       </Box>
 
       <Box sx={{ mt: { xs: '20px', md: '64px' }, flex: { md: 1 } }}>
@@ -281,7 +294,7 @@ function BrandPanel({
                   color: 'rgba(255,255,255,0.8)',
                 }}
               >
-                {step}
+                {t(`auth.brand.${step}`)}
               </Typography>
             </Box>
           ))}

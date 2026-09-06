@@ -3,9 +3,11 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Link from '@mui/material/Link';
 import { Link as RouterLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import AuthShell from '../layouts/AuthShell';
 import { ADVERTISER_SUPPORT_CONTACT } from '../data/supportContact';
 import { tokens } from '../theme';
+import DirArrow from '../components/DirArrow';
 
 /**
  * What to do about a forgotten password.
@@ -27,65 +29,65 @@ import { tokens } from '../theme';
  * recovery is not an advertiser-only errand.
  */
 export default function ForgotPasswordPage() {
+  const { t } = useTranslation();
   const contact = ADVERTISER_SUPPORT_CONTACT;
 
   return (
     <AuthShell
-      eyebrow="Account access"
+      eyebrow={t('auth.forgot.eyebrow')}
       headline={
         <>
-          We&rsquo;ll help you
+          {t('auth.forgot.brandHeadlineLine1')}
           <Box component="span" sx={{ display: 'block' }}>
-            get back in.
+            {t('auth.forgot.brandHeadlineLine2')}
           </Box>
         </>
       }
-      copy="Account recovery is handled securely by the AdzOnRoad team."
-      footerTitle="Built for Lebanon"
-      footerCopy="Moving digital advertising, designed around the city."
+      copy={t('auth.forgot.brandCopy')}
+      footerTitle={t('auth.brand.builtForLebanon')}
+      footerCopy={t('auth.forgot.footerCopy')}
       align="center"
       contentMaxWidth={480}
-      backLabel="Back to sign in"
+      backLabelKey="common.backToSignIn"
       backTo="/login"
     >
       <Typography
         component="h1"
         sx={{ fontWeight: 800, fontSize: { xs: 27, md: 33 }, letterSpacing: '-0.03em', color: tokens.navy, lineHeight: 1.1 }}
       >
-        Forgot your password?
+        {t('auth.forgot.title')}
       </Typography>
       <Typography sx={{ mt: '10px', fontSize: 15, color: 'text.secondary', lineHeight: 1.65 }}>
-        Contact our team and we&rsquo;ll help you securely regain access to your AdzOnRoad account.
+        {t('auth.forgot.subtitle')}
       </Typography>
 
       <Box sx={{ my: { xs: '26px', md: '30px' }, borderTop: '1px solid #E9E3D9' }} />
 
-      <SectionLabel>Secure account recovery</SectionLabel>
+      <SectionLabel>{t('auth.forgot.secureRecovery')}</SectionLabel>
       <Typography sx={{ fontSize: 14.5, color: 'text.secondary', lineHeight: 1.7 }}>
-        For your security, password recovery is currently handled directly by the AdzOnRoad team.
+        {t('auth.forgot.secureRecoveryBody1')}
       </Typography>
       <Typography sx={{ mt: '10px', fontSize: 14.5, color: 'text.secondary', lineHeight: 1.7 }}>
-        Once your identity is confirmed, you&rsquo;ll receive temporary access and create a new
-        password when you sign in.
+        {t('auth.forgot.secureRecoveryBody2')}
       </Typography>
 
       <Box sx={{ mt: { xs: '26px', md: '30px' } }}>
-        <SectionLabel>Contact support</SectionLabel>
+        <SectionLabel>{t('auth.forgot.contactSupport')}</SectionLabel>
         <Typography sx={{ fontSize: 14.5, color: 'text.secondary', lineHeight: 1.7, mb: '18px' }}>
-          Get in touch with our team to recover your account.
+          {t('auth.forgot.contactSupportBody')}
         </Typography>
 
         <Button
-          href={`mailto:${contact.email}?subject=${encodeURIComponent('AdzOnRoad account recovery')}`}
+          href={`mailto:${contact.email}?subject=${encodeURIComponent(t('auth.forgot.mailSubject'))}`}
           variant="contained"
           color="primary"
           size="large"
           fullWidth
           sx={{ minHeight: 52, borderRadius: '11px', fontSize: 15.5 }}
         >
-          Contact AdzOnRoad Support
+          {t('auth.forgot.contactButton')}
           <Box component="span" aria-hidden sx={{ ml: '9px', fontSize: 16, lineHeight: 1 }}>
-            &rarr;
+            <DirArrow />
           </Box>
         </Button>
 
@@ -99,9 +101,9 @@ export default function ForgotPasswordPage() {
             gap: { xs: '16px', sm: '24px' },
           }}
         >
-          <ContactDetail label="Email" value={contact.email} href={`mailto:${contact.email}`} />
+          <ContactDetail label={t('common.email')} value={contact.email} href={`mailto:${contact.email}`} />
           <ContactDetail
-            label="Phone"
+            label={t('common.phone')}
             value={contact.phone}
             href={`tel:${contact.phone.replace(/\s/g, '')}`}
           />
@@ -112,14 +114,13 @@ export default function ForgotPasswordPage() {
         {/* True of the process as it stands: a person issues a temporary password, and nobody is
             ever asked for the one they already have. */}
         <Typography sx={{ fontSize: 12.5, color: tokens.textMuted, lineHeight: 1.6 }}>
-          AdzOnRoad will never ask you to send your existing password by email.
+          {t('auth.forgot.neverAsk')}
         </Typography>
 
         {/* Kept because it is the one case support cannot resolve: an administrator's account is
             held by their own organisation, so this line saves them a call that goes nowhere. */}
         <Typography sx={{ mt: '8px', fontSize: 12.5, color: tokens.textMuted, lineHeight: 1.6 }}>
-          Administrators: your password is reset by another administrator in your organisation,
-          from Settings &rarr; Users.
+          {t('auth.forgot.adminNote')}
         </Typography>
 
         <Link
@@ -135,7 +136,7 @@ export default function ForgotPasswordPage() {
             '&:focus-visible': { outline: `2px solid ${tokens.amber}`, outlineOffset: '3px', borderRadius: '4px' },
           }}
         >
-          Return to AdzOnRoad homepage &rarr;
+          {t('auth.forgot.returnHome')} <DirArrow />
         </Link>
       </Box>
     </AuthShell>

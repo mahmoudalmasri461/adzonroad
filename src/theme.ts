@@ -65,7 +65,10 @@ const theme = createTheme({
   },
   shape: { borderRadius: 14 },
   typography: {
-    fontFamily: "'Inter', system-ui, sans-serif",
+    // Driven by a custom property that LanguageProvider rewrites on the root element, so Arabic
+    // gets a face with Arabic glyphs. The fallback after the variable is what applies before the
+    // provider's first effect runs, and for anything rendered outside it.
+    fontFamily: "var(--adz-font-stack, 'Inter', system-ui, sans-serif)",
     h1: { fontWeight: 800, letterSpacing: '-0.02em' },
     h2: { fontWeight: 700, letterSpacing: '-0.01em' },
     h3: { fontWeight: 700, letterSpacing: '-0.01em' },
