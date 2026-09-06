@@ -13,8 +13,9 @@ import { tokens } from '../theme';
  * and the shared parts — the navy panel, the field styling, the label-above-input pattern — are
  * exactly the parts that would have diverged first.
  *
- * `AuthLayout` still exists and still serves the password-recovery pages; this replaces it only
- * for the two pages that have been redesigned.
+ * It replaced `AuthLayout`, which the three authentication pages all used to share and which
+ * no longer had a caller once recovery moved across. That file carried the last role tabs in the
+ * product, including the one still labelled "Taxi Company".
  */
 
 /** The chain the brand panel draws. Four words, no figures attached to any of them. */
@@ -107,6 +108,9 @@ type AuthShellProps = {
   contentMaxWidth?: number;
   /** Hidden on the confirmation screens, which offer the same destination as a button. */
   showBackLink?: boolean;
+  /** Recovery goes back to sign-in rather than to the homepage. */
+  backLabel?: string;
+  backTo?: string;
   children: ReactNode;
 };
 
@@ -119,6 +123,8 @@ export default function AuthShell({
   align = 'start',
   contentMaxWidth = 600,
   showBackLink = true,
+  backLabel = 'Back to homepage',
+  backTo = '/',
   children,
 }: AuthShellProps) {
   return (
@@ -146,7 +152,7 @@ export default function AuthShell({
           {/* At the top, where someone decides to leave — not floating under the whole form. */}
           <Link
             component={RouterLink}
-            to="/"
+            to={backTo}
             underline="none"
             sx={{
               display: showBackLink ? 'inline-flex' : 'none',
@@ -163,7 +169,7 @@ export default function AuthShell({
             <Box component="span" aria-hidden>
               &larr;
             </Box>
-            Back to homepage
+            {backLabel}
           </Link>
 
           {children}
