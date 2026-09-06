@@ -11,7 +11,7 @@ import Link from '@mui/material/Link';
 import CircularProgress from '@mui/material/CircularProgress';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import { Link as RouterLink } from 'react-router-dom';
-import Logo from '../components/Logo';
+import AuthShell, { AuthField, authFieldSx } from '../layouts/AuthShell';
 import ImageUploadField from '../components/ImageUploadField';
 import { ImageTooLargeError, toCompressedBase64 } from '../services/imageUpload';
 import {
@@ -70,27 +70,9 @@ const ROLES = [
   },
 ] as const;
 
-/** The chain the brand panel draws. Four words, no figures attached to any of them. */
-const NETWORK_FLOW = ['Campaign', 'Vehicle', 'Location', 'Delivery'] as const;
-
-const PANEL_BG = '#FAF8F4';
-
-/**
- * Inputs are 50px with an 11px radius, rather than the theme's taller default and 14px corners.
- * A registration form is the longest stack of fields in the product, and the default height put
- * the driver form well past two screens.
- */
-const fieldSx = {
-  '& .MuiOutlinedInput-root': {
-    height: 50,
-    borderRadius: '11px',
-    backgroundColor: '#fff',
-    '& fieldset': { borderColor: '#DFE3EA' },
-    '&:hover fieldset': { borderColor: '#C3CAD6' },
-    '&.Mui-focused fieldset': { borderColor: tokens.amber, borderWidth: '1.5px' },
-  },
-  '& .MuiOutlinedInput-input': { fontSize: 14.5 },
-} as const;
+/** Shared with the login page so the two cannot drift apart. */
+const fieldSx = authFieldSx;
+const Field = AuthField;
 
 export default function SignupPage() {
   const [searchParams] = useSearchParams();
@@ -229,50 +211,23 @@ export default function SignupPage() {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'grid',
-        gridTemplateColumns: { xs: '1fr', md: '44fr 56fr' },
-        backgroundColor: PANEL_BG,
-      }}
+    <AuthShell
+      eyebrow="Join the network"
+      headline={
+        <>
+          One network.
+          <Box component="span" sx={{ display: 'block' }}>
+            Different ways to move.
+          </Box>
+        </>
+      }
+      copy="Whether you’re launching campaigns, driving with AdzOnRoad, or managing a fleet, start by choosing how you want to join."
+      footerTitle="Built for Lebanon"
+      footerCopy="Digital outdoor advertising designed around the way our cities move."
+      contentMaxWidth={600}
+      showBackLink={submitted === null}
     >
-      <BrandPanel />
-
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          px: { xs: '20px', sm: '32px', md: '56px' },
-          py: { xs: '28px', md: '48px' },
-        }}
-      >
-        <Box sx={{ width: '100%', maxWidth: 600 }}>
-          {/* At the top, where someone decides to leave — not floating under the whole form.
-              Hidden on the confirmation, which offers the same destination as a button. */}
-          <Link
-            component={RouterLink}
-            to="/"
-            underline="none"
-            sx={{
-              display: submitted ? 'none' : 'inline-flex',
-              alignItems: 'center',
-              gap: '7px',
-              fontSize: 13.5,
-              fontWeight: 500,
-              color: tokens.textMuted,
-              mb: { xs: '22px', md: '34px' },
-              '&:hover': { color: tokens.navy },
-              '&:focus-visible': { outline: `2px solid ${tokens.amber}`, outlineOffset: '3px', borderRadius: '4px' },
-            }}
-          >
-            <Box component="span" aria-hidden>
-              &larr;
-            </Box>
-            Back to homepage
-          </Link>
-
-          {submitted ? (
+      {submitted ? (
             <SubmittedPanel role={activeRole} result={submitted} />
           ) : (
             <>
@@ -557,127 +512,11 @@ export default function SignupPage() {
                 </Link>
               </Typography>
             </>
-          )}
-        </Box>
-      </Box>
-    </Box>
+      )}
+    </AuthShell>
   );
 }
 
-/**
- * The navy half.
- *
- * Collapses to a compact header on a phone rather than a half-screen of decoration: the form is
- * what someone came for, and it should be the first thing under the logo.
- */
-function BrandPanel() {
-  return (
-    <Box
-      sx={{
-        backgroundColor: tokens.navy,
-        display: 'flex',
-        flexDirection: 'column',
-        px: { xs: '20px', sm: '32px', md: '52px' },
-        py: { xs: '26px', md: '48px' },
-      }}
-    >
-      {/* The full logo is black type with an orange car, so it disappears on navy. Rendered as a
-          mono-white version of the real mark rather than swapped for the icon on its own. */}
-      <Box sx={{ filter: 'brightness(0) invert(1)', width: 'fit-content' }}>
-        <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-          <Logo size="md" />
-        </Box>
-        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-          <Logo size="lg" />
-        </Box>
-      </Box>
-
-      <Box sx={{ mt: { xs: '20px', md: '64px' }, flex: { md: 1 } }}>
-        <Typography
-          sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: tokens.amber, mb: { xs: '10px', md: '16px' } }}
-        >
-          Join the network
-        </Typography>
-
-        <Typography
-          sx={{
-            fontWeight: 800,
-            fontSize: { xs: 24, md: 'clamp(30px,3vw,40px)' },
-            lineHeight: 1.08,
-            letterSpacing: '-0.032em',
-            color: '#fff',
-          }}
-        >
-          One network.
-          <Box component="span" sx={{ display: 'block' }}>
-            Different ways to move.
-          </Box>
-        </Typography>
-
-        <Typography
-          sx={{
-            mt: { xs: '12px', md: '18px' },
-            fontSize: { xs: 14, md: 15 },
-            lineHeight: 1.65,
-            color: 'rgba(255,255,255,0.7)',
-            maxWidth: '42ch',
-          }}
-        >
-          Whether you&rsquo;re launching campaigns, driving with AdzOnRoad, or managing a fleet,
-          start by choosing how you want to join.
-        </Typography>
-
-        {/* Campaign to delivery, drawn rather than described. Hidden on a phone, where it would
-            sit between someone and the form. */}
-        <Box aria-hidden sx={{ display: { xs: 'none', md: 'block' }, mt: '52px' }}>
-          {NETWORK_FLOW.map((step, i) => (
-            <Box key={step} sx={{ display: 'flex', alignItems: 'stretch', gap: '16px' }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 10 }}>
-                <Box
-                  sx={{
-                    width: 9,
-                    height: 9,
-                    mt: '6px',
-                    borderRadius: '50%',
-                    flexShrink: 0,
-                    backgroundColor: i === 0 || i === NETWORK_FLOW.length - 1 ? tokens.amber : 'transparent',
-                    border: i === 0 || i === NETWORK_FLOW.length - 1 ? 'none' : '1.25px solid rgba(255,255,255,0.42)',
-                  }}
-                />
-                {i < NETWORK_FLOW.length - 1 && (
-                  <Box sx={{ width: '1px', flex: 1, minHeight: 30, mt: '5px', backgroundColor: 'rgba(255,255,255,0.2)' }} />
-                )}
-              </Box>
-              <Typography
-                sx={{
-                  pb: i < NETWORK_FLOW.length - 1 ? '16px' : 0,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  color: 'rgba(255,255,255,0.8)',
-                }}
-              >
-                {step}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-      </Box>
-
-      <Box sx={{ display: { xs: 'none', md: 'block' }, mt: '40px', pt: '26px', borderTop: '1px solid rgba(255,255,255,0.14)' }}>
-        <Typography
-          sx={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: tokens.amber, mb: '8px' }}
-        >
-          Built for Lebanon
-        </Typography>
-        <Typography sx={{ fontSize: 13.5, lineHeight: 1.6, color: 'rgba(255,255,255,0.62)', maxWidth: '38ch' }}>
-          Digital outdoor advertising designed around the way our cities move.
-        </Typography>
-      </Box>
-    </Box>
-  );
-}
 
 /**
  * What replaces the form once the server has the application.
@@ -752,55 +591,6 @@ function SubmittedPanel({
   );
 }
 
-/**
- * A visible label above its field.
- *
- * Placeholders alone vanish the moment someone types, which on a form this long means a filled
- * field no longer says what it holds. `htmlFor` is why every field below passes an explicit id.
- */
-function Field({
-  id,
-  label,
-  required,
-  optional,
-  hint,
-  children,
-}: {
-  id: string;
-  label: string;
-  required?: boolean;
-  optional?: boolean;
-  hint?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <Box>
-      <Typography
-        component="label"
-        htmlFor={id}
-        sx={{ display: 'block', fontSize: 13, fontWeight: 600, color: tokens.navy, mb: '7px' }}
-      >
-        {label}
-        {required && (
-          <Box component="span" aria-hidden sx={{ ml: '3px', color: tokens.amber600 }}>
-            *
-          </Box>
-        )}
-        {optional && (
-          <Box component="span" sx={{ ml: '5px', fontWeight: 500, color: tokens.textMuted }}>
-            (optional)
-          </Box>
-        )}
-      </Typography>
-      {children}
-      {hint && (
-        <Typography sx={{ mt: '7px', fontSize: 12.5, color: tokens.textMuted, lineHeight: 1.5 }}>
-          {hint}
-        </Typography>
-      )}
-    </Box>
-  );
-}
 
 /**
  * Regions as served by the API. Falls back to a free-text field rather than a stale hardcoded
