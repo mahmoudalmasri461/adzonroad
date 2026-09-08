@@ -75,22 +75,22 @@ const HERO_PROOF = [
 const JOURNEYS = [
   {
     id: 'advertisers',
-    label: 'For advertisers',
+    labelKey: 'home.journeys.advertisersLabel',
     accent: tokens.blue,
     steps: [
-      { number: '01', title: 'Build your campaign', body: 'Choose your ad-play target, campaign period and creative.' },
-      { number: '02', title: 'Choose your coverage', body: 'Select your target regions and vehicle network.' },
-      { number: '03', title: 'Launch & follow delivery', body: 'Track campaign progress as your purchased ad plays are delivered.' },
+      { number: '01', titleKey: 'home.journeys.adv1Title', bodyKey: 'home.journeys.adv1Body' },
+      { number: '02', titleKey: 'home.journeys.adv2Title', bodyKey: 'home.journeys.adv2Body' },
+      { number: '03', titleKey: 'home.journeys.adv3Title', bodyKey: 'home.journeys.adv3Body' },
     ],
   },
   {
     id: 'drivers',
-    label: 'For drivers',
+    labelKey: 'home.journeys.driversLabel',
     accent: tokens.amber600,
     steps: [
-      { number: '01', title: 'Join the network', body: 'Register yourself and your eligible vehicle.' },
-      { number: '02', title: 'Get equipped', body: 'AdzOnRoad installs and connects the advertising screen.' },
-      { number: '03', title: 'Drive & earn', body: 'Drive normally and earn additional income from eligible active driving.' },
+      { number: '01', titleKey: 'home.journeys.drv1Title', bodyKey: 'home.journeys.drv1Body' },
+      { number: '02', titleKey: 'home.journeys.drv2Title', bodyKey: 'home.journeys.drv2Body' },
+      { number: '03', titleKey: 'home.journeys.drv3Title', bodyKey: 'home.journeys.drv3Body' },
     ],
   },
 ];
@@ -113,17 +113,17 @@ const JOURNEYS = [
  */
 const AUDIENCES = [
   {
-    label: 'Advertisers',
-    title: 'Put your brand in motion.',
-    body: 'Build campaigns around ad plays, coverage and campaign periods.',
-    cta: 'Explore advertising',
+    labelKey: 'home.audiences.advLabel',
+    titleKey: 'home.audiences.advTitle',
+    bodyKey: 'home.audiences.advBody',
+    ctaKey: 'home.audiences.advCta',
     to: '/signup?role=advertiser',
   },
   {
-    label: 'Drivers & fleets',
-    title: 'Turn everyday movement into opportunity.',
-    body: 'Join individually or connect eligible vehicles from your fleet.',
-    cta: 'Explore partnerships',
+    labelKey: 'home.audiences.partnerLabel',
+    titleKey: 'home.audiences.partnerTitle',
+    bodyKey: 'home.audiences.partnerBody',
+    ctaKey: 'home.audiences.partnerCta',
     to: '/signup?role=taxiCompany',
   },
 ] as const;
@@ -138,21 +138,9 @@ const AUDIENCES = [
  * until those are contractually decided.
  */
 const FLEET_PROPOSITION = [
-  {
-    number: '01',
-    title: 'New revenue opportunity',
-    body: 'Create additional earning potential from participating vehicles.',
-  },
-  {
-    number: '02',
-    title: 'We handle the technology',
-    body: 'AdzOnRoad manages screen installation, platform connectivity and advertising operations.',
-  },
-  {
-    number: '03',
-    title: 'One fleet view',
-    body: 'Monitor participating vehicles, activity and earnings from one place.',
-  },
+  { number: '01', titleKey: 'home.fleet.p1Title', bodyKey: 'home.fleet.p1Body' },
+  { number: '02', titleKey: 'home.fleet.p2Title', bodyKey: 'home.fleet.p2Body' },
+  { number: '03', titleKey: 'home.fleet.p3Title', bodyKey: 'home.fleet.p3Body' },
 ];
 
 /**
@@ -160,10 +148,10 @@ const FLEET_PROPOSITION = [
  * so there is nothing public to read, and the identifiers are deliberately anonymous.
  */
 const FLEET_SAMPLE_VEHICLES = [
-  { id: 'Vehicle 018', active: true },
-  { id: 'Vehicle 024', active: true },
-  { id: 'Vehicle 031', active: false },
-  { id: 'Vehicle 042', active: true },
+  { id: '018', active: true },
+  { id: '024', active: true },
+  { id: '031', active: false },
+  { id: '042', active: true },
 ];
 
 /**
@@ -203,59 +191,70 @@ const COVERAGE_AREAS = [
  * 8-hour day this section stopped selling. A "Custom" option carries null so the summary can say
  * Custom rather than invent a figure for it.
  */
+/**
+ * A choice in the campaign builder. Numeric options carry a literal `label` because 25,000 reads
+ * the same in both languages; worded ones carry a key. `value` is what the campaign actually
+ * takes and is never translated.
+ */
+type CampaignOption = {
+  label?: string;
+  labelKey?: string;
+  labelCount?: number;
+  value: number | string | null;
+};
+
 const CAMPAIGN_STEPS = [
   {
     key: 'displays' as const,
     number: '01',
-    title: 'How many ad plays?',
-    note: 'Each ad play is one 15-second playback of your creative on a vehicle screen.',
+    titleKey: 'home.builder.step1Title',
+    noteKey: 'home.builder.step1Note',
     options: [
       { label: '25,000', value: 25000 },
       { label: '50,000', value: 50000 },
       { label: '100,000', value: 100000 },
       { label: '250,000', value: 250000 },
-      { label: 'Custom', value: null },
-    ],
+      { labelKey: 'home.builder.custom', value: null },
+    ] as CampaignOption[],
   },
   {
     key: 'vehicles' as const,
     number: '02',
-    title: 'How many vehicles?',
-    note: 'More vehicles distribute your campaign across a wider moving network and can help deliver the campaign target faster.',
+    titleKey: 'home.builder.step2Title',
+    noteKey: 'home.builder.step2Note',
     options: [
       { label: '5', value: 5 },
       { label: '10', value: 10 },
       { label: '20', value: 20 },
       { label: '50', value: 50 },
-      { label: 'Custom', value: null },
-    ],
+      { labelKey: 'home.builder.custom', value: null },
+    ] as CampaignOption[],
   },
   {
     key: 'coverage' as const,
     number: '03',
-    title: 'Where should it run?',
-    // Named from the regions the platform actually seeds — Hamra, Achrafieh, Downtown, Verdun,
-    // Gemmayze and Saifi sit inside Beirut; Mount Lebanon and Jounieh extend it. No claim of
-    // national coverage, because there are no screens deployed anywhere yet.
-    note: 'Beirut covers Hamra, Achrafieh, Downtown, Verdun, Gemmayze and Saifi. Greater Beirut adds Mount Lebanon and Jounieh.',
+    titleKey: 'home.builder.step3Title',
+    // Named from the regions the platform actually seeds. The values stay in English because they
+    // are what the campaign carries; only the labels are translated.
+    noteKey: 'home.builder.step3Note',
     options: [
-      { label: 'Beirut', value: 'Beirut' },
-      { label: 'Greater Beirut', value: 'Greater Beirut' },
-      { label: 'Selected regions', value: 'Selected regions' },
-      { label: 'Custom targeting', value: 'Custom targeting' },
-    ],
+      { labelKey: 'home.builder.beirut', value: 'Beirut' },
+      { labelKey: 'home.builder.greaterBeirut', value: 'Greater Beirut' },
+      { labelKey: 'home.builder.selectedRegions', value: 'Selected regions' },
+      { labelKey: 'home.builder.customTargeting', value: 'Custom targeting' },
+    ] as CampaignOption[],
   },
   {
     key: 'days' as const,
     number: '04',
-    title: 'Campaign period',
-    note: null,
+    titleKey: 'home.builder.step4Title',
+    noteKey: null,
     options: [
-      { label: '7 days', value: 7 },
-      { label: '14 days', value: 14 },
-      { label: '30 days', value: 30 },
-      { label: 'Custom', value: null },
-    ],
+      { labelKey: 'home.builder.days', labelCount: 7, value: 7 },
+      { labelKey: 'home.builder.days', labelCount: 14, value: 14 },
+      { labelKey: 'home.builder.days', labelCount: 30, value: 30 },
+      { labelKey: 'home.builder.custom', value: null },
+    ] as CampaignOption[],
   },
 ];
 
@@ -276,21 +275,9 @@ const CAMPAIGN_STEPS = [
  * further up makes that case with the actual formula, and this section is addressed to advertisers.
  */
 const ABOUT_PRINCIPLES = [
-  {
-    number: '01',
-    label: 'Location-linked',
-    body: 'Know where campaign activity occurred.',
-  },
-  {
-    number: '02',
-    label: 'Moving coverage',
-    body: 'Campaign delivery moves through the city with participating vehicles.',
-  },
-  {
-    number: '03',
-    label: 'Recorded delivery',
-    body: 'Ad plays contribute toward a measurable campaign delivery target.',
-  },
+  { number: '01', labelKey: 'home.about.locationLinked', bodyKey: 'home.about.locationLinkedBody' },
+  { number: '02', labelKey: 'home.about.movingCoverage', bodyKey: 'home.about.movingCoverageBody' },
+  { number: '03', labelKey: 'home.about.recordedDelivery', bodyKey: 'home.about.recordedDeliveryBody' },
 ];
 
 /**
@@ -299,7 +286,12 @@ const ABOUT_PRINCIPLES = [
  * Short enough to sit on a pill. The sentences these replaced ("I drive a taxi and want a screen")
  * only worked inside a dropdown, where there was room to read them one at a time.
  */
-const CONTACT_REASONS = ['Advertising', 'Driver partnership', 'Taxi / fleet partnership', 'Other'];
+const CONTACT_REASONS = [
+  { value: 'Advertising', key: 'home.contact.reasonAdvertising' },
+  { value: 'Driver partnership', key: 'home.contact.reasonDriver' },
+  { value: 'Taxi / fleet partnership', key: 'home.contact.reasonFleet' },
+  { value: 'Other', key: 'home.contact.reasonOther' },
+];
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -1014,7 +1006,7 @@ export default function Homepage() {
                   <Typography
                     sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: journey.accent, mb: '20px' }}
                   >
-                    {journey.label}
+                    {t(journey.labelKey)}
                   </Typography>
 
                   {journey.steps.map((step, i) => (
@@ -1035,10 +1027,10 @@ export default function Homepage() {
                         <Typography
                           sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: tokens.navy, mb: '5px' }}
                         >
-                          {step.title}
+                          {t(step.titleKey)}
                         </Typography>
                         <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.65, maxWidth: '42ch' }}>
-                          {step.body}
+                          {t(step.bodyKey)}
                         </Typography>
                       </Box>
                     </Box>
@@ -1081,10 +1073,10 @@ export default function Homepage() {
                   <Typography
                     sx={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: tokens.navy, mb: '14px' }}
                   >
-                    The AdzOnRoad network
+                    {t('home.network.title')}
                   </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: '10px 14px' }}>
-                    {['Campaigns', 'Vehicles', 'Location data', 'Playback evidence'].map((part, i) => (
+                    {[t('home.network.campaigns'), t('home.network.vehicles'), t('home.network.locationData'), t('home.network.playbackEvidence')].map((part, i) => (
                       <Box key={part} sx={{ display: 'flex', alignItems: 'center', gap: '10px 14px' }}>
                         {i > 0 && (
                           <Box aria-hidden sx={{ fontSize: 13, color: tokens.amber, fontWeight: 700 }}>
@@ -1166,16 +1158,14 @@ export default function Homepage() {
                     maxWidth: '16ch',
                   }}
                 >
-                  Another revenue channel.
+                  {t('home.fleetSec.revenueLine1')}
                   <Box component="span" sx={{ display: 'block', color: tokens.amber }}>
-                    Same fleet.
+                    {t('home.fleetSec.revenueLine2')}
                   </Box>
                 </Typography>
 
                 <Typography sx={{ mt: '16px', fontSize: 15, color: 'text.secondary', lineHeight: 1.75, maxWidth: '48ch' }}>
-                  AdzOnRoad equips eligible vehicles with digital advertising screens and manages the
-                  advertising network while your fleet continues doing what it already does &mdash;
-                  driving.
+                  {t('home.fleetSec.body')}
                 </Typography>
 
                 {/* On a phone the CTA comes before the three points, per the intended stack: a
@@ -1200,10 +1190,10 @@ export default function Homepage() {
                         <Typography
                           sx={{ fontSize: 12.5, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: tokens.navy, mb: '5px' }}
                         >
-                          {item.title}
+                          {t(item.titleKey)}
                         </Typography>
                         <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.65, maxWidth: '44ch' }}>
-                          {item.body}
+                          {t(item.bodyKey)}
                         </Typography>
                       </Box>
                     </Box>
@@ -1223,7 +1213,7 @@ export default function Homepage() {
                       '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
                     }}
                   >
-                    Partner your fleet
+                    {t('home.fleetSec.partnerFleet')}
                     <Box component="span" className="arrow" aria-hidden sx={{ ml: '8px', fontSize: 16, lineHeight: 1 }}>
                       <DirArrow />
                     </Box>
@@ -1234,12 +1224,12 @@ export default function Homepage() {
                     underline="hover"
                     sx={{ fontSize: 14.5, fontWeight: 600, color: tokens.navy }}
                   >
-                    Talk to our team
+                    {t('home.fleetSec.talkToTeam')}
                   </Link>
                 </Box>
 
                 <Typography sx={{ mt: '16px', fontSize: 13, color: tokens.textMuted, lineHeight: 1.6 }}>
-                  Have a large fleet? Contact us for a tailored partnership.
+                  {t('home.fleetSec.largeFleet')}
                 </Typography>
                 </Box>
               </Box>
@@ -1260,7 +1250,7 @@ export default function Homepage() {
                 <Typography
                   sx={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: tokens.textMuted, mb: '16px' }}
                 >
-                  Example view
+                  {t('common.example')}
                 </Typography>
 
                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4,1fr)' }, gap: '10px' }}>
@@ -1274,7 +1264,7 @@ export default function Homepage() {
                         border: `1px solid ${tokens.border}`,
                       }}
                     >
-                      <Typography sx={{ fontSize: 12, fontWeight: 700, color: tokens.navy, mb: '6px' }}>{v.id}</Typography>
+                      <Typography sx={{ fontSize: 12, fontWeight: 700, color: tokens.navy, mb: '6px' }}>{t('home.fleet.vehicle', { id: v.id })}</Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Box
                           sx={{
@@ -1284,7 +1274,7 @@ export default function Homepage() {
                             backgroundColor: v.active ? tokens.green : tokens.textMuted,
                           }}
                         />
-                        <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>{v.active ? 'Active' : 'Offline'}</Typography>
+                        <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>{t(v.active ? 'home.fleetSec.active' : 'home.fleetSec.offline')}</Typography>
                       </Box>
                     </Box>
                   ))}
@@ -1300,15 +1290,15 @@ export default function Homepage() {
                   <Typography
                     sx={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.textMuted, mb: '14px' }}
                   >
-                    Fleet overview
+                    {t('home.fleetSec.overview')}
                   </Typography>
 
                   <Box sx={{ display: 'grid', gap: '11px' }}>
                     {[
-                      { label: 'Participating vehicles', value: '24' },
-                      { label: 'Active today', value: '18' },
-                      { label: 'Verified operating hours', value: '142h' },
-                      { label: 'Fleet earnings', value: '$—' },
+                      { label: t('home.fleetSec.participating'), value: '24' },
+                      { label: t('home.fleetSec.activeToday'), value: '18' },
+                      { label: t('home.fleetSec.operatingHours'), value: '142h' },
+                      { label: t('home.fleetSec.earnings'), value: '$—' },
                     ].map((row) => (
                       <Box key={row.label} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '16px' }}>
                         <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>{row.label}</Typography>
@@ -1318,7 +1308,7 @@ export default function Homepage() {
                   </Box>
 
                   <Typography sx={{ mt: '16px', fontSize: 12.5, fontWeight: 700, color: tokens.amber600 }}>
-                    View fleet reporting <DirArrow />
+                    {t('home.fleetSec.viewReporting')} <DirArrow />
                   </Typography>
                 </Box>
               </Box>
@@ -1336,8 +1326,8 @@ export default function Homepage() {
               }}
             >
               {[
-                { label: 'AdzOnRoad handles', items: ['Screen installation', 'Advertising campaigns', 'Technology', 'Reporting'] },
-                { label: 'Your fleet provides', items: ['Eligible vehicles', 'Drivers', 'Road coverage'] },
+                { label: t('home.fleetSec.handles'), items: [t('home.fleetSec.install'), t('home.fleetSec.campaigns'), t('home.fleetSec.technology'), t('home.fleetSec.reporting')] },
+                { label: t('home.fleetSec.provides'), items: [t('home.fleetSec.eligibleVehicles'), t('home.fleetSec.drivers'), t('home.fleetSec.roadCoverage')] },
               ].map((col, i) => (
                 <Box
                   key={col.label}
@@ -1448,7 +1438,7 @@ export default function Homepage() {
                     <Typography
                       sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: tokens.textMuted, mb: '8px' }}
                     >
-                      {selectedAreaDetail.covered ? 'Available for targeting' : 'Expanding'}
+                      {t(selectedAreaDetail.covered ? 'coverage.availableForTargeting' : 'coverage.expanding')}
                     </Typography>
                     <Typography
                       sx={{ fontSize: 'clamp(24px,3vw,30px)', fontWeight: 800, letterSpacing: '-0.028em', color: tokens.navy, lineHeight: 1.1 }}
@@ -1458,8 +1448,8 @@ export default function Homepage() {
 
                     <Typography sx={{ mt: '12px', fontSize: 14.5, color: 'text.secondary', lineHeight: 1.7 }}>
                       {selectedAreaDetail.covered
-                        ? `Campaigns can be targeted at ${selectedAreaDetail.regions.length === 1 ? 'this area' : 'these areas'} when you build a campaign.`
-                        : 'Not part of the targetable network yet. The network expands with advertiser and fleet demand.'}
+                        ? t('home.coverageSec.targetable')
+                        : t('home.coverageSec.notTargetable')}
                     </Typography>
 
                     {selectedAreaDetail.regions.length > 0 && (
@@ -1467,7 +1457,7 @@ export default function Homepage() {
                         <Typography
                           sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: tokens.textMuted, mb: '10px' }}
                         >
-                          Coverage areas
+                          {t('home.coverageSec.areas')}
                         </Typography>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                           {selectedAreaDetail.regions.map((region) => (
@@ -1489,7 +1479,7 @@ export default function Homepage() {
                               {region.name}
                               {region.isPremium && (
                                 <Box component="span" sx={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: tokens.amber600 }}>
-                                  Premium
+                                  {t('home.coverageSec.premium')}
                                 </Box>
                               )}
                             </Box>
@@ -1586,10 +1576,10 @@ export default function Homepage() {
                 >
                   <Box>
                     <Typography sx={{ fontSize: 15.5, fontWeight: 700, color: tokens.navy, mb: '4px' }}>
-                      Need coverage somewhere else?
+                      {t('home.coverageSec.needElsewhere')}
                     </Typography>
                     <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.6, maxWidth: '54ch' }}>
-                      AdzOnRoad&rsquo;s network is expanding based on advertiser and fleet demand.
+                      {t('home.coverageSec.expanding')}
                     </Typography>
                   </Box>
                   <Button
@@ -1662,7 +1652,7 @@ export default function Homepage() {
             >
               <Box>
                 <Typography sx={{ fontSize: 'clamp(19px,2vw,22px)', fontWeight: 700, letterSpacing: '-0.02em', color: tokens.navy, mb: '28px' }}>
-                  Build your campaign
+                  {t('home.builderSec.build')}
                 </Typography>
 
                 <Box sx={{ display: 'grid', gap: '28px' }}>
@@ -1675,14 +1665,14 @@ export default function Homepage() {
                         <Typography
                           sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.textMuted }}
                         >
-                          {step.title}
+                          {t(step.titleKey)}
                         </Typography>
                       </Box>
 
-                      <Box role="radiogroup" aria-label={step.title} sx={{ display: 'flex', flexWrap: 'wrap', gap: '9px' }}>
+                      <Box role="radiogroup" aria-label={t(step.titleKey)} sx={{ display: 'flex', flexWrap: 'wrap', gap: '9px' }}>
                         {step.options.map((option) => (
                           <Box
-                            key={option.label}
+                            key={option.labelKey ? option.labelKey + String(option.labelCount ?? '') : option.label}
                             component="button"
                             type="button"
                             role="radio"
@@ -1711,14 +1701,14 @@ export default function Homepage() {
                               '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
                             }}
                           >
-                            {option.label}
+                            {option.labelKey ? t(option.labelKey, { count: option.labelCount }) : option.label}
                           </Box>
                         ))}
                       </Box>
 
-                      {step.note && (
+                      {step.noteKey && (
                         <Typography sx={{ mt: '10px', fontSize: 12.5, color: 'text.secondary', lineHeight: 1.6, maxWidth: '52ch' }}>
-                          {step.note}
+                          {t(step.noteKey)}
                         </Typography>
                       )}
                     </Box>
@@ -1739,7 +1729,7 @@ export default function Homepage() {
                 <Typography
                   sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: tokens.textMuted }}
                 >
-                  Your campaign
+                  {t('home.builderSec.yourCampaign')}
                 </Typography>
 
                 <Typography
@@ -1747,7 +1737,7 @@ export default function Homepage() {
                 >
                   {campaign.displays === null ? 'Custom' : campaign.displays.toLocaleString()}
                 </Typography>
-                <Typography sx={{ mt: '6px', fontSize: 13.5, color: 'text.secondary' }}>15-second ad plays</Typography>
+                <Typography sx={{ mt: '6px', fontSize: 13.5, color: 'text.secondary' }}>{t('home.builderSec.adPlays')}</Typography>
 
                 <Box sx={{ mt: '20px', display: 'grid', gap: '10px' }}>
                   {[
@@ -1765,11 +1755,10 @@ export default function Homepage() {
                   <Typography
                     sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: tokens.textMuted, mb: '8px' }}
                   >
-                    Estimated campaign price
+                    {t('home.builderSec.estimatedPrice')}
                   </Typography>
                   <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.65, mb: '16px' }}>
-                    Priced per campaign against your delivery target, network size and regions.
-                    Confirmed with the team before a campaign is approved.
+                    {t('home.builderSec.pricedNote')}
                   </Typography>
                   <Button
                     variant="contained"
@@ -1783,7 +1772,7 @@ export default function Homepage() {
                       '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
                     }}
                   >
-                    {isSignedIn ? 'Continue to campaign setup' : 'Build your campaign'}
+                    {isSignedIn ? 'Continue to campaign setup' : t('home.builderSec.build')}
                     <Box component="span" className="arrow" aria-hidden sx={{ ml: '8px', fontSize: 16, lineHeight: 1 }}>
                       <DirArrow />
                     </Box>
@@ -1805,7 +1794,7 @@ export default function Homepage() {
                   the sentence below it already says better, and it was the last "row of three"
                   on the page. */}
               <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px 14px', mb: '18px' }}>
-                {['15-second ad plays', 'Flexible campaign periods', 'Location-linked delivery reporting'].map((item, i) => (
+                {['15-second ad plays', t('home.builderSec.flexiblePeriods'), t('home.builderSec.locationReporting')].map((item, i) => (
                   <Box key={item} sx={{ display: 'flex', alignItems: 'center', gap: '10px 14px' }}>
                     {i > 0 && (
                       <Box aria-hidden sx={{ width: 3, height: 3, borderRadius: '50%', backgroundColor: tokens.amber }} />
@@ -1867,13 +1856,13 @@ export default function Homepage() {
             >
               {[
                 {
-                  label: 'A fixed billboard',
-                  caption: 'One location for the whole campaign period.',
+                  label: t('home.why.fixedBillboard'),
+                  caption: t('home.why.fixedBillboardBody'),
                   muted: true,
                 },
                 {
-                  label: 'An AdzOnRoad screen',
-                  caption: 'Many locations across that same period.',
+                  label: t('home.why.adzScreen'),
+                  caption: t('home.why.adzScreenBody'),
                   muted: false,
                 },
               ].map((col, i) => (
@@ -1962,15 +1951,14 @@ export default function Homepage() {
                 <Box sx={{ display: 'flex', alignItems: 'baseline', gap: '10px', mb: '10px' }}>
                   <Typography sx={{ fontSize: 12, fontWeight: 800, color: tokens.amber, letterSpacing: '0.04em' }}>01</Typography>
                   <Typography sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.textMuted }}>
-                    Verify
+                    {t('home.why.verify')}
                   </Typography>
                 </Box>
                 <Typography sx={{ fontSize: 'clamp(20px,2.4vw,26px)', fontWeight: 700, letterSpacing: '-0.02em', color: tokens.navy, mb: '8px' }}>
-                  Know where your ads ran.
+                  {t('home.why.verifyTitle')}
                 </Typography>
                 <Typography sx={{ fontSize: 14.5, color: 'text.secondary', lineHeight: 1.7, maxWidth: '44ch' }}>
-                  Campaign playback is connected with location and timestamp data, creating a
-                  measurable record of delivery.
+                  {t('home.why.verifyBody')}
                 </Typography>
 
                 <Box aria-hidden sx={{ mt: '28px', flexGrow: 1, display: 'flex', alignItems: 'flex-end' }}>
@@ -2045,15 +2033,14 @@ export default function Homepage() {
                 <Box sx={{ display: 'flex', alignItems: 'baseline', gap: '10px', mb: '10px' }}>
                   <Typography sx={{ fontSize: 12, fontWeight: 800, color: tokens.amber, letterSpacing: '0.04em' }}>02</Typography>
                   <Typography sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.textMuted }}>
-                    Target
+                    {t('home.why.target')}
                   </Typography>
                 </Box>
                 <Typography sx={{ fontSize: 'clamp(18px,2vw,21px)', fontWeight: 700, letterSpacing: '-0.02em', color: tokens.navy, mb: '8px' }}>
-                  Put campaigns where they matter.
+                  {t('home.why.targetTitle')}
                 </Typography>
                 <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.65 }}>
-                  Choose the regions, vehicles and campaign parameters that match your advertising
-                  strategy.
+                  {t('home.why.targetBody')}
                 </Typography>
 
                 <Box aria-hidden sx={{ mt: '22px' }}>
@@ -2116,14 +2103,14 @@ export default function Homepage() {
                 <Box sx={{ display: 'flex', alignItems: 'baseline', gap: '10px', mb: '10px' }}>
                   <Typography sx={{ fontSize: 12, fontWeight: 800, color: tokens.amber, letterSpacing: '0.04em' }}>03</Typography>
                   <Typography sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.textMuted }}>
-                    Measure
+                    {t('home.why.measure')}
                   </Typography>
                 </Box>
                 <Typography sx={{ fontSize: 'clamp(18px,2vw,21px)', fontWeight: 700, letterSpacing: '-0.02em', color: tokens.navy, mb: '8px' }}>
-                  See what was delivered.
+                  {t('home.why.measureTitle')}
                 </Typography>
                 <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.65 }}>
-                  Track campaign progress, display activity and verified delivery from one place.
+                  {t('home.why.measureBody')}
                 </Typography>
 
                 {/* Sample interface, and labelled as one. The figures below are placeholders in a
@@ -2143,11 +2130,11 @@ export default function Homepage() {
                   <Typography
                     sx={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: tokens.textMuted, mb: '12px' }}
                   >
-                    Example view
+                    {t('common.example')}
                   </Typography>
 
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: '7px' }}>
-                    <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>Campaign delivery</Typography>
+                    <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>{t('home.why.campaignDelivery')}</Typography>
                     <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: tokens.navy }}>78%</Typography>
                   </Box>
                   <Box sx={{ height: 7, borderRadius: '999px', backgroundColor: 'rgba(15,27,61,0.07)', overflow: 'hidden' }}>
@@ -2165,8 +2152,8 @@ export default function Homepage() {
 
                   <Box sx={{ mt: '16px', display: 'grid', gap: '9px' }}>
                     {[
-                      { label: 'Recorded ad plays', value: '12,480' },
-                      { label: 'Active vehicles', value: '18' },
+                      { label: t('home.why.recordedAdPlays'), value: '12,480' },
+                      { label: t('home.why.activeVehicles'), value: '18' },
                     ].map((row) => (
                       <Box key={row.label} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                         <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>{row.label}</Typography>
@@ -2233,7 +2220,7 @@ export default function Homepage() {
                 {[
                   {
                     n: '01',
-                    label: 'Hours on the road',
+                    label: t('home.earnings.hours'),
                     value: `${hours} hrs / day`,
                     node: (
                       <Slider
@@ -2250,7 +2237,7 @@ export default function Homepage() {
                   },
                   {
                     n: '02',
-                    label: 'Days you drive',
+                    label: t('home.earnings.days'),
                     value: `${days} days / month`,
                     node: (
                       <Slider
@@ -2299,7 +2286,7 @@ export default function Homepage() {
                     <Typography
                       sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.textMuted }}
                     >
-                      Premium-area driving
+                      {t('home.earnings.premiumArea')}
                     </Typography>
                   </Box>
 
@@ -2362,13 +2349,13 @@ export default function Homepage() {
                     </Box>
                     <Box sx={{ minWidth: 0 }}>
                       <Typography sx={{ fontSize: 14.5, fontWeight: 700, color: tokens.navy, lineHeight: 1.35 }}>
-                        I regularly drive in premium areas
+                        {t('home.earnings.premiumCheck')}
                       </Typography>
                       <Typography sx={{ mt: '4px', fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5 }}>
                         Verdun &middot; Gemmayzeh &middot; Saifi &middot; Downtown &middot; other eligible areas
                       </Typography>
                       <Typography sx={{ mt: '8px', fontSize: 12.5, fontWeight: 700, color: tokens.amber600 }}>
-                        +${DRIVER_PREMIUM_AREA_BONUS_USD} monthly bonus
+                        +${DRIVER_PREMIUM_AREA_BONUS_USD} {t('home.earnings.monthlyBonus')}
                       </Typography>
                     </Box>
                   </Box>
@@ -2386,7 +2373,7 @@ export default function Homepage() {
                 <Typography
                   sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: tokens.textMuted }}
                 >
-                  Your estimated monthly earnings
+                  {t('home.earnings.estimated')}
                 </Typography>
                 <Typography
                   sx={{
@@ -2401,14 +2388,14 @@ export default function Homepage() {
                   ${Math.round(total)}
                 </Typography>
                 <Typography sx={{ mt: '12px', fontSize: 13.5, color: 'text.secondary' }}>
-                  Based on {hours * days} driving hours this month
+                  {t('home.earnings.basedOn')} {hours * days} {t('home.earnings.drivingHours')}
                 </Typography>
 
                 <Box sx={{ mt: '24px', pt: '22px', borderTop: `1px solid ${tokens.border}`, display: 'grid', gap: '12px' }}>
                   {[
-                    { label: 'Base pay', value: base },
-                    { label: 'Driving time', value: hourlyEarnings },
-                    { label: 'Premium-area bonus', value: premiumBonus },
+                    { label: t('home.earnings.basePay'), value: base },
+                    { label: t('home.earnings.drivingTime'), value: hourlyEarnings },
+                    { label: t('home.earnings.premiumBonus'), value: premiumBonus },
                   ].map((row) => (
                     <Box key={row.label} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '16px' }}>
                       <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>{row.label}</Typography>
@@ -2506,14 +2493,13 @@ export default function Homepage() {
                     color: tokens.navy,
                   }}
                 >
-                  One campaign.
+                  {t('home.about.statementLine1')}
                   <Box component="span" sx={{ display: 'block', color: tokens.amber }}>
-                    Multiple places.
+                    {t('home.about.statementLine2')}
                   </Box>
                 </Typography>
                 <Typography sx={{ mt: '14px', fontSize: 14.5, color: 'text.secondary', lineHeight: 1.7, maxWidth: '34ch' }}>
-                  Your campaign moves with participating vehicles instead of remaining fixed to one
-                  location.
+                  {t('home.about.statementCopy')}
                 </Typography>
               </Box>
 
@@ -2700,10 +2686,10 @@ export default function Homepage() {
                   <Typography
                     sx={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.navy, mb: '8px' }}
                   >
-                    {p.label}
+                    {t(p.labelKey)}
                   </Typography>
                   <Typography sx={{ fontSize: 14.5, color: 'text.secondary', lineHeight: 1.65, maxWidth: '30ch' }}>
-                    {p.body}
+                    {t(p.bodyKey)}
                   </Typography>
                 </Box>
               ))}
@@ -2743,7 +2729,7 @@ export default function Homepage() {
                     color: tokens.navy600,
                   }}
                 >
-                  The road is already{' '}
+                  {t('home.founder.line1')}{' '}
                   <Box component="span" sx={{ color: tokens.amber }}>
                     moving
                   </Box>
@@ -2765,7 +2751,7 @@ export default function Homepage() {
                     textWrap: 'balance',
                   }}
                 >
-                  Your brand should be too.
+                  {t('home.founder.line2')}
                 </Box>
               </Typography>
 
@@ -2791,7 +2777,7 @@ export default function Homepage() {
                     Mahmoud Al-Masri
                   </Typography>
                   <Typography sx={{ mt: '2px', fontSize: 13, color: tokens.textMuted }}>
-                    Founder &amp; CEO, AdzOnRoad
+                    {t('home.founder.role')}
                   </Typography>
                 </Box>
               </Box>
@@ -2881,7 +2867,7 @@ export default function Homepage() {
             >
               {AUDIENCES.map((a, i) => (
                 <Box
-                  key={a.label}
+                  key={a.labelKey}
                   sx={{
                     pl: { md: i === 0 ? 0 : '56px' },
                     ml: { md: i === 0 ? 0 : '-56px' },
@@ -2893,15 +2879,15 @@ export default function Homepage() {
                   <Typography
                     sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: tokens.amber, mb: '10px' }}
                   >
-                    {a.label}
+                    {t(a.labelKey)}
                   </Typography>
                   <Typography
                     sx={{ fontSize: 'clamp(20px,2.3vw,26px)', fontWeight: 700, letterSpacing: '-0.02em', color: tokens.navy, mb: '10px', maxWidth: '18ch' }}
                   >
-                    {a.title}
+                    {t(a.titleKey)}
                   </Typography>
                   <Typography sx={{ fontSize: 15, color: 'text.secondary', lineHeight: 1.7, maxWidth: '40ch', mb: '18px' }}>
-                    {a.body}
+                    {t(a.bodyKey)}
                   </Typography>
                   <Link
                     component={RouterLink}
@@ -2921,7 +2907,7 @@ export default function Homepage() {
                       '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
                     }}
                   >
-                    {a.cta}
+                    {t(a.ctaKey)}
                     <Box component="span" className="arrow" aria-hidden sx={{ fontSize: 16, lineHeight: 1 }}>
                       <DirArrow />
                     </Box>
@@ -2992,11 +2978,10 @@ export default function Homepage() {
                     maxWidth: '18ch',
                   }}
                 >
-                  Let&rsquo;s build something that moves.
+                  {t('home.contactSec.title')}
                 </Typography>
                 <Typography sx={{ mt: '14px', fontSize: 14.5, color: 'text.secondary', lineHeight: 1.7, maxWidth: '40ch' }}>
-                  Tell us what you&rsquo;re looking to achieve and we&rsquo;ll connect you with the
-                  right person.
+                  {t('home.contactSec.body')}
                 </Typography>
 
                 <Box sx={{ mt: '32px', display: 'grid', gap: '22px' }}>
@@ -3046,7 +3031,7 @@ export default function Homepage() {
                 </Box>
 
                 <Typography sx={{ mt: '32px', fontSize: 13, color: tokens.textMuted }}>
-                  Already part of AdzOnRoad?{' '}
+                  {t('home.contactSec.alreadyPart')}{' '}
                   <Link component={RouterLink} to="/login" underline="hover" sx={{ fontWeight: 600, color: tokens.navy }}>
                     Sign in <DirArrow />
                   </Link>
@@ -3086,7 +3071,7 @@ export default function Homepage() {
                   <Box component="form" onSubmit={handleContactSubmit} noValidate sx={{ display: 'grid', gap: '20px' }}>
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: '20px' }}>
                       <TextField
-                        label="Full name"
+                        label={t('home.contactSec.fullName')}
                         required
                         fullWidth
                         value={contactName}
@@ -3096,7 +3081,7 @@ export default function Homepage() {
                         sx={fieldSx}
                       />
                       <TextField
-                        label="Work email"
+                        label={t('home.contactSec.workEmail')}
                         type="email"
                         required
                         fullWidth
@@ -3116,7 +3101,7 @@ export default function Homepage() {
                         id="contact-interest-label"
                         sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: tokens.textMuted, mb: '11px' }}
                       >
-                        I&rsquo;m interested in
+                        {t('home.contactSec.interestedIn')}
                       </Typography>
                       <Box role="radiogroup" aria-labelledby="contact-interest-label" sx={{ display: 'flex', flexWrap: 'wrap', gap: '9px' }}>
                         {/* The selected look hangs off a data attribute rather than a conditional
@@ -3126,7 +3111,7 @@ export default function Homepage() {
                             an attribute selector cannot get that wrong, and all four now share it. */}
                         {CONTACT_REASONS.map((reason) => (
                           <Box
-                            key={reason}
+                            key={reason.value}
                             component="button"
                             type="button"
                             role="radio"
@@ -3155,7 +3140,7 @@ export default function Homepage() {
                               '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
                             }}
                           >
-                            {reason}
+                            {t(reason.key)}
                           </Box>
                         ))}
                       </Box>
@@ -3163,14 +3148,14 @@ export default function Homepage() {
 
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: '20px' }}>
                       <TextField
-                        label="Company (optional)"
+                        label={`${t('home.contactSec.company')} ${t('common.optional')}`}
                         fullWidth
                         value={contactCompany}
                         onChange={(e) => setContactCompany(e.target.value)}
                         sx={fieldSx}
                       />
                       <TextField
-                        label="Phone number (optional)"
+                        label={`${t('home.contactSec.phone')} ${t('common.optional')}`}
                         type="tel"
                         fullWidth
                         value={contactPhone}
@@ -3181,7 +3166,7 @@ export default function Homepage() {
                           cannot drift from what the network actually covers. */}
                       <TextField
                         select
-                        label="Campaign area (optional)"
+                        label={`${t('home.contactSec.campaignArea')} ${t('common.optional')}`}
                         fullWidth
                         value={contactArea}
                         onChange={(e) => setContactArea(e.target.value)}
@@ -3197,7 +3182,7 @@ export default function Homepage() {
                     </Box>
 
                     <TextField
-                      label="Message"
+                      label={t('home.contactSec.message')}
                       required
                       fullWidth
                       multiline
@@ -3223,13 +3208,13 @@ export default function Homepage() {
                           '@media (prefers-reduced-motion: reduce)': { '& .arrow': { transition: 'none' } },
                         }}
                       >
-                        Send inquiry
+                        {t('home.contactSec.send')}
                         <Box component="span" className="arrow" aria-hidden sx={{ ml: '8px', fontSize: 16, lineHeight: 1 }}>
                           <DirArrow />
                         </Box>
                       </Button>
                       <Typography sx={{ mt: '12px', fontSize: 12.5, color: tokens.textMuted, lineHeight: 1.55 }}>
-                        We&rsquo;ll only use your details to respond to your inquiry.
+                        {t('home.contactSec.privacy')}
                       </Typography>
                     </Box>
                   </Box>

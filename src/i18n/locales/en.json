@@ -32,7 +32,11 @@
     "account": "Account",
     "settings": "Settings",
     "dashboard": "Dashboard",
-    "example": "Example view"
+    "example": "Example view",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "uploadImage": "Upload image",
+    "removeFile": "Remove file"
   },
   "nav": {
     "advertisers": "Advertisers",
@@ -117,6 +121,172 @@
       "becomeDriver": "Become a driver partner",
       "partnerFleet": "Partner your fleet",
       "copyright": "© 2026 AdzOnRoad · Beirut, Lebanon"
+    },
+    "journeys": {
+      "advertisersLabel": "For advertisers",
+      "driversLabel": "For drivers",
+      "adv1Title": "Build your campaign",
+      "adv1Body": "Choose your ad-play target, campaign period and creative.",
+      "adv2Title": "Choose your coverage",
+      "adv2Body": "Select your target regions and vehicle network.",
+      "adv3Title": "Launch & follow delivery",
+      "adv3Body": "Track campaign progress as your purchased ad plays are delivered.",
+      "drv1Title": "Join the network",
+      "drv1Body": "Register yourself and your eligible vehicle.",
+      "drv2Title": "Get equipped",
+      "drv2Body": "AdzOnRoad installs and connects the advertising screen.",
+      "drv3Title": "Drive & earn",
+      "drv3Body": "Drive normally and earn additional income from eligible active driving."
+    },
+    "audiences": {
+      "advLabel": "Advertisers",
+      "advTitle": "Put your brand in motion.",
+      "advBody": "Build campaigns around ad plays, coverage and campaign periods.",
+      "advCta": "Explore advertising",
+      "partnerLabel": "Drivers & fleets",
+      "partnerTitle": "Turn everyday movement into opportunity.",
+      "partnerBody": "Join individually or connect eligible vehicles from your fleet.",
+      "partnerCta": "Explore partnerships"
+    },
+    "fleet": {
+      "p1Title": "New revenue opportunity",
+      "p1Body": "Create additional earning potential from participating vehicles.",
+      "p2Title": "We handle the technology",
+      "p2Body": "AdzOnRoad manages screen installation, platform connectivity and advertising operations.",
+      "p3Title": "One fleet view",
+      "p3Body": "Monitor participating vehicles, activity and earnings from one place.",
+      "vehicle": "Vehicle {{id}}"
+    },
+    "builder": {
+      "step1Title": "How many ad plays?",
+      "step1Note": "Each ad play is one 15-second playback of your creative on a vehicle screen.",
+      "step2Title": "How many vehicles?",
+      "step2Note": "More vehicles distribute your campaign across a wider moving network and can help deliver the campaign target faster.",
+      "step3Title": "Where should it run?",
+      "step3Note": "Beirut covers Hamra, Achrafieh, Downtown, Verdun, Gemmayze and Saifi. Greater Beirut adds Mount Lebanon and Jounieh.",
+      "step4Title": "Campaign period",
+      "custom": "Custom",
+      "beirut": "Beirut",
+      "greaterBeirut": "Greater Beirut",
+      "selectedRegions": "Selected regions",
+      "customTargeting": "Custom targeting",
+      "days": "{{count}} days"
+    },
+    "contact": {
+      "reasonAdvertising": "Advertising",
+      "reasonDriver": "Driver partnership",
+      "reasonFleet": "Fleet partnership",
+      "reasonOther": "Other"
+    },
+    "network": {
+      "title": "The AdzOnRoad network",
+      "campaigns": "Campaigns",
+      "vehicles": "Vehicles",
+      "locationData": "Location data",
+      "playbackEvidence": "Playback evidence"
+    },
+    "fleetSec": {
+      "revenueLine1": "Another revenue channel.",
+      "revenueLine2": "Same fleet.",
+      "body": "AdzOnRoad equips eligible vehicles with digital advertising screens and manages the advertising network while your fleet continues doing what it already does — driving.",
+      "partnerFleet": "Partner your fleet",
+      "talkToTeam": "Talk to our team",
+      "largeFleet": "Have a large fleet? Contact us for a tailored partnership.",
+      "overview": "Fleet overview",
+      "participating": "Participating vehicles",
+      "activeToday": "Active today",
+      "operatingHours": "Recorded operating hours",
+      "earnings": "Fleet earnings",
+      "viewReporting": "View fleet reporting",
+      "handles": "AdzOnRoad handles",
+      "install": "Screen installation",
+      "campaigns": "Advertising campaigns",
+      "technology": "Technology",
+      "reporting": "Reporting",
+      "provides": "Your fleet provides",
+      "eligibleVehicles": "Eligible vehicles",
+      "drivers": "Drivers",
+      "roadCoverage": "Road coverage",
+      "active": "Active",
+      "offline": "Offline"
+    },
+    "coverageSec": {
+      "targetable": "Campaigns can be targeted at these areas when you build a campaign.",
+      "areas": "Coverage areas",
+      "premium": "Premium",
+      "target": "Target",
+      "needElsewhere": "Need coverage somewhere else?",
+      "expanding": "AdzOnRoad’s network is expanding based on advertiser and fleet demand.",
+      "notTargetable": "Not part of the targetable network yet. The network expands with advertiser and fleet demand."
+    },
+    "builderSec": {
+      "build": "Build your campaign",
+      "yourCampaign": "Your campaign",
+      "adPlays": "15-second ad plays",
+      "vehicles": "{{count}} vehicles",
+      "period": "{{count}}-day campaign",
+      "estimatedPrice": "Estimated campaign price",
+      "pricedNote": "Priced per campaign against your delivery target, network size and regions. Confirmed with the team before a campaign is approved.",
+      "flexiblePeriods": "Flexible campaign periods",
+      "locationReporting": "Location-linked delivery reporting"
+    },
+    "why": {
+      "fixedBillboard": "A fixed billboard",
+      "fixedBillboardBody": "One location for the whole campaign period.",
+      "adzScreen": "An AdzOnRoad screen",
+      "adzScreenBody": "Many locations across that same period.",
+      "verify": "Verify",
+      "verifyTitle": "Know where your ads ran.",
+      "verifyBody": "Campaign playback is connected with location and timestamp data, creating a measurable record of delivery.",
+      "recorded": "recorded",
+      "target": "Target",
+      "targetTitle": "Put campaigns where they matter.",
+      "targetBody": "Choose the regions, vehicles and campaign parameters that match your advertising strategy.",
+      "measure": "Measure",
+      "measureTitle": "See what was delivered.",
+      "measureBody": "Track campaign progress, display activity and recorded delivery from one place.",
+      "campaignDelivery": "Campaign delivery",
+      "recordedAdPlays": "Recorded ad plays",
+      "activeVehicles": "Active vehicles"
+    },
+    "earnings": {
+      "hours": "Hours on the road",
+      "hoursValue": "{{count}} hrs / day",
+      "hrs": "{{count}} hrs",
+      "days": "Days you drive",
+      "daysValue": "{{count}} days / month",
+      "daysShort": "{{count}} days",
+      "premiumArea": "Premium-area driving",
+      "premiumCheck": "I regularly drive in premium areas",
+      "premiumAreas": "Verdun · Gemmayzeh · Saifi · Downtown · other eligible areas",
+      "monthlyBonus": "monthly bonus",
+      "estimated": "Your estimated monthly earnings",
+      "basedOn": "Based on",
+      "drivingHours": "driving hours this month",
+      "basePay": "Base pay",
+      "drivingTime": "Driving time",
+      "premiumBonus": "Premium-area bonus"
+    },
+    "founder": {
+      "line1": "The road is already",
+      "moving": "moving",
+      "line2": "Your brand should be too.",
+      "role": "Founder & CEO, AdzOnRoad"
+    },
+    "contactSec": {
+      "title": "Let’s build something that moves.",
+      "body": "Tell us what you’re looking to achieve and we’ll connect you with the right person.",
+      "location": "Location",
+      "alreadyPart": "Already part of AdzOnRoad?",
+      "fullName": "Full name",
+      "workEmail": "Work email",
+      "interestedIn": "I’m interested in",
+      "company": "Company",
+      "phone": "Phone number",
+      "campaignArea": "Campaign area",
+      "message": "Message",
+      "send": "Send inquiry",
+      "privacy": "We’ll only use your details to respond to your inquiry."
     }
   },
   "auth": {
@@ -200,7 +370,10 @@
         "carType": "Car type",
         "carYear": "Year",
         "carModel": "Model",
-        "passwordHint": "Use at least 8 characters, including a number and symbol."
+        "passwordHint": "Use at least 8 characters, including a number and symbol.",
+        "firstNamePlaceholder": "Rana",
+        "lastNamePlaceholder": "Khoury",
+        "carModelPlaceholder": "Toyota Corolla"
       },
       "sections": {
         "vehicle": "Your vehicle",
@@ -220,6 +393,14 @@
         "eyebrow": "Account submitted",
         "title": "Your account is under review.",
         "reference": "Reference"
+      },
+      "carTypes": {
+        "Sedan": "Sedan",
+        "SUV": "SUV",
+        "Hatchback": "Hatchback",
+        "Van": "Van",
+        "Pickup": "Pickup",
+        "Coupe": "Coupe"
       }
     },
     "forgot": {

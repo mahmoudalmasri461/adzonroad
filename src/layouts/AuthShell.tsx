@@ -67,6 +67,8 @@ export function AuthField({
   action?: ReactNode;
   children: ReactNode;
 }) {
+  const { t } = useTranslation();
+
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', mb: '7px' }}>
@@ -83,7 +85,7 @@ export function AuthField({
           )}
           {optional && (
             <Box component="span" sx={{ ml: '5px', fontWeight: 500, color: tokens.textMuted }}>
-              (optional)
+              {t('common.optional')}
             </Box>
           )}
         </Typography>

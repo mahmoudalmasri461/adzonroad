@@ -5,6 +5,7 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import { useTranslation } from 'react-i18next';
 
 type PasswordFieldProps = Omit<TextFieldProps, 'type'>;
 
@@ -17,8 +18,9 @@ type PasswordFieldProps = Omit<TextFieldProps, 'type'>;
  * icon — and carries its own label, since its only content is an icon.
  */
 export default function PasswordField(props: PasswordFieldProps) {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
-  const label = visible ? 'Hide password' : 'Show password';
+  const label = t(visible ? 'common.hidePassword' : 'common.showPassword');
 
   return (
     <TextField

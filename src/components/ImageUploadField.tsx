@@ -5,6 +5,7 @@ import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import CloseIcon from '@mui/icons-material/Close';
+import { useTranslation } from 'react-i18next';
 
 type ImageUploadFieldProps = {
   label: string;
@@ -13,6 +14,7 @@ type ImageUploadFieldProps = {
 };
 
 export default function ImageUploadField({ label, file, onChange }: ImageUploadFieldProps) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
@@ -41,7 +43,7 @@ export default function ImageUploadField({ label, file, onChange }: ImageUploadF
           <Typography sx={{ fontSize: 13, flex: 1 }} noWrap>
             {file.name}
           </Typography>
-          <IconButton size="small" onClick={() => onChange(null)}>
+          <IconButton size="small" aria-label={t('common.removeFile')} onClick={() => onChange(null)}>
             <CloseIcon fontSize="small" />
           </IconButton>
         </Box>
@@ -54,7 +56,7 @@ export default function ImageUploadField({ label, file, onChange }: ImageUploadF
           onClick={() => inputRef.current?.click()}
           sx={{ justifyContent: 'flex-start', fontWeight: 500 }}
         >
-          Upload image
+          {t('common.uploadImage')}
         </Button>
       )}
     </Box>

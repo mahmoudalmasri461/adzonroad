@@ -346,10 +346,10 @@ export default function SignupPage() {
                   <>
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: '14px' }}>
                       <Field id="signup-first-name" label={t('auth.signup.fields.firstName')} required>
-                        <TextField id="signup-first-name" required fullWidth placeholder="Rana" value={firstName} onChange={(e) => setFirstName(e.target.value)} disabled={submitting} sx={fieldSx} />
+                        <TextField id="signup-first-name" required fullWidth placeholder={t('auth.signup.fields.firstNamePlaceholder')} value={firstName} onChange={(e) => setFirstName(e.target.value)} disabled={submitting} sx={fieldSx} />
                       </Field>
                       <Field id="signup-last-name" label={t('auth.signup.fields.lastName')} required>
-                        <TextField id="signup-last-name" required fullWidth placeholder="Khoury" value={lastName} onChange={(e) => setLastName(e.target.value)} disabled={submitting} sx={fieldSx} />
+                        <TextField id="signup-last-name" required fullWidth placeholder={t('auth.signup.fields.lastNamePlaceholder')} value={lastName} onChange={(e) => setLastName(e.target.value)} disabled={submitting} sx={fieldSx} />
                       </Field>
                     </Box>
                     <Field id="signup-mobile" label={t('auth.signup.fields.mobile')} required>
@@ -374,7 +374,11 @@ export default function SignupPage() {
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: '14px' }}>
                       <Field id="signup-car-type" label={t('auth.signup.fields.carType')} required>
                         <TextField id="signup-car-type" select required fullWidth value={carType} onChange={(e) => setCarType(e.target.value)} disabled={submitting} sx={fieldSx}>
-                          {CAR_TYPES.map((t) => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+                          {CAR_TYPES.map((type) => (
+                            <MenuItem key={type} value={type}>
+                              {t(`auth.signup.carTypes.${type}`)}
+                            </MenuItem>
+                          ))}
                         </TextField>
                       </Field>
                       <Field id="signup-car-year" label={t('auth.signup.fields.carYear')} required>
@@ -384,7 +388,7 @@ export default function SignupPage() {
                       </Field>
                     </Box>
                     <Field id="signup-car-model" label={t('auth.signup.fields.carModel')} required>
-                      <TextField id="signup-car-model" required fullWidth placeholder="Toyota Corolla" value={carModel} onChange={(e) => setCarModel(e.target.value)} disabled={submitting} sx={fieldSx} />
+                      <TextField id="signup-car-model" required fullWidth placeholder={t('auth.signup.fields.carModelPlaceholder')} value={carModel} onChange={(e) => setCarModel(e.target.value)} disabled={submitting} sx={fieldSx} />
                     </Field>
 
                     <SectionHeading>{t('auth.signup.sections.documents')}</SectionHeading>
@@ -614,14 +618,16 @@ function RegionField({
   onChange: (value: string) => void;
   disabled: boolean;
 }) {
+  const { t } = useTranslation();
+
   return (
-    <Field id={id} label="Region" required>
+    <Field id={id} label={t('auth.signup.fields.region')} required>
       {regions.length === 0 ? (
         <TextField
           id={id}
           required
           fullWidth
-          placeholder="Beirut"
+          placeholder={t('auth.signup.fields.regionPlaceholder')}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
