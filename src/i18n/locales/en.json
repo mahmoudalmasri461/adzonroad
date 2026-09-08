@@ -519,6 +519,78 @@
       "reports": "Delivery across the platform, and what proving it costs to store.",
       "support": "Everything drivers and fleets have reported.",
       "settings": "Staff accounts, and what each role is entitled to do."
+    },
+    "liveOps": {
+      "title": "Live operations",
+      "filters": {
+        "all": "All vehicles",
+        "reporting": "Reporting",
+        "attention": "Attention",
+        "onCampaign": "On campaign"
+      },
+      "search": "Search plate, driver or screen serial",
+      "feed": {
+        "connected": "Live feed connected",
+        "connecting": "Connecting to the live feed",
+        "reconnecting": "Reconnecting to the live feed",
+        "disconnected": "Live feed disconnected"
+      },
+      "map": {
+        "title": "Where the fleet is now",
+        "reportingCount": "{{live}} of {{total}} reporting live",
+        "nothing": "Nothing is reporting",
+        "nothingConnected": "The feed is connected and no vehicle is sending a position. No shift is running.",
+        "nothingDisconnected": "Not connected to the live feed. Reconnecting automatically."
+      },
+      "presentation": {
+        "live": "Live",
+        "stale": "Stale fix",
+        "offline": "No recent fix"
+      },
+      "panel": {
+        "vehicles": "Vehicles",
+        "none": "No vehicle matches",
+        "noneDetail": "Clear the filter or search to see the whole fleet.",
+        "selectPrompt": "Select a vehicle",
+        "selectPromptDetail": "Choose a marker or a row to see what it is carrying.",
+        "driver": "Driver",
+        "region": "Region",
+        "lastFix": "Last location update",
+        "speed": "Speed",
+        "derived": "Position estimated between fixes",
+        "confirmed": "Confirmed GPS",
+        "screen": "Screen",
+        "screenState": "Screen reporting",
+        "noScreen": "No screen matched to this vehicle",
+        "campaign": "Current campaign",
+        "noCampaign": "No campaign currently assigned",
+        "unknownRegion": "Region unresolved"
+      },
+      "reconciled": "Offline evidence synchronised — {{claims}} playback claims re-checked, {{verified}} now recorded.",
+      "metrics": {
+        "reporting": "Vehicles reporting",
+        "healthy": "Devices healthy",
+        "offline": "Devices offline",
+        "backlog": "Fixes waiting on devices"
+      },
+      "devices": {
+        "title": "Device health",
+        "search": "Search by driver id",
+        "empty": "No device has ever checked in",
+        "emptyDetail": "A row appears here the first time a driver app sends a heartbeat.",
+        "note": "Every column is derived from the age of what the server received. Nothing here is a state the device asserted about itself.",
+        "device": "Driver id",
+        "connectivity": "Connectivity",
+        "gps": "GPS",
+        "sync": "Sync",
+        "pending": "Unsent fixes",
+        "presentable": "Presentable as live",
+        "battery": "Battery",
+        "heartbeat": "Last heartbeat",
+        "skew": "Clock skew",
+        "yes": "Yes",
+        "no": "No"
+      }
     }
   }
 }

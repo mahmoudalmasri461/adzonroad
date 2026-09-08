@@ -1,14 +1,11 @@
-import { useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import Chip from '@mui/material/Chip';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { MapContainer, TileLayer, CircleMarker, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import EmptyState from '../EmptyState';
+import { useTranslation } from 'react-i18next';
 import { describeAge, type VehiclePresentation } from '../../services/vehicleInterpolation';
 import type { LiveVehicle } from '../../services/admin';
 import type { LiveConnectionState } from '../../services/liveConnection';
@@ -38,9 +35,9 @@ function ZoomControls() {
   return (
     <Box
       sx={{
-        position: 'absolute', bottom: 14, right: 14, zIndex: 1000,
+        position: 'absolute', bottom: 14, insetInlineEnd: 14, zIndex: 1000,
         display: 'flex', flexDirection: 'column', gap: '4px',
-        backgroundColor: '#fff', borderRadius: '10px', boxShadow: tokens.shadowMd, p: '4px',
+        backgroundColor: '#fff', borderRadius: '9px', boxShadow: tokens.shadowMd, p: '3px',
       }}
     >
       <IconButton size="small" onClick={() => map.zoomIn()} sx={{ color: tokens.text }}>
@@ -57,126 +54,97 @@ type OperationsMapProps = {
   /** Positions from the hub, interpolated for smoothness and flagged when derived. */
   vehicles: RenderedVehicle[];
   /**
-   * Plates, drivers and regions from the REST fallback. The hub broadcasts a position and its
-   * age and nothing else; an operator, unlike an advertiser, is entitled to the rest, so the two
-   * are joined on the vehicle id rather than the map settling for a truncated identifier.
+   * Plates, drivers and regions from the REST fallback. The hub broadcasts a position and its age
+   * and nothing else; an operator, unlike an advertiser, is entitled to the rest, so the two are
+   * joined on the vehicle id rather than the map settling for a truncated identifier.
    */
-  metadata: LiveVehicle[];
+  metadata: Map<string, LiveVehicle>;
   connectionState: LiveConnectionState;
+  /** Selection is owned by the page, so a marker and a list row stay in step. */
+  selectedId: string | null;
+  onSelect: (vehicleId: string) => void;
 };
 
-const CONNECTION_LABEL: Record<LiveConnectionState, string> = {
-  connected: 'Live feed connected',
-  connecting: 'Connecting to the live feed',
-  reconnecting: 'Reconnecting to the live feed',
-  disconnected: 'Live feed disconnected',
-};
-
-export default function OperationsMap({ vehicles, metadata, connectionState }: OperationsMapProps) {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-
-  const byId = useMemo(
-    () => new Map(metadata.map((v) => [v.vehicleId, v])),
-    [metadata],
-  );
-
-  const live = vehicles.filter((v) => v.presentation === 'live').length;
+export default function OperationsMap({
+  vehicles,
+  metadata,
+  connectionState,
+  selectedId,
+  onSelect,
+}: OperationsMapProps) {
+  const { t } = useTranslation();
 
   const labelFor = (vehicleId: string) => {
-    const known = byId.get(vehicleId);
     // A plate when we have one; the identifier when we do not. Never a plausible-looking
     // placeholder — this map is what an operator dispatches against.
-    return known?.plate?.trim() || vehicleId.slice(0, 8).toUpperCase();
+    return metadata.get(vehicleId)?.plate?.trim() || vehicleId.slice(0, 8).toUpperCase();
   };
 
-  return (
-    <Card sx={{ p: 0, overflow: 'hidden' }}>
-      <Box
-        sx={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '18px 22px', flexWrap: 'wrap', gap: '10px',
-        }}
-      >
+  if (vehicles.length === 0) {
+    return (
+      <Box sx={{ height: '100%', display: 'grid', placeItems: 'center', p: '30px', textAlign: 'center' }}>
         <Box>
-          <Typography sx={{ fontWeight: 700, fontSize: 16 }}>Where the fleet is now</Typography>
-          <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>
-            {vehicles.length === 0
-              ? 'No vehicle is reporting a position.'
-              : `${live} of ${vehicles.length} reporting live`}
+          <Typography sx={{ fontSize: 14.5, fontWeight: 600, color: tokens.navy }}>
+            {t('admin.liveOps.map.nothing')}
+          </Typography>
+          <Typography sx={{ mt: '4px', fontSize: 12.5, color: tokens.textMuted, maxWidth: '46ch' }}>
+            {connectionState === 'connected'
+              ? t('admin.liveOps.map.nothingConnected')
+              : t('admin.liveOps.map.nothingDisconnected')}
           </Typography>
         </Box>
-
-        <Chip
-          size="small"
-          label={CONNECTION_LABEL[connectionState]}
-          sx={{
-            fontWeight: 700,
-            fontSize: 11.5,
-            backgroundColor: connectionState === 'connected' ? 'rgba(22,163,74,0.12)' : 'rgba(217,119,6,0.14)',
-            color: connectionState === 'connected' ? tokens.green : tokens.warn,
-          }}
-        />
       </Box>
+    );
+  }
 
-      {vehicles.length === 0 ? (
-        <EmptyState
-          title="Nothing is reporting"
-          description={
-            connectionState === 'connected'
-              ? 'The feed is connected and no vehicle is sending a position. No shift is running.'
-              : 'Not connected to the live feed. Reconnecting automatically.'
-          }
+  return (
+    <Box sx={{ position: 'relative', height: '100%' }}>
+      <MapContainer
+        center={BEIRUT_CENTER}
+        zoom={DEFAULT_ZOOM}
+        zoomControl={false}
+        scrollWheelZoom={false}
+        style={{ height: '100%', width: '100%' }}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-      ) : (
-        <Box sx={{ position: 'relative', height: { xs: 340, md: 460 }, borderTop: '1px solid', borderColor: 'divider' }}>
-          <MapContainer
-            center={BEIRUT_CENTER}
-            zoom={DEFAULT_ZOOM}
-            zoomControl={false}
-            scrollWheelZoom={false}
-            style={{ height: '100%', width: '100%' }}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <ZoomControls />
+        <ZoomControls />
 
-            {vehicles.map((vehicle) => {
-              const style = MARKER_STYLES[vehicle.presentation];
-              const selected = selectedId === vehicle.vehicleId;
-              const known = byId.get(vehicle.vehicleId);
+        {vehicles.map((vehicle) => {
+          const style = MARKER_STYLES[vehicle.presentation];
+          const selected = selectedId === vehicle.vehicleId;
+          const known = metadata.get(vehicle.vehicleId);
 
-              return (
-                <CircleMarker
-                  key={vehicle.vehicleId}
-                  center={[vehicle.lat, vehicle.lng]}
-                  radius={selected ? 9 : vehicle.presentation === 'live' ? 7 : 5.5}
-                  pathOptions={{
-                    color: style.stroke,
-                    fillColor: style.fill,
-                    fillOpacity: style.fillOpacity,
-                    weight: selected ? 3 : style.weight,
-                    dashArray: style.dashArray,
-                  }}
-                  eventHandlers={{ click: () => setSelectedId(vehicle.vehicleId) }}
-                >
-                  <Tooltip direction="top" offset={[0, -6]}>
-                    <Box sx={{ fontSize: 12 }}>
-                      <strong>{labelFor(vehicle.vehicleId)}</strong>
-                      {known?.driverName && <> — {known.driverName}</>}
-                      <br />
-                      {known?.region ?? 'Region unresolved'} · last fix {describeAge(vehicle.fixAgeSeconds)}
-                      <br />
-                      {vehicle.isDerived ? 'Position estimated between fixes' : 'Confirmed GPS'}
-                    </Box>
-                  </Tooltip>
-                </CircleMarker>
-              );
-            })}
-          </MapContainer>
-        </Box>
-      )}
-    </Card>
+          return (
+            <CircleMarker
+              key={vehicle.vehicleId}
+              center={[vehicle.lat, vehicle.lng]}
+              radius={selected ? 10 : vehicle.presentation === 'live' ? 7 : 5.5}
+              pathOptions={{
+                color: selected ? tokens.navy : style.stroke,
+                fillColor: style.fill,
+                fillOpacity: style.fillOpacity,
+                weight: selected ? 3.5 : style.weight,
+                dashArray: style.dashArray,
+              }}
+              eventHandlers={{ click: () => onSelect(vehicle.vehicleId) }}
+            >
+              <Tooltip direction="top" offset={[0, -6]}>
+                <Box sx={{ fontSize: 12 }}>
+                  <strong dir="ltr">{labelFor(vehicle.vehicleId)}</strong>
+                  {known?.driverName && <> — {known.driverName}</>}
+                  <br />
+                  {known?.region ?? t('admin.liveOps.panel.unknownRegion')} · {describeAge(vehicle.fixAgeSeconds)}
+                  <br />
+                  {vehicle.isDerived ? t('admin.liveOps.panel.derived') : t('admin.liveOps.panel.confirmed')}
+                </Box>
+              </Tooltip>
+            </CircleMarker>
+          );
+        })}
+      </MapContainer>
+    </Box>
   );
 }
