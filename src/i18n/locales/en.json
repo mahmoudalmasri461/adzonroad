@@ -591,6 +591,73 @@
         "yes": "Yes",
         "no": "No"
       }
+    },
+    "campaigns": {
+      "filters": {
+        "all": "All",
+        "pending": "Pending review",
+        "active": "Active",
+        "completed": "Completed",
+        "rejected": "Rejected"
+      },
+      "search": "Search name, advertiser, status or region",
+      "sweep": "Run assignment sweep",
+      "sweeping": "Running…",
+      "oversold": "The network is oversold: {{sold}} taxi slots are sold against {{usable}} usable screens, leaving {{short}} unfilled. Approving more campaigns will not create inventory.",
+      "metrics": {
+        "campaigns": "Campaigns",
+        "pending": "Awaiting review",
+        "active": "Active",
+        "carrying": "Screens carrying one",
+        "free": "Screens free",
+        "unfilled": "Taxi slots unfilled"
+      },
+      "table": {
+        "title": "Campaigns",
+        "campaign": "Campaign",
+        "advertiser": "Advertiser",
+        "status": "Status",
+        "period": "Period",
+        "elapsed": "{{percent}}% elapsed",
+        "taxis": "Taxis",
+        "screens": "Screens",
+        "recorded": "Recorded ad plays",
+        "inDoubt": "In doubt",
+        "price": "Price",
+        "regions": "Regions",
+        "empty": "No campaigns yet",
+        "emptyDetail": "Campaigns appear here as soon as an advertiser submits one.",
+        "noMatch": "No campaign matches",
+        "noMatchDetail": "Try another name, advertiser or status.",
+        "note": "Approving and rejecting happens on the Overview review queue, where the decision is recorded against a reviewer.",
+        "noTarget": "Recorded ad plays are counted from playback the platform accepted. A campaign is sold as vehicles for a period rather than as a quantity of plays, so there is no target to measure them against and no progress is shown."
+      },
+      "concerns": {
+        "noCreative": "No creative",
+        "noScreens": "No screen carrying it",
+        "nothingRecorded": "Nothing recorded yet",
+        "playbackInDoubt": "Playback in doubt",
+        "title": "Needs attention"
+      },
+      "assignments": {
+        "title": "Current assignments",
+        "campaign": "Campaign",
+        "advertiser": "Advertiser",
+        "screen": "Screen",
+        "vehicle": "Vehicle",
+        "basis": "Chosen because",
+        "assignedBy": "Assigned by",
+        "release": "Release",
+        "observed": "Observed in region",
+        "declared": "Declared region",
+        "empty": "Nothing is assigned",
+        "emptyDetail": "No screen is carrying a campaign. With no screen hardware built, this is the expected state.",
+        "note": "Releasing frees the screen for the next sweep. It does not cancel the campaign or credit the invoice.",
+        "released": "{{screen}} released.",
+        "releaseFailed": "That screen could not be released."
+      },
+      "sweepDone": "Sweep done: {{assigned}} assigned, {{released}} released, {{short}} campaigns short.",
+      "sweepFailed": "The sweep could not be run."
     }
   }
 }
