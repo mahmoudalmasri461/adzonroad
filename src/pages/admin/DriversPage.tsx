@@ -179,7 +179,7 @@ export default function DriversPage() {
 
   return (
     <>
-      <PageHeader title="Drivers" subtitle="Everyone registered to drive, and the state of their account." />
+      <PageHeader />
 
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '14px', mb: '20px' }}>
         <StatCard value={String(drivers.length)} label="Drivers" />

@@ -245,8 +245,6 @@ export default function AdminCampaignsPage() {
   return (
     <>
       <PageHeader
-        title="Campaigns"
-        subtitle="Everything sold, and which screen each campaign is on."
         actions={
           <Button
             variant="contained"

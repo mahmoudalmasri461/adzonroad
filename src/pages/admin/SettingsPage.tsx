@@ -403,8 +403,6 @@ export default function AdminSettingsPage() {
   return (
     <>
       <PageHeader
-        title="Settings"
-        subtitle="Staff accounts, and what each role is entitled to do."
       />
 
       <RolesCard

@@ -120,7 +120,7 @@ export default function AdminScreensPage() {
 
   return (
     <>
-      <PageHeader title="Screens" subtitle="Rooftop hardware, and what it is reporting." />
+      <PageHeader />
 
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '14px', mb: '20px' }}>
         <StatCard value={String(screens.length)} label="Screens registered" />

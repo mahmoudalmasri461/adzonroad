@@ -145,8 +145,6 @@ export default function AdvertisersPage() {
   return (
     <>
       <PageHeader
-        title="Advertisers"
-        subtitle="Every advertiser account and what it has bought."
       />
 
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '14px', mb: '20px' }}>

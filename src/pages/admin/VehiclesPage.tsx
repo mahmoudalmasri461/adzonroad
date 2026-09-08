@@ -105,7 +105,7 @@ export default function VehiclesPage() {
 
   return (
     <>
-      <PageHeader title="Vehicles" subtitle="Every registered car, who runs it, and whether it carries a screen." />
+      <PageHeader />
 
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '14px', mb: '20px' }}>
         <StatCard value={String(rows.length)} label="Vehicles" />

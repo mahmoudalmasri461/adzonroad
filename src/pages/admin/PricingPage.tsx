@@ -117,8 +117,6 @@ export default function PricingPage() {
   return (
     <>
       <PageHeader
-        title="Pricing"
-        subtitle="What the platform charges, what it pays, and where each figure lives."
         actions={
           <>
             <Button

@@ -330,8 +330,6 @@ export default function AdminReportsPage() {
   return (
     <>
       <PageHeader
-        title="Reports"
-        subtitle="Delivery across the platform, and what proving it costs to store."
         actions={
           <>
             <Button

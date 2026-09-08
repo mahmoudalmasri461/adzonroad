@@ -134,8 +134,6 @@ export default function LiveOperationsPage() {
   return (
     <>
       <PageHeader
-        title="Live operations"
-        subtitle="Positions as they arrive, and the health of the devices producing them."
       />
 
       {lastReconciliation && (

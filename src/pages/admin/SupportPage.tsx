@@ -184,7 +184,7 @@ export default function AdminSupportPage() {
 
   return (
     <>
-      <PageHeader title="Support" subtitle="Everything drivers and fleets have reported." />
+      <PageHeader />
 
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '14px', mb: '20px' }}>
         <StatCard value={String(open)} label="Open" color={open > 0 ? tokens.warn : undefined} />

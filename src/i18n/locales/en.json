@@ -426,5 +426,99 @@
   "coverage": {
     "availableForTargeting": "Available for targeting",
     "expanding": "Expanding"
+  },
+  "admin": {
+    "groups": {
+      "operations": "Operations",
+      "commercial": "Commercial",
+      "network": "Network",
+      "business": "Business",
+      "system": "System"
+    },
+    "nav": {
+      "overview": "Overview",
+      "live": "Live Operations",
+      "campaigns": "Campaigns",
+      "advertisers": "Advertisers",
+      "drivers": "Drivers",
+      "fleetPartners": "Fleet Partners",
+      "vehicles": "Vehicles",
+      "screens": "Screens",
+      "pricing": "Pricing",
+      "finance": "Finance",
+      "reports": "Reports",
+      "support": "Support",
+      "settings": "Settings"
+    },
+    "overview": {
+      "title": "Operations overview",
+      "subtitle": "Platform-wide operational health and items requiring attention.",
+      "networkStatus": "Network status",
+      "screens": "Screens",
+      "screensRegistered": "registered",
+      "screensReporting": "reporting",
+      "vehicles": "Vehicles",
+      "vehiclesPositioned": "with a current position",
+      "devices": "Devices",
+      "devicesReporting": "reporting",
+      "playback": "Playback",
+      "playbackReview": "requiring review",
+      "noScreensRegistered": "No screens registered"
+    },
+    "actionRequired": {
+      "title": "Action required",
+      "subtitle": "Items waiting for review or intervention.",
+      "waiting": "{{count}} waiting",
+      "none": "Nothing waiting for review",
+      "noneDetail": "All approval queues are clear.",
+      "review": "Review"
+    },
+    "alerts": {
+      "title": "Operational alerts",
+      "none": "No operational alerts",
+      "noneDetail": "Nothing currently requires intervention.",
+      "actionNeeded": "Action needed",
+      "reviewTone": "Review",
+      "watch": "Watch"
+    },
+    "inventory": {
+      "title": "Screen inventory",
+      "search": "Search by serial, plate, driver",
+      "serial": "Serial",
+      "plate": "Plate",
+      "driver": "Driver",
+      "region": "Region",
+      "status": "Status",
+      "battery": "Battery",
+      "lastSignal": "Last report",
+      "empty": "No screens registered",
+      "emptyDetail": "Screens appear here once an administrator provisions them against a vehicle.",
+      "noMatch": "No screens match your search",
+      "noMatchDetail": "Try a different serial, plate, or driver name."
+    },
+    "states": {
+      "loading": "Loading operational data…",
+      "errorTitle": "Unable to load network status",
+      "errorDetail": "The operations data could not be reached. Figures are not shown rather than shown as zero.",
+      "retry": "Retry"
+    },
+    "user": {
+      "superAdmin": "Super administrator",
+      "admin": "Administrator"
+    },
+    "subtitles": {
+      "live": "Positions as they arrive, and the health of the devices producing them.",
+      "campaigns": "Everything sold, and which screen each campaign is on.",
+      "advertisers": "Every advertiser account and what it has bought.",
+      "drivers": "Everyone registered to drive, and the state of their account.",
+      "fleetPartners": "Every fleet on the platform and the cars it brings.",
+      "vehicles": "Every registered car, who runs it, and whether it carries a screen.",
+      "screens": "Rooftop hardware, and what it is reporting.",
+      "pricing": "What the platform charges, what it pays, and where each figure lives.",
+      "finance": "What advertisers owe, and what the platform owes its drivers.",
+      "reports": "Delivery across the platform, and what proving it costs to store.",
+      "support": "Everything drivers and fleets have reported.",
+      "settings": "Staff accounts, and what each role is entitled to do."
+    }
   }
 }

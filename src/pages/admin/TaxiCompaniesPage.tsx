@@ -108,8 +108,6 @@ export default function TaxiCompaniesPage() {
   return (
     <>
       <PageHeader
-        title="Taxi companies"
-        subtitle="Every fleet on the platform and the cars it brings."
       />
 
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '14px', mb: '20px' }}>

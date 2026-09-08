@@ -208,8 +208,6 @@ export default function FinancePage() {
   return (
     <>
       <PageHeader
-        title="Finance"
-        subtitle="What advertisers owe, and what the platform owes its drivers."
         actions={
           <Button
             variant="outlined"
