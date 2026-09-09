@@ -1,12 +1,15 @@
-import { useMemo } from 'react';
-import Box from '@mui/material/Box';
+import { useMemo, useState } from 'react';
 import type { GridColDef } from '@mui/x-data-grid';
-import PageHeader from '../../components/PageHeader';
-import StatCard from '../../components/StatCard';
+import { useTranslation } from 'react-i18next';
 import StatusTag from '../../components/StatusTag';
 import DataCard from '../../components/admin/DataCard';
+import AdminFilterBar from '../../components/admin/AdminFilterBar';
 import { useAsyncData } from '../../hooks/useAsyncData';
-import { useSearchFilter } from '../../hooks/useSearchFilter';
+import {
+  countAccountsByFilter,
+  filterAccounts,
+  type AccountFilter,
+} from '../../services/accountFilters';
 import {
   fetchTaxiCompanies,
   fetchVehicles,
@@ -16,7 +19,6 @@ import {
   type AccountRegistration,
   type AdminVehicle,
 } from '../../services/admin';
-import { tokens } from '../../theme';
 
 /**
  * Every taxi company, and how much of the network each one actually brings.
@@ -26,27 +28,28 @@ import { tokens } from '../../theme';
  * increment it.
  */
 
-function getColumns(vehiclesBy: Map<string, number>): GridColDef<AccountRegistration>[] {
+function getColumns(
+  t: (key: string, opts?: Record<string, unknown>) => string,vehiclesBy: Map<string, number>): GridColDef<AccountRegistration>[] {
   return [
-    { field: 'companyName', headerName: 'Company', flex: 1.1, minWidth: 180 },
-    { field: 'email', headerName: 'Email', flex: 1.1, minWidth: 200 },
+    { field: 'companyName', headerName: t('admin.fleets.company'), flex: 1.1, minWidth: 180 },
+    { field: 'email', headerName: t('admin.fleets.email'), flex: 1.1, minWidth: 200 },
     {
       field: 'mobileNumber',
-      headerName: 'Mobile',
+      headerName: t('admin.fleets.mobile'),
       flex: 0.8,
       minWidth: 140,
       valueGetter: (_v, row) => row.mobileNumber ?? '—',
     },
     {
       field: 'region',
-      headerName: 'Region',
+      headerName: t('admin.fleets.region'),
       flex: 0.7,
       minWidth: 130,
       valueGetter: (_v, row) => row.region ?? '—',
     },
     {
       field: 'status',
-      headerName: 'Status',
+      headerName: t('admin.fleets.status'),
       flex: 0.7,
       minWidth: 140,
       renderCell: (params) => (
@@ -55,7 +58,7 @@ function getColumns(vehiclesBy: Map<string, number>): GridColDef<AccountRegistra
     },
     {
       field: 'vehicles',
-      headerName: 'Vehicles',
+      headerName: t('admin.fleets.vehicles'),
       flex: 0.5,
       minWidth: 100,
       type: 'number',
@@ -63,7 +66,7 @@ function getColumns(vehiclesBy: Map<string, number>): GridColDef<AccountRegistra
     },
     {
       field: 'createdAtUtc',
-      headerName: 'Registered',
+      headerName: t('admin.fleets.submitted'),
       flex: 0.7,
       minWidth: 130,
       valueGetter: (_v, row) => `${waitingFor(row.createdAtUtc)} ago`,
@@ -72,6 +75,10 @@ function getColumns(vehiclesBy: Map<string, number>): GridColDef<AccountRegistra
 }
 
 export default function TaxiCompaniesPage() {
+  const { t } = useTranslation();
+  const [filter, setFilter] = useState<AccountFilter>('all');
+  const [search, setSearch] = useState('');
+
   const loaded = useAsyncData<{ companies: AccountRegistration[]; vehicles: AdminVehicle[] }>(
     async (signal) => {
       const [companies, vehicles] = await Promise.all([
@@ -97,39 +104,54 @@ export default function TaxiCompaniesPage() {
     return counts;
   }, [loaded.data]);
 
-  const { search, setSearch, filtered } = useSearchFilter(companies, [
-    'companyName', 'email', 'region', 'status',
-  ]);
+  const counts = useMemo(() => countAccountsByFilter(companies, (c) => c.status), [companies]);
 
-  const approved = companies.filter((c) => c.status === 'Approved').length;
-  const pending = companies.filter((c) => c.status === 'PendingVerification').length;
+  const filtered = useMemo(
+    () =>
+      filterAccounts(
+        companies,
+        filter,
+        search,
+        (c) => c.status,
+        (c) => [c.companyName, c.contactName, c.email, c.region, c.status],
+      ),
+    [companies, filter, search],
+  );
+
   const fleetCars = [...vehiclesByCompany.values()].reduce((sum, n) => sum + n, 0);
 
   return (
     <>
-      <PageHeader
+      <AdminFilterBar
+        ariaLabel={t('admin.fleets.status')}
+        value={filter}
+        onChange={setFilter}
+        options={[
+          { value: 'all', label: t('admin.filters.all'), count: counts.all },
+          { value: 'pending', label: t('admin.filters.pending'), count: counts.pending },
+          { value: 'approved', label: t('admin.filters.approved'), count: counts.approved },
+          { value: 'rejected', label: t('admin.filters.rejected'), count: counts.rejected },
+          { value: 'suspended', label: t('admin.filters.suspended'), count: counts.suspended },
+        ]}
+        search={{ value: search, onChange: setSearch, placeholder: t('admin.fleets.search') }}
+        trailing={
+          // Cars brought by fleets, which no status tab covers.
+          <StatusTag label={`${t('admin.fleets.vehicles')}: ${fleetCars}`} variant="neutral" />
+        }
       />
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '14px', mb: '20px' }}>
-        <StatCard value={String(companies.length)} label="Companies" />
-        <StatCard value={String(approved)} label="Approved" color={approved > 0 ? tokens.green : undefined} />
-        <StatCard value={String(pending)} label="Awaiting review" color={pending > 0 ? tokens.warn : undefined} />
-        <StatCard value={String(fleetCars)} label="Fleet-owned vehicles" />
-      </Box>
-
       <DataCard
-        title="Taxi companies"
-        count={companies.length}
-        search={{ value: search, onChange: setSearch, placeholder: 'Search company, email or region' }}
+        title={t('admin.nav.fleetPartners')}
+        count={filtered.length}
         loading={loaded.loading}
         error={loaded.error}
         onRetry={loaded.reload}
         rows={filtered}
-        columns={getColumns(vehiclesByCompany)}
+        columns={getColumns(t, vehiclesByCompany)}
         getRowId={(row) => row.accountId}
-        emptyTitle="No taxi companies have registered"
-        emptyDescription="Companies appear here as soon as one signs up, before anyone reviews it."
-        note="A company cannot approve its own drivers — every driver it adds still goes to the platform review queue."
+        emptyTitle={companies.length === 0 ? t('admin.fleets.empty') : t('admin.fleets.noMatch')}
+        emptyDescription={companies.length === 0 ? t('admin.fleets.emptyDetail') : t('admin.fleets.noMatchDetail')}
+        note={t('admin.fleets.note')}
       />
     </>
   );

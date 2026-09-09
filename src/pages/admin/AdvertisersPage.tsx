@@ -1,12 +1,15 @@
-import { useMemo } from 'react';
-import Box from '@mui/material/Box';
+import { useMemo, useState } from 'react';
 import type { GridColDef } from '@mui/x-data-grid';
-import PageHeader from '../../components/PageHeader';
-import StatCard from '../../components/StatCard';
+import { useTranslation } from 'react-i18next';
 import StatusTag from '../../components/StatusTag';
 import DataCard from '../../components/admin/DataCard';
+import AdminFilterBar from '../../components/admin/AdminFilterBar';
 import { useAsyncData } from '../../hooks/useAsyncData';
-import { useSearchFilter } from '../../hooks/useSearchFilter';
+import {
+  countAccountsByFilter,
+  filterAccounts,
+  type AccountFilter,
+} from '../../services/accountFilters';
 import {
   fetchAdvertisers,
   fetchCampaigns,
@@ -19,7 +22,6 @@ import {
   type AdminInvoice,
 } from '../../services/admin';
 import { formatCurrency } from '../../utils/format';
-import { tokens } from '../../theme';
 
 /**
  * Every advertiser account, at whatever stage it has reached.
@@ -30,29 +32,30 @@ import { tokens } from '../../theme';
  */
 
 function getColumns(
+  t: (key: string, opts?: Record<string, unknown>) => string,
   campaignsBy: Map<string, number>,
   billedBy: Map<string, number>,
 ): GridColDef<AccountRegistration>[] {
   return [
-    { field: 'companyName', headerName: 'Company', flex: 1.1, minWidth: 180 },
+    { field: 'companyName', headerName: t('admin.advertisers.company'), flex: 1.1, minWidth: 180 },
     {
       field: 'contactName',
-      headerName: 'Contact',
+      headerName: t('admin.advertisers.contact'),
       flex: 0.9,
       minWidth: 150,
       valueGetter: (_v, row) => row.contactName || '—',
     },
-    { field: 'email', headerName: 'Email', flex: 1.1, minWidth: 200 },
+    { field: 'email', headerName: t('admin.advertisers.email'), flex: 1.1, minWidth: 200 },
     {
       field: 'mobileNumber',
-      headerName: 'Mobile',
+      headerName: t('admin.advertisers.mobile'),
       flex: 0.8,
       minWidth: 140,
       valueGetter: (_v, row) => row.mobileNumber ?? '—',
     },
     {
       field: 'status',
-      headerName: 'Status',
+      headerName: t('admin.advertisers.status'),
       flex: 0.7,
       minWidth: 140,
       renderCell: (params) => (
@@ -61,7 +64,7 @@ function getColumns(
     },
     {
       field: 'campaigns',
-      headerName: 'Campaigns',
+      headerName: t('admin.advertisers.campaigns'),
       flex: 0.6,
       minWidth: 110,
       type: 'number',
@@ -69,14 +72,14 @@ function getColumns(
     },
     {
       field: 'billed',
-      headerName: 'Billed',
+      headerName: t('admin.advertisers.billed'),
       flex: 0.7,
       minWidth: 120,
       valueGetter: (_v, row) => formatCurrency(billedBy.get(row.accountId) ?? 0),
     },
     {
       field: 'createdAtUtc',
-      headerName: 'Registered',
+      headerName: t('admin.advertisers.submitted'),
       flex: 0.7,
       minWidth: 130,
       valueGetter: (_v, row) => `${waitingFor(row.createdAtUtc)} ago`,
@@ -85,6 +88,10 @@ function getColumns(
 }
 
 export default function AdvertisersPage() {
+  const { t } = useTranslation();
+  const [filter, setFilter] = useState<AccountFilter>('all');
+  const [search, setSearch] = useState('');
+
   const loaded = useAsyncData<{
     advertisers: AccountRegistration[];
     campaigns: AdminCampaign[];
@@ -134,39 +141,50 @@ export default function AdvertisersPage() {
     return totals;
   }, [loaded.data]);
 
-  const { search, setSearch, filtered } = useSearchFilter(advertisers, [
-    'companyName', 'contactName', 'email', 'status',
-  ]);
+  const counts = useMemo(() => countAccountsByFilter(advertisers, (a) => a.status), [advertisers]);
 
-  const approved = advertisers.filter((a) => a.status === 'Approved').length;
-  const pending = advertisers.filter((a) => a.status === 'PendingVerification').length;
-  const rejected = advertisers.filter((a) => a.status === 'Rejected').length;
+  const filtered = useMemo(
+    () =>
+      filterAccounts(
+        advertisers,
+        filter,
+        search,
+        (a) => a.status,
+        (a) => [a.companyName, a.contactName, a.email, a.status, a.region],
+      ),
+    [advertisers, filter, search],
+  );
 
   return (
     <>
-      <PageHeader
+      <AdminFilterBar
+        ariaLabel={t('admin.advertisers.status')}
+        value={filter}
+        onChange={setFilter}
+        options={[
+          { value: 'all', label: t('admin.filters.all'), count: counts.all },
+          { value: 'pending', label: t('admin.filters.pending'), count: counts.pending },
+          { value: 'approved', label: t('admin.filters.approved'), count: counts.approved },
+          { value: 'rejected', label: t('admin.filters.rejected'), count: counts.rejected },
+          { value: 'suspended', label: t('admin.filters.suspended'), count: counts.suspended },
+        ]}
+        search={{ value: search, onChange: setSearch, placeholder: t('admin.advertisers.search') }}
       />
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '14px', mb: '20px' }}>
-        <StatCard value={String(advertisers.length)} label="Accounts" />
-        <StatCard value={String(approved)} label="Approved" color={approved > 0 ? tokens.green : undefined} />
-        <StatCard value={String(pending)} label="Awaiting review" color={pending > 0 ? tokens.warn : undefined} />
-        <StatCard value={String(rejected)} label="Rejected" />
-      </Box>
-
       <DataCard
-        title="Advertiser accounts"
-        count={advertisers.length}
-        search={{ value: search, onChange: setSearch, placeholder: 'Search company, contact or email' }}
+        title={t('admin.nav.advertisers')}
+        count={filtered.length}
         loading={loaded.loading}
         error={loaded.error}
         onRetry={loaded.reload}
         rows={filtered}
-        columns={getColumns(campaignsById, billedById)}
+        columns={getColumns(t, campaignsById, billedById)}
         getRowId={(row) => row.accountId}
-        emptyTitle="No advertisers have registered"
-        emptyDescription="Accounts appear here the moment somebody signs up, before anyone reviews them."
-        note="Approving and rejecting happens on the Overview review queue, so every decision is recorded against a reviewer and a reason."
+        emptyTitle={advertisers.length === 0 ? t('admin.advertisers.empty') : t('admin.advertisers.noMatch')}
+        emptyDescription={
+          advertisers.length === 0 ? t('admin.advertisers.emptyDetail') : t('admin.advertisers.noMatchDetail')
+        }
+        note={t('admin.advertisers.note')}
       />
     </>
   );

@@ -9,12 +9,16 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import type { GridColDef } from '@mui/x-data-grid';
-import PageHeader from '../../components/PageHeader';
-import StatCard from '../../components/StatCard';
+import { useTranslation } from 'react-i18next';
 import StatusTag from '../../components/StatusTag';
 import DataCard from '../../components/admin/DataCard';
+import AdminFilterBar from '../../components/admin/AdminFilterBar';
 import { useAsyncData } from '../../hooks/useAsyncData';
-import { useSearchFilter } from '../../hooks/useSearchFilter';
+import {
+  countAccountsByFilter,
+  filterAccounts,
+  type AccountFilter,
+} from '../../services/accountFilters';
 import { useToast } from '../../contexts/ToastProvider';
 import { ApiError } from '../../services/apiClient';
 import {
@@ -27,7 +31,6 @@ import {
   waitingFor,
   type DriverRegistration,
 } from '../../services/admin';
-import { tokens } from '../../theme';
 
 /**
  * Every driver on the platform, whatever state their account is in.
@@ -40,20 +43,21 @@ import { tokens } from '../../theme';
 
 type PendingAction = { driver: DriverRegistration; kind: 'suspend' | 'reinstate' };
 
-function getColumns(onAction: (action: PendingAction) => void): GridColDef<DriverRegistration>[] {
+function getColumns(
+  t: (key: string, opts?: Record<string, unknown>) => string,onAction: (action: PendingAction) => void): GridColDef<DriverRegistration>[] {
   return [
-    { field: 'fullName', headerName: 'Driver', flex: 1, minWidth: 160 },
-    { field: 'mobileNumber', headerName: 'Mobile', flex: 0.9, minWidth: 150 },
+    { field: 'fullName', headerName: t('admin.drivers.name'), flex: 1, minWidth: 160 },
+    { field: 'mobileNumber', headerName: t('admin.drivers.mobile'), flex: 0.9, minWidth: 150 },
     {
       field: 'region',
-      headerName: 'Region',
+      headerName: t('admin.drivers.region'),
       flex: 0.7,
       minWidth: 130,
       valueGetter: (_v, row) => row.region ?? '—',
     },
     {
       field: 'vehicle',
-      headerName: 'Vehicle',
+      headerName: t('admin.drivers.vehicle'),
       flex: 0.9,
       minWidth: 150,
       valueGetter: (_v, row) =>
@@ -61,7 +65,7 @@ function getColumns(onAction: (action: PendingAction) => void): GridColDef<Drive
     },
     {
       field: 'documentTypes',
-      headerName: 'Documents',
+      headerName: t('admin.drivers.documents'),
       flex: 0.7,
       minWidth: 130,
       renderCell: (params) =>
@@ -71,7 +75,7 @@ function getColumns(onAction: (action: PendingAction) => void): GridColDef<Drive
     },
     {
       field: 'status',
-      headerName: 'Status',
+      headerName: t('admin.drivers.status'),
       flex: 0.7,
       minWidth: 140,
       renderCell: (params) => (
@@ -80,7 +84,7 @@ function getColumns(onAction: (action: PendingAction) => void): GridColDef<Drive
     },
     {
       field: 'createdAtUtc',
-      headerName: 'Registered',
+      headerName: t('admin.drivers.submitted'),
       flex: 0.6,
       minWidth: 120,
       valueGetter: (_v, row) => `${waitingFor(row.createdAtUtc)} ago`,
@@ -126,7 +130,10 @@ function getColumns(onAction: (action: PendingAction) => void): GridColDef<Drive
 }
 
 export default function DriversPage() {
+  const { t } = useTranslation();
   const { showToast } = useToast();
+  const [filter, setFilter] = useState<AccountFilter>('all');
+  const [search, setSearch] = useState('');
   const [action, setAction] = useState<PendingAction | null>(null);
   const [notes, setNotes] = useState('');
   const [working, setWorking] = useState(false);
@@ -139,13 +146,23 @@ export default function DriversPage() {
 
   const drivers = useMemo(() => loaded.data ?? [], [loaded.data]);
 
-  const { search, setSearch, filtered } = useSearchFilter(drivers, [
-    'fullName', 'mobileNumber', 'region', 'status', 'plateNumber',
-  ]);
+  const counts = useMemo(() => countAccountsByFilter(drivers, (d) => d.status), [drivers]);
+
+  const filtered = useMemo(
+    () =>
+      filterAccounts(
+        drivers,
+        filter,
+        search,
+        (d) => d.status,
+        (d) => [d.fullName, d.mobileNumber, d.region, d.status, d.plateNumber],
+      ),
+    [drivers, filter, search],
+  );
 
   const columns = useMemo(
-    () => getColumns((next) => { setAction(next); setNotes(''); }),
-    [],
+    () => getColumns(t, (next) => { setAction(next); setNotes(''); }),
+    [t],
   );
 
   const confirm = async () => {
@@ -169,9 +186,6 @@ export default function DriversPage() {
     }
   };
 
-  const approved = drivers.filter((d) => d.status === 'Approved').length;
-  const pending = drivers.filter((d) => d.status === 'PendingVerification').length;
-  const suspended = drivers.filter((d) => d.status === 'Suspended').length;
   const incomplete = drivers.filter((d) => !hasAllDocuments(d)).length;
 
   const suspending = action?.kind === 'suspend';
@@ -179,33 +193,38 @@ export default function DriversPage() {
 
   return (
     <>
-      <PageHeader />
-
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: '14px', mb: '20px' }}>
-        <StatCard value={String(drivers.length)} label="Drivers" />
-        <StatCard value={String(approved)} label="Approved" color={approved > 0 ? tokens.green : undefined} />
-        <StatCard value={String(pending)} label="Awaiting review" color={pending > 0 ? tokens.warn : undefined} />
-        <StatCard value={String(suspended)} label="Suspended" color={suspended > 0 ? tokens.red : undefined} />
-        <StatCard
-          value={String(incomplete)}
-          label="Missing documents"
-          color={incomplete > 0 ? tokens.warn : undefined}
-        />
-      </Box>
+      <AdminFilterBar
+        ariaLabel={t('admin.drivers.status')}
+        value={filter}
+        onChange={setFilter}
+        options={[
+          { value: 'all', label: t('admin.filters.all'), count: counts.all },
+          { value: 'pending', label: t('admin.filters.pending'), count: counts.pending },
+          { value: 'approved', label: t('admin.filters.approved'), count: counts.approved },
+          { value: 'suspended', label: t('admin.filters.suspended'), count: counts.suspended },
+          { value: 'rejected', label: t('admin.filters.rejected'), count: counts.rejected },
+        ]}
+        search={{ value: search, onChange: setSearch, placeholder: t('admin.drivers.search') }}
+        trailing={
+          // No status tab covers this, and an application missing a document cannot be judged.
+          incomplete > 0 ? (
+            <StatusTag label={`${t('admin.drivers.documents')}: ${incomplete}`} variant="warn" />
+          ) : undefined
+        }
+      />
 
       <DataCard
-        title="Drivers"
-        count={drivers.length}
-        search={{ value: search, onChange: setSearch, placeholder: 'Search name, mobile, region or plate' }}
+        title={t('admin.nav.drivers')}
+        count={filtered.length}
         loading={loaded.loading}
         error={loaded.error}
         onRetry={loaded.reload}
         rows={filtered}
         columns={columns}
         getRowId={(row) => row.driverId}
-        emptyTitle="No drivers have registered"
-        emptyDescription="Drivers appear here as soon as one signs up through the app or is added by a fleet."
-        note="The first hundred, oldest first. Approving and rejecting new applications happens on the Overview review queue."
+        emptyTitle={drivers.length === 0 ? t('admin.drivers.empty') : t('admin.drivers.noMatch')}
+        emptyDescription={drivers.length === 0 ? t('admin.drivers.emptyDetail') : t('admin.drivers.noMatchDetail')}
+        note={t('admin.drivers.note')}
       />
 
       <Dialog open={action !== null} onClose={working ? undefined : () => setAction(null)} maxWidth="xs" fullWidth>
