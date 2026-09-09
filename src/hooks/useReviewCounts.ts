@@ -26,13 +26,19 @@ type State =
   | { status: 'error' }
   | { status: 'loaded'; counts: ReviewCounts; total: number };
 
-export function useReviewCounts(): State & { reload: () => void } {
+/**
+ * `enabled` exists so a consumer inside ReviewCountsProvider can hold the same hook shape
+ * without firing a second set of requests for a number somebody else already has.
+ */
+export function useReviewCounts(enabled = true): State & { reload: () => void } {
   const [state, setState] = useState<State>({ status: 'loading' });
   const [nonce, setNonce] = useState(0);
 
   const reload = useCallback(() => setNonce((n) => n + 1), []);
 
   useEffect(() => {
+    if (!enabled) return;
+
     const controller = new AbortController();
     setState({ status: 'loading' });
 
@@ -71,7 +77,7 @@ export function useReviewCounts(): State & { reload: () => void } {
     });
 
     return () => controller.abort();
-  }, [nonce]);
+  }, [nonce, enabled]);
 
   return { ...state, reload };
 }

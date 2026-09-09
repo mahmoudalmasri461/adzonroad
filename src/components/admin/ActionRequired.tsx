@@ -4,7 +4,7 @@ import Button from '@mui/material/Button';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import { Link as RouterLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useReviewCounts } from '../../hooks/useReviewCounts';
+import { useSharedReviewCounts } from '../../contexts/ReviewCountsProvider';
 import { tokens } from '../../theme';
 
 /**
@@ -26,7 +26,7 @@ const QUEUES = [
 
 export default function ActionRequired() {
   const { t } = useTranslation();
-  const review = useReviewCounts();
+  const review = useSharedReviewCounts();
 
   if (review.status === 'loading') {
     return <Shell><SkeletonRow /></Shell>;

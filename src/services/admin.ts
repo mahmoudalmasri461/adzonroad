@@ -306,7 +306,9 @@ export function reject(kind: ReviewKind, id: string, notes: string): Promise<unk
 export const QUEUE_LABELS: Record<ReviewKind, { title: string; empty: string }> = {
   driver: { title: 'Drivers', empty: 'No drivers waiting for review.' },
   advertiser: { title: 'Advertisers', empty: 'No advertisers waiting for review.' },
-  fleet: { title: 'Taxi companies', empty: 'No taxi companies waiting for review.' },
+  // 'Fleet Partners' on screen; the ReviewKind stays 'fleet' and the endpoint stays
+  // taxi-company-registrations, because those are identifiers rather than wording.
+  fleet: { title: 'Fleet Partners', empty: 'No fleet partners waiting for review.' },
   campaign: { title: 'Campaigns', empty: 'No campaigns waiting for review.' },
 };
 

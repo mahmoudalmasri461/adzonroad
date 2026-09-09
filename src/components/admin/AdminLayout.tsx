@@ -4,7 +4,7 @@ import Button from '@mui/material/Button';
 import { Link as RouterLink } from 'react-router-dom';
 import AdminShell, { type AdminNavGroup } from './AdminShell';
 import { useAuth } from '../../contexts/AuthProvider';
-import { useReviewCounts } from '../../hooks/useReviewCounts';
+import { ReviewCountsProvider, useSharedReviewCounts } from '../../contexts/ReviewCountsProvider';
 import { tokens } from '../../theme';
 
 /**
@@ -96,10 +96,20 @@ function roleLabelKey(roles: readonly string[]): string | null {
 }
 
 export default function AdminLayout() {
+  // The provider has to sit above the component that reads it, so the shell body is its own
+  // component rather than this one reading a context it is also creating.
+  return (
+    <ReviewCountsProvider>
+      <AdminShellBody />
+    </ReviewCountsProvider>
+  );
+}
+
+function AdminShellBody() {
   const location = useLocation();
   const { session } = useAuth();
   const { t } = useTranslation();
-  const review = useReviewCounts();
+  const review = useSharedReviewCounts();
 
   // Exact match for the index, longest prefix for the rest — otherwise every section highlights at
   // once, because every path begins with /admin.

@@ -29,6 +29,7 @@ import {
   type PendingCampaign,
   type ReviewKind,
 } from '../../services/admin';
+import { useSharedReviewCounts } from '../../contexts/ReviewCountsProvider';
 import { formatCurrency } from '../../utils/format';
 import { tokens } from '../../theme';
 
@@ -63,6 +64,9 @@ export default function ReviewQueues({ onCountsChanged }: { onCountsChanged?: (t
   const [notes, setNotes] = useState('');
   const [working, setWorking] = useState(false);
   const [reload, setReload] = useState(0);
+  // The sidebar badge and the overview summary read the same shared count, so a decision here
+  // has to tell them. Without it, approving a fleet left a badge insisting one was still waiting.
+  const sharedCounts = useSharedReviewCounts();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -107,6 +111,7 @@ export default function ReviewQueues({ onCountsChanged }: { onCountsChanged?: (t
       setDecision(null);
       setNotes('');
       setReload((n) => n + 1);
+      sharedCounts.reload();
     } catch (e: unknown) {
       setError(e instanceof ApiError ? e.message : 'That decision could not be saved.');
     } finally {
