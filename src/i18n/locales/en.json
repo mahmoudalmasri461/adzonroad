@@ -743,6 +743,45 @@
       "driverStatus": "Driver status",
       "noDriver": "No driver assigned",
       "reported": "Reported a position"
+    },
+    "screens": {
+      "search": "Search serial, plate, driver or region",
+      "filters": {
+        "all": "All",
+        "online": "Reporting now",
+        "attention": "Needs attention",
+        "never": "Never checked in"
+      },
+      "serial": "Serial",
+      "vehicle": "Vehicle",
+      "driver": "Driver",
+      "region": "Region",
+      "status": "Screen status",
+      "network": "Network",
+      "battery": "Battery",
+      "lastSignal": "Last signal",
+      "states": {
+        "online": "Online",
+        "notReporting": "Not reporting",
+        "disconnected": "Disconnected",
+        "maintenance": "Maintenance",
+        "never": "Never checked in"
+      },
+      "signal": {
+        "never": "never",
+        "now": "just now",
+        "minutes": "{{n}} min ago",
+        "hours": "{{n}} hrs ago",
+        "days": "{{n}} days ago"
+      },
+      "fitment": "{{n}} of {{total}} vehicles fitted",
+      "fitmentUnknown": "Fleet size unavailable",
+      "empty": "No screens registered",
+      "emptyDetail": "No rooftop hardware has been built, so there is nothing to list. Every screen-derived figure on the platform is therefore zero rather than wrong.",
+      "noMatch": "No screen matches",
+      "noMatchDetail": "Try another serial, plate, driver or region.",
+      "error": "Screens could not be loaded.",
+      "note": "Provisioning is not built: a screen row has to be created directly in the database, and the vendor adapter that would talk to a supplier’s CMS ships only a null implementation. Status is derived from the last heartbeat, never from the stored status column."
     }
   }
 }

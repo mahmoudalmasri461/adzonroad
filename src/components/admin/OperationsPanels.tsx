@@ -8,18 +8,17 @@ import StatusTag from '../StatusTag';
 import SearchBox from '../SearchBox';
 import {
   deriveAlerts,
-  describeLastSignal,
   fetchDeviceStatuses,
   fetchLiveVehicles,
   fetchPlaybackConflicts,
   fetchScreens,
-  presentScreen,
   reportingScreens,
   type AdminScreen,
   type DeviceStatus,
   type LiveVehicle,
   type PlaybackConflict,
 } from '../../services/admin';
+import { lastSignalParts, screenState, SCREEN_STATE_TONES } from '../../services/screenOperations';
 import { tokens } from '../../theme';
 
 /**
@@ -281,7 +280,10 @@ export default function OperationsPanels() {
               </Box>
               <Box component="tbody">
                 {filteredScreens.map((s) => {
-                  const presented = presentScreen(s);
+                  // Same derivation as the Screens page, so one screen never carries two
+                  // different states depending on which page it is looked at from.
+                  const state = screenState(s);
+                  const signal = lastSignalParts(s.lastHeartbeatAtUtc);
                   return (
                     <Box
                       key={s.screenId}
@@ -296,11 +298,18 @@ export default function OperationsPanels() {
                       <td style={{ direction: 'ltr', textAlign: 'start' }}>{s.plate ?? '—'}</td>
                       <td>{s.driverName?.trim() || '—'}</td>
                       <td>{s.region ?? '—'}</td>
-                      <td><StatusTag label={presented.label} variant={presented.tone} /></td>
+                      <td>
+                        <StatusTag
+                          label={t(`admin.screens.states.${state}`)}
+                          variant={SCREEN_STATE_TONES[state]}
+                        />
+                      </td>
                       <td style={{ direction: 'ltr', textAlign: 'start' }}>
                         {s.batteryLevel !== null ? `${s.batteryLevel}%` : '—'}
                       </td>
-                      <td style={{ color: tokens.textMuted }}>{describeLastSignal(s.lastHeartbeatAtUtc)}</td>
+                      <td style={{ color: tokens.textMuted }}>
+                        {t(`admin.screens.signal.${signal.unit}`, { n: signal.count })}
+                      </td>
                     </Box>
                   );
                 })}
